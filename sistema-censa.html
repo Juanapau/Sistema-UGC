@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Convivencia - CENSA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏫 Sistema de Gestión de Convivencia</h1>
+            <p>Centro Educativo Nuestra Señora de la Altagracia (CENSA)</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="module-card" onclick="openModule('incidencias')">
+                <div class="module-icon">📋</div>
+                <h3>Registro de Incidencias</h3>
+                <p>Registrar y consultar incidencias de conducta estudiantil.</p>
+            </div>
+
+            <div class="module-card" onclick="openModule('tardanzas')">
+                <div class="module-icon">⏰</div>
+                <h3>Registro de Tardanzas</h3>
+                <p>Control de llegadas tardías con generación automática de circulares.</p>
+            </div>
+
+            <div class="module-card" onclick="openModule('contactos')">
+                <div class="module-icon">📞</div>
+                <h3>Contactos de Padres</h3>
+                <p>Gestión de contactos telefónicos de padres y tutores.</p>
+            </div>
+
+            <div class="module-card" onclick="openModule('estudiantes')">
+                <div class="module-icon">👥</div>
+                <h3>Listado de Estudiantes</h3>
+                <p>Importar y gestionar el listado completo de estudiantes.</p>
+            </div>
+
+            <div class="module-card" onclick="openModule('configuracion')">
+                <div class="module-icon">⚙️</div>
+                <h3>Configuración</h3>
+                <p>Conectar con Google Sheets y configurar el sistema.</p>
+            </div>
+
+            <div class="module-card" onclick="openModule('reportes')">
+                <div class="module-icon">📊</div>
+                <h3>Reportes y Estadísticas</h3>
+                <p>Visualizar estadísticas y exportar datos del sistema.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedores de módulos (se cargarán dinámicamente) -->
+    <div id="modalContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
