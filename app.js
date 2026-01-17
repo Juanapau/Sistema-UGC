@@ -1220,15 +1220,28 @@ function mostrarAlerta(id, mensaje) {
 }
 
 async function enviarGoogleSheets(url, datos) {
+    if (!url) {
+        console.log('URL no configurada');
+        return;
+    }
+    
     try {
-        await fetch(url, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(datos)
+        // Crear FormData para enviar
+        const formData = new FormData();
+        Object.keys(datos).forEach(key => {
+            formData.append(key, datos[key]);
         });
+        
+        // Enviar con fetch - Google Apps Script acepta FormData
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            redirect: 'follow'
+        });
+        
+        console.log('Datos enviados a Google Sheets:', datos);
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error al enviar a Google Sheets:', error);
     }
 }
 
