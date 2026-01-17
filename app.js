@@ -174,16 +174,17 @@ function crearModalIncidencias() {
 function registrarIncidencia(e) {
     e.preventDefault();
     const inc = {
-        fecha: document.getElementById('fechaIncidencia').value,
-        estudiante: document.getElementById('nombreEstudianteInc').value,
-        curso: document.getElementById('cursoIncidencia').value,
-        tipoFalta: document.getElementById('tipoFalta').value,
-        docente: document.getElementById('docenteReporta').value,
-        descripcion: document.getElementById('descripcionIncidencia').value,
-        acciones: document.getElementById('accionesDocente').value,
-        seguimiento: document.getElementById('seguimientoUGC').value,
-        observaciones: document.getElementById('otrasObservaciones').value
+        'Fecha y Hora': document.getElementById('fechaIncidencia').value,
+        'Nombre Estudiante': document.getElementById('nombreEstudianteInc').value,
+        'Curso': document.getElementById('cursoIncidencia').value,
+        'Tipo de falta': document.getElementById('tipoFalta').value,
+        'Docente': document.getElementById('docenteReporta').value,
+        'Descripción': document.getElementById('descripcionIncidencia').value,
+        'Acciones Docente': document.getElementById('accionesDocente').value,
+        'Seguimiento UGC': document.getElementById('seguimientoUGC').value,
+        'Observaciones': document.getElementById('otrasObservaciones').value
     };
+    
     datosIncidencias.push(inc);
     if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc);
     mostrarAlerta('alertIncidencias', '✅ Incidencia registrada');
@@ -197,18 +198,29 @@ function cargarTablaIncidencias() {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No hay incidencias</td></tr>';
         return;
     }
-    tbody.innerHTML = datosIncidencias.map((inc, i) => `
+    tbody.innerHTML = datosIncidencias.map((inc, i) => {
+        const fecha = inc['Fecha y Hora'] || inc.fecha || '';
+        const estudiante = inc['Nombre Estudiante'] || inc.estudiante || '';
+        const curso = inc['Curso'] || inc.curso || '';
+        const tipo = inc['Tipo de falta'] || inc.tipoFalta || '';
+        const docente = inc['Docente'] || inc.docente || '';
+        const descripcion = inc['Descripción'] || inc.descripcion || '';
+        const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
+        const observaciones = inc['Observaciones'] || inc.observaciones || '';
+        
+        return `
         <tr>
-            <td>${new Date(inc.fecha).toLocaleDateString('es-DO')}</td>
-            <td><strong>${inc.estudiante}</strong></td>
-            <td>${inc.curso}</td>
-            <td><span class="status-badge badge-${inc.tipoFalta.toLowerCase().replace(' ', '-')}">${inc.tipoFalta}</span></td>
-            <td>${inc.docente}</td>
-            <td>${inc.descripcion.substring(0,80)}...</td>
-            <td>${inc.seguimiento ? inc.seguimiento.substring(0,60) + '...' : '-'}</td>
-            <td>${inc.observaciones ? inc.observaciones.substring(0,60) + '...' : '-'}</td>
+            <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO') : ''}</td>
+            <td><strong>${estudiante}</strong></td>
+            <td>${curso}</td>
+            <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
+            <td>${docente}</td>
+            <td>${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
+            <td>${seguimiento ? seguimiento.substring(0,60) + '...' : '-'}</td>
+            <td>${observaciones ? observaciones.substring(0,60) + '...' : '-'}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function buscarIncidencias() {
@@ -338,7 +350,14 @@ function registrarTardanza(e) {
     const mes = fechaObj.toLocaleString('es', {month: 'long'});
     const año = fechaObj.getFullYear();
     
-    const tard = {fecha, estudiante, curso, mes, año};
+    const tard = {
+        'Fecha': fecha,
+        'Nombre Estudiante': estudiante,
+        'Curso': curso,
+        'Mes': mes,
+        'Año': año
+    };
+    
     datosTardanzas.push(tard);
     if (CONFIG.urlTardanzas) enviarGoogleSheets(CONFIG.urlTardanzas, tard);
     
@@ -581,13 +600,13 @@ function crearModalContactos() {
 function registrarContacto(e) {
     e.preventDefault();
     const contacto = {
-        estudiante: document.getElementById('estContacto').value,
-        curso: document.getElementById('cursoContacto').value,
-        nombrePadre: document.getElementById('nombrePadre').value,
-        telPadre: document.getElementById('telPadre').value,
-        nombreMadre: document.getElementById('nombreMadre').value,
-        telMadre: document.getElementById('telMadre').value,
-        telEmergencia: document.getElementById('telEmergencia').value
+        'Nombre Estudiante': document.getElementById('estContacto').value,
+        'Curso': document.getElementById('cursoContacto').value,
+        'Nombre Padre': document.getElementById('nombrePadre').value,
+        'Contacto Padre': document.getElementById('telPadre').value,
+        'Nombre Madre': document.getElementById('nombreMadre').value,
+        'Contacto Madre': document.getElementById('telMadre').value,
+        'Contacto Emergencia': document.getElementById('telEmergencia').value
     };
     datosContactos.push(contacto);
     if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
@@ -756,8 +775,8 @@ function crearModalEstudiantes() {
 function registrarEstudiante(e) {
     e.preventDefault();
     const est = {
-        nombre: document.getElementById('nombreEst').value,
-        curso: document.getElementById('cursoEst').value
+        'Nombre Completo': document.getElementById('nombreEst').value,
+        'Curso': document.getElementById('cursoEst').value
     };
     datosEstudiantes.push(est);
     if (CONFIG.urlEstudiantes) enviarGoogleSheets(CONFIG.urlEstudiantes, est);
