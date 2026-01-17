@@ -21,6 +21,29 @@ const CURSOS = ['1roA','1roB','1roC','2doA','2doB','2doC','3roA','3roB','3roC',
                 '4toA','4toB','4toC','5toA','5toB','5toC','6toA','6toB','6toC'];
 
 // ==================
+// FUNCIONES PARA CARGAR DATOS DESDE GOOGLE SHEETS
+// ==================
+async function cargarDatosDesdeGoogleSheets(url) {
+    if (!url) return [];
+    
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            redirect: 'follow'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Datos cargados desde Google Sheets:', data);
+            return data;
+        }
+    } catch (error) {
+        console.error('Error al cargar datos:', error);
+    }
+    return [];
+}
+
+// ==================
 // INICIALIZACIÓN
 // ==================
 window.onload = function() {
@@ -168,7 +191,20 @@ function crearModalIncidencias() {
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
     document.getElementById('fechaIncidencia').value = new Date().toISOString().slice(0,16);
-    cargarTablaIncidencias();
+    
+    // Cargar datos desde Google Sheets
+    if (CONFIG.urlIncidencias) {
+        cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias).then(datos => {
+            if (datos && datos.length > 0) {
+                datosIncidencias = datos;
+                cargarTablaIncidencias();
+            } else {
+                cargarTablaIncidencias();
+            }
+        });
+    } else {
+        cargarTablaIncidencias();
+    }
 }
 
 function registrarIncidencia(e) {
@@ -337,7 +373,20 @@ function crearModalTardanzas() {
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
     document.getElementById('fechaTardanza').value = new Date().toISOString().split('T')[0];
-    cargarTablaTardanzas();
+    
+    // Cargar datos desde Google Sheets
+    if (CONFIG.urlTardanzas) {
+        cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas).then(datos => {
+            if (datos && datos.length > 0) {
+                datosTardanzas = datos;
+                cargarTablaTardanzas();
+            } else {
+                cargarTablaTardanzas();
+            }
+        });
+    } else {
+        cargarTablaTardanzas();
+    }
 }
 
 function registrarTardanza(e) {
@@ -396,17 +445,23 @@ function cargarTablaTardanzas() {
     
     const agrupado = {};
     datosTardanzas.forEach(t => {
-        const key = `${t.estudiante}-${t.mes}-${t.año}`;
+        const estudiante = t['Nombre Estudiante'] || t.estudiante || '';
+        const mes = t['Mes'] || t.mes || '';
+        const año = t['Año'] || t.año || '';
+        const curso = t['Curso'] || t.curso || '';
+        const fecha = t['Fecha'] || t.fecha || '';
+        
+        const key = `${estudiante}-${mes}-${año}`;
         if (!agrupado[key]) {
-            agrupado[key] = {estudiante: t.estudiante, curso: t.curso, mes: t.mes, año: t.año, fechas: [], total: 0};
+            agrupado[key] = {estudiante, curso, mes, año, fechas: [], total: 0};
         }
-        agrupado[key].fechas.push(t.fecha);
+        agrupado[key].fechas.push(fecha);
         agrupado[key].total++;
     });
     
     tbody.innerHTML = Object.values(agrupado).map(g => `
         <tr>
-            <td>${new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO')}</td>
+            <td>${g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-'}</td>
             <td><strong>${g.estudiante}</strong></td>
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
@@ -594,7 +649,20 @@ function crearModalContactos() {
     </div>
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
-    cargarTablaContactos();
+    
+    // Cargar datos desde Google Sheets
+    if (CONFIG.urlContactos) {
+        cargarDatosDesdeGoogleSheets(CONFIG.urlContactos).then(datos => {
+            if (datos && datos.length > 0) {
+                datosContactos = datos;
+                cargarTablaContactos();
+            } else {
+                cargarTablaContactos();
+            }
+        });
+    } else {
+        cargarTablaContactos();
+    }
 }
 
 function registrarContacto(e) {
@@ -656,17 +724,27 @@ function cargarTablaContactos() {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
         return;
     }
-    tbody.innerHTML = datosContactos.map(c => `
+    tbody.innerHTML = datosContactos.map(c => {
+        const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-';
+        const curso = c['Curso'] || c.curso || '-';
+        const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '-';
+        const telPadre = c['Contacto Padre'] || c.telPadre || '-';
+        const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '-';
+        const telMadre = c['Contacto Madre'] || c.telMadre || '-';
+        const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
+        
+        return `
         <tr>
-            <td><strong>${c.estudiante}</strong></td>
-            <td>${c.curso}</td>
-            <td>${c.nombrePadre || '-'}</td>
-            <td>${c.telPadre || '-'}</td>
-            <td>${c.nombreMadre || '-'}</td>
-            <td>${c.telMadre || '-'}</td>
-            <td>${c.telEmergencia || '-'}</td>
+            <td><strong>${estudiante}</strong></td>
+            <td>${curso}</td>
+            <td>${nombrePadre}</td>
+            <td>${telPadre}</td>
+            <td>${nombreMadre}</td>
+            <td>${telMadre}</td>
+            <td>${telEmergencia}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function buscarContactos() {
@@ -769,7 +847,20 @@ function crearModalEstudiantes() {
     </div>
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
-    cargarTablaEstudiantes();
+    
+    // Cargar datos desde Google Sheets
+    if (CONFIG.urlEstudiantes) {
+        cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
+            if (datos && datos.length > 0) {
+                datosEstudiantes = datos;
+                cargarTablaEstudiantes();
+            } else {
+                cargarTablaEstudiantes();
+            }
+        });
+    } else {
+        cargarTablaEstudiantes();
+    }
 }
 
 function registrarEstudiante(e) {
@@ -821,12 +912,17 @@ function cargarTablaEstudiantes() {
         tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#999;">No hay estudiantes</td></tr>';
         return;
     }
-    tbody.innerHTML = datosEstudiantes.map(e => `
+    tbody.innerHTML = datosEstudiantes.map(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '-';
+        const curso = e['Curso'] || e.curso || '-';
+        
+        return `
         <tr>
-            <td><strong>${e.nombre}</strong></td>
-            <td>${e.curso}</td>
+            <td><strong>${nombre}</strong></td>
+            <td>${curso}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function buscarEstudiantes() {
