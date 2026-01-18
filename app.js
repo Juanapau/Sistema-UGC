@@ -29,18 +29,40 @@ async function cargarDatosDesdeGoogleSheets(url) {
     try {
         const response = await fetch(url, {
             method: 'GET',
-            redirect: 'follow'
+            redirect: 'follow',
+            cache: 'no-cache', // Evitar cache en móviles
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
         });
         
         if (response.ok) {
             const data = await response.json();
-            console.log('Datos cargados desde Google Sheets:', data);
+            console.log('Datos cargados desde Google Sheets:', data.length, 'registros');
             return data;
+        } else {
+            console.error('Error al cargar datos:', response.status);
+            return [];
         }
     } catch (error) {
         console.error('Error al cargar datos:', error);
+        // Reintentar una vez en caso de error de red (común en móviles)
+        try {
+            console.log('Reintentando carga de datos...');
+            const response = await fetch(url, {
+                method: 'GET',
+                redirect: 'follow'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Datos cargados en segundo intento:', data.length, 'registros');
+                return data;
+            }
+        } catch (retryError) {
+            console.error('Error en segundo intento:', retryError);
+        }
+        return [];
     }
-    return [];
 }
 
 // ==================
@@ -195,6 +217,10 @@ function crearModalIncidencias() {
     // Actualizar datalist con estudiantes
     actualizarDatalistsEstudiantes();
     
+    // Mostrar mensaje de carga
+    const tbody = document.getElementById('bodyIncidencias');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#666;">📥 Cargando incidencias...</td></tr>';
+    
     // Cargar datos desde Google Sheets
     if (CONFIG.urlIncidencias) {
         cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias).then(datos => {
@@ -204,6 +230,9 @@ function crearModalIncidencias() {
             } else {
                 cargarTablaIncidencias();
             }
+        }).catch(error => {
+            console.error('Error:', error);
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
         });
     } else {
         cargarTablaIncidencias();
@@ -395,6 +424,10 @@ function crearModalTardanzas() {
     // Actualizar datalist con estudiantes
     actualizarDatalistsEstudiantes();
     
+    // Mostrar mensaje de carga
+    const tbody = document.getElementById('bodyTardanzas');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#666;">📥 Cargando tardanzas...</td></tr>';
+    
     // Cargar datos desde Google Sheets
     if (CONFIG.urlTardanzas) {
         cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas).then(datos => {
@@ -404,6 +437,9 @@ function crearModalTardanzas() {
             } else {
                 cargarTablaTardanzas();
             }
+        }).catch(error => {
+            console.error('Error:', error);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
         });
     } else {
         cargarTablaTardanzas();
@@ -817,6 +853,10 @@ function crearModalContactos() {
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
     
+    // Mostrar mensaje de carga
+    const tbody = document.getElementById('bodyContactos');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666;">📥 Cargando contactos...</td></tr>';
+    
     // Cargar datos desde Google Sheets
     if (CONFIG.urlContactos) {
         cargarDatosDesdeGoogleSheets(CONFIG.urlContactos).then(datos => {
@@ -826,6 +866,9 @@ function crearModalContactos() {
             } else {
                 cargarTablaContactos();
             }
+        }).catch(error => {
+            console.error('Error:', error);
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
         });
     } else {
         cargarTablaContactos();
@@ -1043,15 +1086,23 @@ function crearModalEstudiantes() {
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
     
+    // Mostrar mensaje de carga
+    const tbody = document.getElementById('bodyEstudiantes');
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#666;">📥 Cargando estudiantes...</td></tr>';
+    
     // Cargar datos desde Google Sheets
     if (CONFIG.urlEstudiantes) {
         cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
             if (datos && datos.length > 0) {
                 datosEstudiantes = datos;
                 cargarTablaEstudiantes();
+                actualizarDatalistsEstudiantes(); // Actualizar listas desplegables
             } else {
                 cargarTablaEstudiantes();
             }
+        }).catch(error => {
+            console.error('Error:', error);
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
         });
     } else {
         cargarTablaEstudiantes();
