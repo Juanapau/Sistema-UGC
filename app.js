@@ -1319,19 +1319,19 @@ function crearModalReportes() {
             <div class="stats-grid">
                 <div class="stat-card">
                     <h4>Incidencias</h4>
-                    <div class="number">${datosIncidencias.length}</div>
+                    <div class="number" id="statIncidencias">0</div>
                 </div>
                 <div class="stat-card">
                     <h4>Tardanzas</h4>
-                    <div class="number">${datosTardanzas.length}</div>
+                    <div class="number" id="statTardanzas">0</div>
                 </div>
                 <div class="stat-card">
                     <h4>Estudiantes</h4>
-                    <div class="number">${datosEstudiantes.length}</div>
+                    <div class="number" id="statEstudiantes">0</div>
                 </div>
                 <div class="stat-card">
                     <h4>Contactos</h4>
-                    <div class="number">${datosContactos.length}</div>
+                    <div class="number" id="statContactos">0</div>
                 </div>
             </div>
             
@@ -1351,7 +1351,7 @@ function crearModalReportes() {
             <div class="form-group">
                 <label>Buscar Estudiante</label>
                 <input type="text" id="estudianteReporte" placeholder="Escriba el nombre del estudiante..." list="listaEstReporte">
-                <datalist id="listaEstReporte">${datosEstudiantes.map(e => `<option value="${e.nombre}">`).join('')}</datalist>
+                <datalist id="listaEstReporte"></datalist>
             </div>
             <button class="btn btn-primary" onclick="generarReporteEstudiante()">📊 Generar Reporte Individual</button>
             
@@ -1363,6 +1363,72 @@ function crearModalReportes() {
     </div>
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
+    
+    // Cargar datos desde Google Sheets y actualizar estadísticas
+    cargarDatosYActualizarEstadisticas();
+}
+
+// Nueva función para cargar datos y actualizar estadísticas
+async function cargarDatosYActualizarEstadisticas() {
+    // Cargar datos desde Google Sheets si están configuradas las URLs
+    const promesas = [];
+    
+    if (CONFIG.urlIncidencias) {
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosIncidencias = datos;
+                }
+            })
+        );
+    }
+    
+    if (CONFIG.urlTardanzas) {
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosTardanzas = datos;
+                }
+            })
+        );
+    }
+    
+    if (CONFIG.urlEstudiantes) {
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosEstudiantes = datos;
+                }
+            })
+        );
+    }
+    
+    if (CONFIG.urlContactos) {
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(CONFIG.urlContactos).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosContactos = datos;
+                }
+            })
+        );
+    }
+    
+    // Esperar a que se carguen todos los datos
+    await Promise.all(promesas);
+    
+    // Actualizar estadísticas en la interfaz
+    const statIncidencias = document.getElementById('statIncidencias');
+    const statTardanzas = document.getElementById('statTardanzas');
+    const statEstudiantes = document.getElementById('statEstudiantes');
+    const statContactos = document.getElementById('statContactos');
+    
+    if (statIncidencias) statIncidencias.textContent = datosIncidencias.length;
+    if (statTardanzas) statTardanzas.textContent = datosTardanzas.length;
+    if (statEstudiantes) statEstudiantes.textContent = datosEstudiantes.length;
+    if (statContactos) statContactos.textContent = datosContactos.length;
+    
+    // Actualizar datalist de estudiantes
+    actualizarDatalistsEstudiantes();
 }
 
 function generarReporte() {
