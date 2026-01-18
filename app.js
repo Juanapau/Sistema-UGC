@@ -855,32 +855,47 @@ function importarContactos(event) {
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, {type: 'array'});
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
         
         let importados = 0;
+        const nuevosContactos = [];
+        
         jsonData.forEach(row => {
             const contacto = {
-                'Nombre Estudiante': row['Nombre del Estudiante'] || row['Estudiante'] || row['Nombre Estudiante'] || '',
+                'Nombre Estudiante': row['Nombre del Estudiante'] || row['Estudiante'] || row['Nombre Estudiante'] || row['Nombre Estudia'] || '',
                 'Curso': row['Curso'] || '',
                 'Nombre Padre': row['Nombre del Padre'] || row['Padre'] || row['Nombre Padre'] || '',
-                'Contacto Padre': row['Contacto del Padre'] || row['Tel. Padre'] || row['Contacto Padre'] || '',
+                'Contacto Padre': row['Contacto del Padre'] || row['Tel. Padre'] || row['Contacto Padre'] || row['Telefono Padre'] || '',
                 'Nombre Madre': row['Nombre de la Madre'] || row['Madre'] || row['Nombre Madre'] || '',
-                'Contacto Madre': row['Contacto de la Madre'] || row['Tel. Madre'] || row['Contacto Madre'] || '',
-                'Contacto Emergencia': row['Contacto de Emergencia'] || row['Emergencia'] || row['Contacto Emergencia'] || ''
+                'Contacto Madre': row['Contacto de la Madre'] || row['Tel. Madre'] || row['Contacto Madre'] || row['Telefono Madre'] || '',
+                'Contacto Emergencia': row['Contacto de Emergencia'] || row['Emergencia'] || row['Contacto Emergencia'] || row['Tel. Emergencia'] || ''
             };
             if (contacto['Nombre Estudiante'] && contacto['Curso']) {
                 datosContactos.push(contacto);
+                nuevosContactos.push(contacto);
                 importados++;
-                if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
             }
         });
         
-        mostrarAlerta('alertContactos', `✅ ${importados} contactos importados`);
+        // Mostrar mensaje inmediatamente
+        mostrarAlerta('alertContactos', `📤 Guardando ${importados} contactos en Google Sheets...`);
         cargarTablaContactos();
+        
+        // Enviar a Google Sheets de forma masiva
+        if (CONFIG.urlContactos && nuevosContactos.length > 0) {
+            const exitoso = await enviarGoogleSheetsMasivo(CONFIG.urlContactos, nuevosContactos);
+            if (exitoso) {
+                mostrarAlerta('alertContactos', `✅ ${importados} contactos importados y guardados correctamente`);
+            } else {
+                mostrarAlerta('alertContactos', `⚠️ ${importados} contactos importados (algunos pueden no haberse guardado en Google Sheets)`);
+            }
+        } else {
+            mostrarAlerta('alertContactos', `✅ ${importados} contactos importados`);
+        }
     };
     reader.readAsArrayBuffer(file);
 }
@@ -915,29 +930,42 @@ function cargarTablaContactos() {
 }
 
 function buscarContactos() {
-    const buscar = document.getElementById('buscarContacto').value.toLowerCase();
-    const filtrados = datosContactos.filter(c => 
-        c.estudiante.toLowerCase().includes(buscar) ||
-        c.nombrePadre.toLowerCase().includes(buscar) ||
-        c.nombreMadre.toLowerCase().includes(buscar)
-    );
+    const buscar = document.getElementById('buscarContacto').value.toLowerCase().trim();
+    
+    const filtrados = datosContactos.filter(c => {
+        const estudiante = (c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '').toLowerCase();
+        const nombrePadre = (c['Nombre Padre'] || c.nombrePadre || '').toLowerCase();
+        const nombreMadre = (c['Nombre Madre'] || c.nombreMadre || '').toLowerCase();
+        
+        return !buscar || estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar);
+    });
     
     const tbody = document.getElementById('bodyContactos');
     if (filtrados.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
-    tbody.innerHTML = filtrados.map(c => `
+    tbody.innerHTML = filtrados.map(c => {
+        const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-';
+        const curso = c['Curso'] || c.curso || '-';
+        const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '-';
+        const telPadre = c['Contacto Padre'] || c.telPadre || '-';
+        const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '-';
+        const telMadre = c['Contacto Madre'] || c.telMadre || '-';
+        const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
+        
+        return `
         <tr>
-            <td><strong>${c.estudiante}</strong></td>
-            <td>${c.curso}</td>
-            <td>${c.nombrePadre || '-'}</td>
-            <td>${c.telPadre || '-'}</td>
-            <td>${c.nombreMadre || '-'}</td>
-            <td>${c.telMadre || '-'}</td>
-            <td>${c.telEmergencia || '-'}</td>
+            <td><strong>${estudiante}</strong></td>
+            <td>${curso}</td>
+            <td>${nombrePadre}</td>
+            <td>${telPadre}</td>
+            <td>${nombreMadre}</td>
+            <td>${telMadre}</td>
+            <td>${telEmergencia}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function exportarContactos() {
@@ -1898,34 +1926,78 @@ function exportarContactosPDF() {
         return;
     }
     
+    // Obtener valor de búsqueda
+    const buscar = document.getElementById('buscarContacto').value.toLowerCase().trim();
+    
+    // Filtrar contactos si hay búsqueda
+    let contactosAExportar = datosContactos;
+    
+    if (buscar) {
+        contactosAExportar = datosContactos.filter(c => {
+            const estudiante = (c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '').toLowerCase();
+            const nombrePadre = (c['Nombre Padre'] || c.nombrePadre || '').toLowerCase();
+            const nombreMadre = (c['Nombre Madre'] || c.nombreMadre || '').toLowerCase();
+            
+            return estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar);
+        });
+    }
+    
+    if (contactosAExportar.length === 0) {
+        alert('No hay contactos que coincidan con la búsqueda');
+        return;
+    }
+    
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF('landscape'); // Horizontal para más espacio
     
-    const startY = agregarEncabezadoCENSA(doc, 'Reporte de Contactos de Padres');
+    // Título personalizado
+    let titulo = 'Reporte de Contactos de Padres';
+    if (buscar) {
+        titulo += ` - ${buscar.charAt(0).toUpperCase() + buscar.slice(1)}`;
+    }
+    const startY = agregarEncabezadoCENSA(doc, titulo);
     
-    const tableData = datosContactos.map(c => [
-        c['Nombre Estudiante'] || '-',
-        c['Curso'] || '-',
-        c['Nombre Padre'] || '-',
-        c['Contacto Padre'] || '-',
-        c['Nombre Madre'] || '-',
-        c['Contacto Madre'] || '-'
+    const tableData = contactosAExportar.map(c => [
+        c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-',
+        c['Curso'] || c.curso || '-',
+        c['Nombre Padre'] || c.nombrePadre || '-',
+        c['Contacto Padre'] || c.telPadre || '-',
+        c['Nombre Madre'] || c.nombreMadre || '-',
+        c['Contacto Madre'] || c.telMadre || '-',
+        c['Contacto Emergencia'] || c.telEmergencia || '-'
     ]);
     
     doc.autoTable({
         startY: startY,
-        head: [['Estudiante', 'Curso', 'Padre', 'Tel. Padre', 'Madre', 'Tel. Madre']],
+        head: [['Estudiante', 'Curso', 'Padre', 'Tel. Padre', 'Madre', 'Tel. Madre', 'Emergencia']],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [44, 90, 160] },
-        styles: { fontSize: 7 }
+        headStyles: { fillColor: [44, 90, 160], fontSize: 8 },
+        styles: { fontSize: 7 },
+        columnStyles: {
+            0: { cellWidth: 45 },
+            1: { cellWidth: 20 },
+            2: { cellWidth: 40 },
+            3: { cellWidth: 30 },
+            4: { cellWidth: 40 },
+            5: { cellWidth: 30 },
+            6: { cellWidth: 30 }
+        }
     });
     
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(8);
-    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY);
+    doc.text(`Total de contactos: ${contactosAExportar.length}`, 14, finalY);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
     
-    doc.save(`Contactos_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+    // Nombre de archivo
+    let nombreArchivo = 'Contactos_CENSA';
+    if (buscar) {
+        nombreArchivo += `_${buscar.replace(/ /g, '_')}`;
+    }
+    nombreArchivo += `_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    doc.save(nombreArchivo);
 }
 
 // Exportar Estudiantes a PDF
