@@ -192,6 +192,9 @@ function crearModalIncidencias() {
     document.getElementById('modalContainer').innerHTML = html;
     document.getElementById('fechaIncidencia').value = new Date().toISOString().slice(0,16);
     
+    // Actualizar datalist con estudiantes
+    actualizarDatalistsEstudiantes();
+    
     // Cargar datos desde Google Sheets
     if (CONFIG.urlIncidencias) {
         cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias).then(datos => {
@@ -373,6 +376,9 @@ function crearModalTardanzas() {
 </div>`;
     document.getElementById('modalContainer').innerHTML = html;
     document.getElementById('fechaTardanza').value = new Date().toISOString().split('T')[0];
+    
+    // Actualizar datalist con estudiantes
+    actualizarDatalistsEstudiantes();
     
     // Cargar datos desde Google Sheets
     if (CONFIG.urlTardanzas) {
@@ -884,13 +890,15 @@ function importarEstudiantes(event) {
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, {type: 'array'});
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
         
         let importados = 0;
+        const nuevosEstudiantes = [];
+        
         jsonData.forEach(row => {
             const est = {
                 'Nombre Completo': row['Nombre Completo'] || row['Nombre'] || '',
@@ -898,16 +906,63 @@ function importarEstudiantes(event) {
             };
             if (est['Nombre Completo'] && est['Curso']) {
                 datosEstudiantes.push(est);
+                nuevosEstudiantes.push(est);
                 importados++;
-                if (CONFIG.urlEstudiantes) enviarGoogleSheets(CONFIG.urlEstudiantes, est);
             }
         });
         
-        mostrarAlerta('alertEstudiantes', `✅ ${importados} estudiantes importados`);
+        // Mostrar mensaje inmediatamente
+        mostrarAlerta('alertEstudiantes', `📤 Guardando ${importados} estudiantes en Google Sheets...`);
         cargarTablaEstudiantes();
+        actualizarDatalistsEstudiantes(); // Actualizar las listas desplegables
+        
+        // Enviar a Google Sheets de forma masiva (todos de una vez)
+        if (CONFIG.urlEstudiantes && nuevosEstudiantes.length > 0) {
+            const exitoso = await enviarGoogleSheetsMasivo(CONFIG.urlEstudiantes, nuevosEstudiantes);
+            if (exitoso) {
+                mostrarAlerta('alertEstudiantes', `✅ ${importados} estudiantes importados y guardados correctamente`);
+            } else {
+                mostrarAlerta('alertEstudiantes', `⚠️ ${importados} estudiantes importados (algunos pueden no haberse guardado en Google Sheets)`);
+            }
+        } else {
+            mostrarAlerta('alertEstudiantes', `✅ ${importados} estudiantes importados`);
+        }
     };
     reader.readAsArrayBuffer(file);
 }
+
+// Función para actualizar todos los datalists de estudiantes
+function actualizarDatalistsEstudiantes() {
+    // Actualizar datalist en Incidencias
+    const listaEst1 = document.getElementById('listaEst1');
+    if (listaEst1) {
+        listaEst1.innerHTML = datosEstudiantes.map(e => {
+            const nombre = e['Nombre Completo'] || e.nombre || '';
+            return `<option value="${nombre}">`;
+        }).join('');
+    }
+    
+    // Actualizar datalist en Tardanzas
+    const listaEst2 = document.getElementById('listaEst2');
+    if (listaEst2) {
+        listaEst2.innerHTML = datosEstudiantes.map(e => {
+            const nombre = e['Nombre Completo'] || e.nombre || '';
+            return `<option value="${nombre}">`;
+        }).join('');
+    }
+    
+    // Actualizar datalist en Reportes
+    const listaEstReporte = document.getElementById('listaEstReporte');
+    if (listaEstReporte) {
+        listaEstReporte.innerHTML = datosEstudiantes.map(e => {
+            const nombre = e['Nombre Completo'] || e.nombre || '';
+            return `<option value="${nombre}">`;
+        }).join('');
+    }
+}
+
+// Alias para compatibilidad
+const actualizarListasEstudiantes = actualizarDatalistsEstudiantes;
 
 function cargarTablaEstudiantes() {
     const tbody = document.getElementById('bodyEstudiantes');
@@ -1389,6 +1444,29 @@ async function enviarGoogleSheets(url, datos) {
         console.log('Datos enviados a Google Sheets:', datos);
     } catch (error) {
         console.error('Error al enviar a Google Sheets:', error);
+    }
+}
+
+// Función para enviar múltiples registros de una vez (MASIVO)
+async function enviarGoogleSheetsMasivo(url, arrayDatos) {
+    if (!url || !arrayDatos || arrayDatos.length === 0) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('bulk', 'true');
+        formData.append('data', JSON.stringify(arrayDatos));
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            redirect: 'follow'
+        });
+        
+        console.log(`${arrayDatos.length} registros enviados masivamente a Google Sheets`);
+        return true;
+    } catch (error) {
+        console.error('Error al enviar datos masivos:', error);
+        return false;
     }
 }
 
