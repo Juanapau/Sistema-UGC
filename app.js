@@ -495,12 +495,15 @@ function cargarTablaTardanzas() {
 }
 
 function buscarTardanzas() {
-    const buscar = document.getElementById('buscarTard').value.toLowerCase();
+    const buscar = document.getElementById('buscarTard').value.toLowerCase().trim();
     const curso = document.getElementById('filtrarCursoTard').value;
     
     const filtrados = datosTardanzas.filter(t => {
-        const matchNombre = t.estudiante.toLowerCase().includes(buscar);
-        const matchCurso = !curso || t.curso === curso;
+        const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
+        const cursoT = t['Curso'] || t.curso || '';
+        
+        const matchNombre = !buscar || estudiante.includes(buscar);
+        const matchCurso = !curso || curso === 'Todos' || cursoT === curso;
         return matchNombre && matchCurso;
     });
     
@@ -510,25 +513,63 @@ function buscarTardanzas() {
         return;
     }
     
+    // Agrupar por estudiante-mes-año
     const agrupado = {};
     filtrados.forEach(t => {
-        const key = `${t.estudiante}-${t.mes}-${t.año}`;
+        const estudiante = t['Nombre Estudiante'] || t.estudiante || '';
+        const mes = t['Mes'] || t.mes || '';
+        const año = t['Año'] || t.año || '';
+        const curso = t['Curso'] || t.curso || '';
+        const fecha = t['Fecha'] || t.fecha || '';
+        
+        const key = `${estudiante}-${mes}-${año}`;
         if (!agrupado[key]) {
-            agrupado[key] = {estudiante: t.estudiante, curso: t.curso, mes: t.mes, año: t.año, fechas: [], total: 0};
+            agrupado[key] = {estudiante, curso, mes, año, fechas: [], total: 0};
         }
-        agrupado[key].fechas.push(t.fecha);
+        agrupado[key].fechas.push(fecha);
         agrupado[key].total++;
     });
     
-    tbody.innerHTML = Object.values(agrupado).map(g => `
-        <tr>
-            <td>${new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO')}</td>
+    tbody.innerHTML = Object.values(agrupado).map(g => {
+        const fechaUltima = g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-';
+        const colorFondo = g.total >= 3 ? 'style="background-color:#fff3cd;"' : '';
+        
+        return `
+        <tr ${colorFondo} onclick="mostrarResumenTardanzas('${g.estudiante}', '${g.curso}', '${g.mes}', '${g.año}', ${g.total})" style="cursor:pointer;">
+            <td>${fechaUltima}</td>
             <td><strong>${g.estudiante}</strong></td>
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
             <td><strong>${g.total}</strong></td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
+}
+
+// Nueva función para mostrar resumen al hacer clic
+function mostrarResumenTardanzas(estudiante, curso, mes, año, total) {
+    const resumen = document.getElementById('contadorTardanzas');
+    if (!resumen) return;
+    
+    resumen.style.display = 'block';
+    document.getElementById('estNombre').textContent = estudiante;
+    document.getElementById('totalMes').textContent = total;
+    
+    if (total >= 3) {
+        const accion = total === 3 ? 'Citar padres por escrito' : 'Llamar y citar padres';
+        document.getElementById('accionReq').textContent = accion;
+        
+        const btnCircular = document.getElementById('btnCircular');
+        btnCircular.style.display = 'inline-block';
+        btnCircular.dataset.estudiante = estudiante;
+        btnCircular.dataset.curso = curso;
+        btnCircular.dataset.mes = mes;
+        btnCircular.dataset.año = año;
+        btnCircular.dataset.total = total;
+    } else {
+        document.getElementById('accionReq').textContent = 'Sin acción requerida';
+        document.getElementById('btnCircular').style.display = 'none';
+    }
 }
 
 function exportarTardanzas() {
@@ -545,41 +586,143 @@ function generarCircular() {
     const curso = btn.dataset.curso;
     const mes = btn.dataset.mes;
     const año = btn.dataset.año;
+    const total = btn.dataset.total || '3';
     
-    const tardanzasMes = datosTardanzas.filter(t => 
-        t.estudiante === estudiante && t.mes === mes && t.año == año
-    );
+    // Filtrar tardanzas del estudiante en ese mes
+    const tardanzasMes = datosTardanzas.filter(t => {
+        const est = t['Nombre Estudiante'] || t.estudiante || '';
+        const mesT = t['Mes'] || t.mes || '';
+        const añoT = t['Año'] || t.año || '';
+        return est === estudiante && mesT === mes && añoT == año;
+    });
     
-    const tabla = tardanzasMes.map(t => {
-        const fecha = new Date(t.fecha);
-        return `<tr><td style="border:1px solid #000;padding:8px;">${fecha.toLocaleDateString('es-DO')}</td></tr>`;
-    }).join('');
+    if (tardanzasMes.length === 0) {
+        alert('No se encontraron tardanzas para este estudiante en ese mes');
+        return;
+    }
     
-    const circular = `
-        <div style="padding:40px;font-family:'Times New Roman',serif;">
-            <div style="text-align:center;margin-bottom:30px;">
-                <h3>CENTRO EDUCATIVO NUESTRA SEÑORA DE LA ALTAGRACIA</h3>
-                <h4>UNIDAD DE GESTIÓN DE LA CONVIVENCIA</h4>
-                <p><strong>Comunicación</strong></p>
-            </div>
-            <p><strong>Fecha:</strong> ${new Date().toLocaleDateString('es-DO')}</p>
-            <p><strong>Estudiante:</strong> ${estudiante}</p>
-            <p><strong>Curso:</strong> ${curso}</p>
-            <p style="margin-top:20px;">Saludos cordiales estimado Padre/Madre/Tutor!</p>
-            <p style="text-align:justify;line-height:1.8;">Le estamos enviando esta comunicación porque su hijo/a ha llegado tarde al centro en ${tardanzasMes.length} ocasiones en el mes de ${mes} y según el reglamento si el estudiante acumula 3 tardanzas en un mes, los padres o tutores serán citados para firmar acuerdos y compromisos.</p>
-            <h4>Registro de Tardanzas del Mes:</h4>
-            <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-                <thead><tr style="background:#2a5298;color:white;"><th style="border:1px solid #000;padding:8px;">Fecha</th></tr></thead>
-                <tbody>${tabla}</tbody>
-            </table>
-            <p style="text-align:center;margin-top:40px;font-weight:bold;color:red;">Nota: Favor devolver esta comunicación firmada</p>
-        </div>
-    `;
+    // Crear PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
     
-    const ventana = window.open('', '_blank');
-    ventana.document.write(circular);
-    ventana.document.close();
-    ventana.print();
+    // Colores institucionales
+    const azul = [44, 90, 160];
+    const verde = [40, 167, 69];
+    
+    // Encabezado con colores
+    doc.setFillColor(azul[0], azul[1], azul[2]);
+    doc.rect(0, 0, 210, 40, 'F');
+    
+    doc.setFillColor(verde[0], verde[1], verde[2]);
+    doc.rect(0, 40, 210, 5, 'F');
+    
+    // Texto del encabezado
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CENTRO EDUCATIVO NUESTRA SEÑORA DE LA ALTAGRACIA', 105, 15, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text('UNIDAD DE GESTIÓN DE LA CONVIVENCIA', 105, 25, { align: 'center' });
+    
+    doc.setFontSize(11);
+    doc.text('Comunicación - Citación a Padres', 105, 35, { align: 'center' });
+    
+    // Restablecer color de texto
+    doc.setTextColor(0, 0, 0);
+    
+    // Información del estudiante
+    let yPos = 55;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Fecha: `, 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date().toLocaleDateString('es-DO'), 40, yPos);
+    
+    yPos += 7;
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Estudiante: `, 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(estudiante, 47, yPos);
+    
+    yPos += 7;
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Curso: `, 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(curso, 37, yPos);
+    
+    // Saludo
+    yPos += 12;
+    doc.setFont('helvetica', 'normal');
+    doc.text('Saludos cordiales estimado Padre/Madre/Tutor,', 20, yPos);
+    
+    // Cuerpo del mensaje
+    yPos += 10;
+    const mensaje = `Le estamos enviando esta comunicación porque su hijo/a ha llegado tarde al centro en ${tardanzasMes.length} ocasiones durante el mes de ${mes} ${año}. Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.`;
+    
+    const lineasMensaje = doc.splitTextToSize(mensaje, 170);
+    doc.text(lineasMensaje, 20, yPos);
+    yPos += lineasMensaje.length * 6 + 5;
+    
+    // Título de tabla
+    doc.setFont('helvetica', 'bold');
+    doc.text('Registro de Tardanzas del Mes:', 20, yPos);
+    yPos += 5;
+    
+    // Tabla de tardanzas
+    const tablaTardanzas = tardanzasMes.map(t => {
+        const fecha = t['Fecha'] || t.fecha || '';
+        return [fecha ? new Date(fecha).toLocaleDateString('es-DO') : '-'];
+    });
+    
+    doc.autoTable({
+        startY: yPos,
+        head: [['Fecha de Tardanza']],
+        body: tablaTardanzas,
+        theme: 'grid',
+        headStyles: { 
+            fillColor: azul,
+            textColor: [255, 255, 255],
+            fontSize: 10,
+            fontStyle: 'bold'
+        },
+        styles: { 
+            fontSize: 9,
+            halign: 'center'
+        },
+        margin: { left: 20, right: 20 }
+    });
+    
+    // Nota importante
+    yPos = doc.lastAutoTable.finalY + 10;
+    doc.setTextColor(220, 53, 69); // Rojo
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    const nota = 'NOTA: Favor devolver esta comunicación firmada';
+    doc.text(nota, 105, yPos, { align: 'center' });
+    
+    // Espacios para firmas
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    
+    yPos += 25;
+    
+    // Firma izquierda - Encargada UGC
+    doc.line(20, yPos, 90, yPos);
+    doc.text('Encargada de Gestión de la Convivencia', 55, yPos + 5, { align: 'center' });
+    
+    // Firma derecha - Padre/Madre/Tutor
+    doc.line(120, yPos, 190, yPos);
+    doc.text('Padre/Madre/Tutor del Estudiante', 155, yPos + 5, { align: 'center' });
+    
+    // Pie de página con fecha de generación
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generado el ${new Date().toLocaleString('es-DO')}`, 105, 285, { align: 'center' });
+    
+    // Guardar PDF
+    doc.save(`Circular_${estudiante.replace(/ /g, '_')}_${mes}_${año}.pdf`);
 }
 
 // ==================
@@ -1643,32 +1786,109 @@ function exportarTardanzasPDF() {
         return;
     }
     
+    // Obtener valor de búsqueda
+    const buscar = document.getElementById('buscarTard').value.toLowerCase().trim();
+    const cursoFiltro = document.getElementById('filtrarCursoTard').value;
+    
+    // Filtrar tardanzas si hay búsqueda
+    let tardanzasAExportar = datosTardanzas;
+    
+    if (buscar || (cursoFiltro && cursoFiltro !== 'Todos')) {
+        tardanzasAExportar = datosTardanzas.filter(t => {
+            const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
+            const cursoT = t['Curso'] || t.curso || '';
+            
+            const matchNombre = !buscar || estudiante.includes(buscar);
+            const matchCurso = !cursoFiltro || cursoFiltro === 'Todos' || cursoT === cursoFiltro;
+            return matchNombre && matchCurso;
+        });
+    }
+    
+    if (tardanzasAExportar.length === 0) {
+        alert('No hay tardanzas que coincidan con la búsqueda');
+        return;
+    }
+    
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    const startY = agregarEncabezadoCENSA(doc, 'Reporte de Tardanzas');
+    // Título personalizado
+    let titulo = 'Reporte de Tardanzas';
+    if (buscar) {
+        titulo += ` - ${buscar.charAt(0).toUpperCase() + buscar.slice(1)}`;
+    }
+    const startY = agregarEncabezadoCENSA(doc, titulo);
     
-    const tableData = datosTardanzas.map(t => [
-        t['Fecha'] ? new Date(t['Fecha']).toLocaleDateString('es-DO') : '-',
-        t['Nombre Estudiante'] || '-',
-        t['Curso'] || '-',
-        `${t['Mes'] || '-'} ${t['Año'] || ''}`
-    ]);
+    // Agrupar por estudiante y mes
+    const agrupadoPorEstudiante = {};
+    tardanzasAExportar.forEach(t => {
+        const estudiante = t['Nombre Estudiante'] || t.estudiante || '';
+        const mes = t['Mes'] || t.mes || '';
+        const año = t['Año'] || t.año || '';
+        const fecha = t['Fecha'] || t.fecha || '';
+        
+        if (!agrupadoPorEstudiante[estudiante]) {
+            agrupadoPorEstudiante[estudiante] = {};
+        }
+        
+        const keyMes = `${mes} ${año}`;
+        if (!agrupadoPorEstudiante[estudiante][keyMes]) {
+            agrupadoPorEstudiante[estudiante][keyMes] = {
+                curso: t['Curso'] || t.curso || '',
+                fechas: [],
+                total: 0
+            };
+        }
+        
+        agrupadoPorEstudiante[estudiante][keyMes].fechas.push(fecha);
+        agrupadoPorEstudiante[estudiante][keyMes].total++;
+    });
+    
+    // Preparar datos para tabla
+    const tableData = [];
+    Object.keys(agrupadoPorEstudiante).forEach(estudiante => {
+        const meses = agrupadoPorEstudiante[estudiante];
+        Object.keys(meses).forEach(mes => {
+            const info = meses[mes];
+            tableData.push([
+                estudiante,
+                info.curso,
+                mes,
+                info.total,
+                info.fechas.map(f => new Date(f).toLocaleDateString('es-DO')).join(', ')
+            ]);
+        });
+    });
     
     doc.autoTable({
         startY: startY,
-        head: [['Fecha', 'Estudiante', 'Curso', 'Mes/Año']],
+        head: [['Estudiante', 'Curso', 'Mes', 'Total', 'Fechas']],
         body: tableData,
         theme: 'grid',
         headStyles: { fillColor: [44, 90, 160] },
-        styles: { fontSize: 9 }
+        styles: { fontSize: 8 },
+        columnStyles: {
+            0: { cellWidth: 50 },
+            1: { cellWidth: 20 },
+            2: { cellWidth: 35 },
+            3: { cellWidth: 15 },
+            4: { cellWidth: 70 }
+        }
     });
     
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(8);
-    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY);
+    doc.text(`Total de tardanzas: ${tardanzasAExportar.length}`, 14, finalY);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
     
-    doc.save(`Tardanzas_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+    // Nombre de archivo
+    let nombreArchivo = 'Tardanzas_CENSA';
+    if (buscar) {
+        nombreArchivo += `_${buscar.replace(/ /g, '_')}`;
+    }
+    nombreArchivo += `_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    doc.save(nombreArchivo);
 }
 
 // Exportar Contactos a PDF
