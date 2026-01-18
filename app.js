@@ -167,7 +167,7 @@ function crearModalIncidencias() {
                     <option value="Muy Grave">Muy Grave</option>
                 </select>
                 <button class="btn btn-primary" onclick="buscarIncidencias()">🔍 Buscar</button>
-                <button class="btn btn-success" onclick="exportarIncidencias()">📥 Exportar</button>
+                <button class="btn btn-success" onclick="exportarIncidenciasPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
                 <table id="tablaIncidencias">
@@ -263,14 +263,18 @@ function cargarTablaIncidencias() {
 }
 
 function buscarIncidencias() {
-    const buscar = document.getElementById('buscarInc').value.toLowerCase();
+    const buscar = document.getElementById('buscarInc').value.toLowerCase().trim();
     const curso = document.getElementById('filtrarCursoInc').value;
     const tipo = document.getElementById('filtrarTipo').value;
     
     const filtrados = datosIncidencias.filter(inc => {
-        const matchNombre = inc.estudiante.toLowerCase().includes(buscar);
-        const matchCurso = !curso || inc.curso === curso;
-        const matchTipo = !tipo || inc.tipoFalta === tipo;
+        const estudiante = (inc['Nombre Estudiante'] || inc.estudiante || '').toLowerCase();
+        const cursoInc = inc['Curso'] || inc.curso || '';
+        const tipoFalta = inc['Tipo de falta'] || inc.tipoFalta || '';
+        
+        const matchNombre = !buscar || estudiante.includes(buscar);
+        const matchCurso = !curso || curso === 'Todos los cursos' || cursoInc === curso;
+        const matchTipo = !tipo || tipo === 'Todos los tipos' || tipoFalta === tipo;
         return matchNombre && matchCurso && matchTipo;
     });
     
@@ -279,18 +283,29 @@ function buscarIncidencias() {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
-    tbody.innerHTML = filtrados.map(inc => `
+    tbody.innerHTML = filtrados.map(inc => {
+        const fecha = inc['Fecha y Hora'] || inc.fecha || '';
+        const estudiante = inc['Nombre Estudiante'] || inc.estudiante || '';
+        const curso = inc['Curso'] || inc.curso || '';
+        const tipo = inc['Tipo de falta'] || inc.tipoFalta || '';
+        const docente = inc['Docente'] || inc.docente || '';
+        const descripcion = inc['Descripción'] || inc.descripcion || '';
+        const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
+        const observaciones = inc['Observaciones'] || inc.observaciones || '';
+        
+        return `
         <tr>
-            <td>${new Date(inc.fecha).toLocaleDateString('es-DO')}</td>
-            <td><strong>${inc.estudiante}</strong></td>
-            <td>${inc.curso}</td>
-            <td><span class="status-badge badge-${inc.tipoFalta.toLowerCase().replace(' ', '-')}">${inc.tipoFalta}</span></td>
-            <td>${inc.docente}</td>
-            <td>${inc.descripcion.substring(0,80)}...</td>
-            <td>${inc.seguimiento ? inc.seguimiento.substring(0,60) + '...' : '-'}</td>
-            <td>${inc.observaciones ? inc.observaciones.substring(0,60) + '...' : '-'}</td>
+            <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO') : ''}</td>
+            <td><strong>${estudiante}</strong></td>
+            <td>${curso}</td>
+            <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
+            <td>${docente}</td>
+            <td>${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
+            <td>${seguimiento ? seguimiento.substring(0,60) + '...' : '-'}</td>
+            <td>${observaciones ? observaciones.substring(0,60) + '...' : '-'}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function exportarIncidencias() {
@@ -355,7 +370,7 @@ function crearModalTardanzas() {
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
                 <button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
-                <button class="btn btn-success" onclick="exportarTardanzas()">📥 Exportar</button>
+                <button class="btn btn-success" onclick="exportarTardanzasPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
                 <table>
@@ -636,7 +651,7 @@ function crearModalContactos() {
             <div class="search-bar">
                 <input type="text" id="buscarContacto" placeholder="🔍 Buscar...">
                 <button class="btn btn-primary" onclick="buscarContactos()">🔍 Buscar</button>
-                <button class="btn btn-success" onclick="exportarContactos()">📥 Exportar</button>
+                <button class="btn btn-success" onclick="exportarContactosPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
                 <table>
@@ -839,7 +854,7 @@ function crearModalEstudiantes() {
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
                 <button class="btn btn-primary" onclick="buscarEstudiantes()">🔍 Buscar</button>
-                <button class="btn btn-success" onclick="exportarEstudiantes()">📥 Exportar</button>
+                <button class="btn btn-success" onclick="exportarEstudiantesPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
                 <table>
@@ -1208,6 +1223,9 @@ function generarReporte() {
                 <li>Graves: ${incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Grave').length}</li>
                 <li>Muy Graves: ${incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Muy Grave').length}</li>
             </ul>
+            <button class="btn-success" onclick="exportarReporteCursoPDF()" style="margin-top:20px;">
+                📄 Exportar Reporte a PDF
+            </button>
         </div>
     `;
 }
@@ -1355,7 +1373,7 @@ function generarReporteEstudiante() {
             ${htmlContacto}
             
             <div style="margin-top:30px;">
-                <button class="btn btn-success" onclick="exportarReporteEstudiante('${estudiante}')">📥 Exportar Reporte de ${estudiante}</button>
+                <button class="btn btn-success" onclick="exportarReporteIndividualPDF()">📄 Exportar Reporte a PDF</button>
             </div>
         </div>
     `;
@@ -1476,4 +1494,286 @@ function cargarDatosEjemplo() {
         {nombre: 'Juan Carlos Rodríguez', curso: '3roA'},
         {nombre: 'María Fernández', curso: '4toB'}
     ];
+}
+// =====================================================
+// FUNCIONES PARA EXPORTAR A PDF CON ENCABEZADO CENSA
+// Agregar estas funciones al archivo app.js
+// =====================================================
+
+// Función helper para agregar encabezado CENSA a los PDFs
+function agregarEncabezadoCENSA(doc, tipoReporte) {
+    // Colores institucionales
+    const azul = [44, 90, 160]; // #2c5aa0
+    const verde = [40, 167, 69]; // #28a745
+    
+    // Rectángulo azul superior
+    doc.setFillColor(azul[0], azul[1], azul[2]);
+    doc.rect(0, 0, 210, 35, 'F');
+    
+    // Rectángulo verde inferior del encabezado
+    doc.setFillColor(verde[0], verde[1], verde[2]);
+    doc.rect(0, 35, 210, 5, 'F');
+    
+    // Texto del encabezado en blanco
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Centro Educativo Nuestra Señora de la Altagracia', 105, 12, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text('Unidad de Gestión de Convivencia', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.text(tipoReporte, 105, 30, { align: 'center' });
+    
+    // Restablecer color de texto a negro
+    doc.setTextColor(0, 0, 0);
+    
+    return 45; // Retornar la posición Y donde debe comenzar el contenido
+}
+
+// Exportar Incidencias a PDF
+function exportarIncidenciasPDF() {
+    if (datosIncidencias.length === 0) {
+        alert('No hay incidencias para exportar');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Agregar encabezado
+    const startY = agregarEncabezadoCENSA(doc, 'Reporte de Incidencias');
+    
+    // Preparar datos para la tabla
+    const tableData = datosIncidencias.map(inc => [
+        inc['Fecha y Hora'] ? new Date(inc['Fecha y Hora']).toLocaleDateString('es-DO') : '-',
+        inc['Nombre Estudiante'] || '-',
+        inc['Curso'] || '-',
+        inc['Tipo de falta'] || '-',
+        inc['Docente'] || '-'
+    ]);
+    
+    // Agregar tabla
+    doc.autoTable({
+        startY: startY,
+        head: [['Fecha', 'Estudiante', 'Curso', 'Tipo', 'Docente']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [44, 90, 160] },
+        styles: { fontSize: 8 }
+    });
+    
+    // Fecha de generación
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY);
+    
+    doc.save(`Incidencias_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// Exportar Tardanzas a PDF
+function exportarTardanzasPDF() {
+    if (datosTardanzas.length === 0) {
+        alert('No hay tardanzas para exportar');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const startY = agregarEncabezadoCENSA(doc, 'Reporte de Tardanzas');
+    
+    const tableData = datosTardanzas.map(t => [
+        t['Fecha'] ? new Date(t['Fecha']).toLocaleDateString('es-DO') : '-',
+        t['Nombre Estudiante'] || '-',
+        t['Curso'] || '-',
+        `${t['Mes'] || '-'} ${t['Año'] || ''}`
+    ]);
+    
+    doc.autoTable({
+        startY: startY,
+        head: [['Fecha', 'Estudiante', 'Curso', 'Mes/Año']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [44, 90, 160] },
+        styles: { fontSize: 9 }
+    });
+    
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY);
+    
+    doc.save(`Tardanzas_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// Exportar Contactos a PDF
+function exportarContactosPDF() {
+    if (datosContactos.length === 0) {
+        alert('No hay contactos para exportar');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const startY = agregarEncabezadoCENSA(doc, 'Reporte de Contactos de Padres');
+    
+    const tableData = datosContactos.map(c => [
+        c['Nombre Estudiante'] || '-',
+        c['Curso'] || '-',
+        c['Nombre Padre'] || '-',
+        c['Contacto Padre'] || '-',
+        c['Nombre Madre'] || '-',
+        c['Contacto Madre'] || '-'
+    ]);
+    
+    doc.autoTable({
+        startY: startY,
+        head: [['Estudiante', 'Curso', 'Padre', 'Tel. Padre', 'Madre', 'Tel. Madre']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [44, 90, 160] },
+        styles: { fontSize: 7 }
+    });
+    
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY);
+    
+    doc.save(`Contactos_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// Exportar Estudiantes a PDF
+function exportarEstudiantesPDF() {
+    if (datosEstudiantes.length === 0) {
+        alert('No hay estudiantes para exportar');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const startY = agregarEncabezadoCENSA(doc, 'Listado de Estudiantes');
+    
+    const tableData = datosEstudiantes.map(e => [
+        e['Nombre Completo'] || '-',
+        e['Curso'] || '-'
+    ]);
+    
+    doc.autoTable({
+        startY: startY,
+        head: [['Nombre Completo', 'Curso']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [44, 90, 160] },
+        styles: { fontSize: 10 }
+    });
+    
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text(`Total de estudiantes: ${datosEstudiantes.length}`, 14, finalY);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
+    
+    doc.save(`Estudiantes_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// Exportar Reporte por Curso a PDF
+function exportarReporteCursoPDF() {
+    const curso = document.getElementById('cursoReporte').value;
+    if (!curso) {
+        alert('Seleccione un curso');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const startY = agregarEncabezadoCENSA(doc, `Reporte del Curso: ${curso}`);
+    
+    const incCurso = datosIncidencias.filter(i => (i['Curso'] || i.curso) === curso);
+    const tardCurso = datosTardanzas.filter(t => (t['Curso'] || t.curso) === curso);
+    const estCurso = datosEstudiantes.filter(e => (e['Curso'] || e.curso) === curso);
+    
+    // Resumen
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Resumen:', 14, startY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`• Estudiantes: ${estCurso.length}`, 20, startY + 8);
+    doc.text(`• Incidencias: ${incCurso.length}`, 20, startY + 14);
+    doc.text(`• Tardanzas: ${tardCurso.length}`, 20, startY + 20);
+    
+    // Desglose de incidencias
+    const leves = incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Leve').length;
+    const graves = incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Grave').length;
+    const muyGraves = incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Muy Grave').length;
+    
+    doc.text(`• Faltas Leves: ${leves}`, 20, startY + 26);
+    doc.text(`• Faltas Graves: ${graves}`, 20, startY + 32);
+    doc.text(`• Faltas Muy Graves: ${muyGraves}`, 20, startY + 38);
+    
+    doc.setFontSize(8);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, 280);
+    
+    doc.save(`Reporte_Curso_${curso}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// Exportar Reporte Individual a PDF
+function exportarReporteIndividualPDF() {
+    const estudiante = document.getElementById('estudianteReporte').value;
+    if (!estudiante) {
+        alert('Escriba el nombre de un estudiante');
+        return;
+    }
+    
+    const infoEstudiante = datosEstudiantes.find(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
+    
+    if (!infoEstudiante) {
+        alert('Estudiante no encontrado');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const startY = agregarEncabezadoCENSA(doc, `Reporte Individual: ${estudiante}`);
+    
+    const curso = infoEstudiante['Curso'] || infoEstudiante.curso || '';
+    const incEstudiante = datosIncidencias.filter(i => {
+        const nombre = i['Nombre Estudiante'] || i.estudiante || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
+    const tardEstudiante = datosTardanzas.filter(t => {
+        const nombre = t['Nombre Estudiante'] || t.estudiante || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Curso: ${curso}`, 14, startY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Total de Incidencias: ${incEstudiante.length}`, 14, startY + 8);
+    doc.text(`Total de Tardanzas: ${tardEstudiante.length}`, 14, startY + 14);
+    
+    const leves = incEstudiante.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Leve').length;
+    const graves = incEstudiante.filter(i => {
+        const tipo = i['Tipo de falta'] || i.tipoFalta || '';
+        return tipo === 'Grave' || tipo === 'Muy Grave';
+    }).length;
+    
+    doc.text(`Faltas Leves: ${leves}`, 14, startY + 20);
+    doc.text(`Faltas Graves/Muy Graves: ${graves}`, 14, startY + 26);
+    
+    doc.setFontSize(8);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, 280);
+    
+    doc.save(`Reporte_${estudiante.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
 }
