@@ -1467,7 +1467,7 @@ function generarReporte() {
                 <li>Graves: ${incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Grave').length}</li>
                 <li>Muy Graves: ${incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Muy Grave').length}</li>
             </ul>
-            <button class="btn-success" onclick="exportarReporteCursoPDF()" style="margin-top:20px;">
+            <button class="btn btn-success" onclick="exportarReporteCursoPDF()" style="margin-top:20px;">
                 📄 Exportar Reporte a PDF
             </button>
         </div>
