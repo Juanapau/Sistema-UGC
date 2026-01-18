@@ -1513,25 +1513,29 @@ function agregarEncabezadoCENSA(doc, tipoReporte) {
     const azul = [44, 90, 160]; // #2c5aa0
     const verde = [40, 167, 69]; // #28a745
     
+    // Obtener ancho de página (210 para vertical, 297 para horizontal)
+    const anchoTotal = doc.internal.pageSize.getWidth();
+    const centroX = anchoTotal / 2;
+    
     // Rectángulo azul superior
     doc.setFillColor(azul[0], azul[1], azul[2]);
-    doc.rect(0, 0, 210, 35, 'F');
+    doc.rect(0, 0, anchoTotal, 35, 'F');
     
     // Rectángulo verde inferior del encabezado
     doc.setFillColor(verde[0], verde[1], verde[2]);
-    doc.rect(0, 35, 210, 5, 'F');
+    doc.rect(0, 35, anchoTotal, 5, 'F');
     
     // Texto del encabezado en blanco
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('Centro Educativo Nuestra Señora de la Altagracia', 105, 12, { align: 'center' });
+    doc.text('Centro Educativo Nuestra Señora de la Altagracia', centroX, 12, { align: 'center' });
     
     doc.setFontSize(12);
-    doc.text('Unidad de Gestión de Convivencia', 105, 20, { align: 'center' });
+    doc.text('Unidad de Gestión de Convivencia', centroX, 20, { align: 'center' });
     
     doc.setFontSize(14);
-    doc.text(tipoReporte, 105, 30, { align: 'center' });
+    doc.text(tipoReporte, centroX, 30, { align: 'center' });
     
     // Restablecer color de texto a negro
     doc.setTextColor(0, 0, 0);
@@ -1546,37 +1550,90 @@ function exportarIncidenciasPDF() {
         return;
     }
     
+    // Obtener valores de búsqueda/filtros
+    const buscar = document.getElementById('buscarInc').value.toLowerCase().trim();
+    const cursoFiltro = document.getElementById('filtrarCursoInc').value;
+    const tipoFiltro = document.getElementById('filtrarTipo').value;
+    
+    // Si hay filtros activos, usar solo las incidencias filtradas
+    let incidenciasAExportar = datosIncidencias;
+    
+    if (buscar || (cursoFiltro && cursoFiltro !== 'Todos los cursos') || (tipoFiltro && tipoFiltro !== 'Todos los tipos')) {
+        incidenciasAExportar = datosIncidencias.filter(inc => {
+            const estudiante = (inc['Nombre Estudiante'] || inc.estudiante || '').toLowerCase();
+            const cursoInc = inc['Curso'] || inc.curso || '';
+            const tipoFalta = inc['Tipo de falta'] || inc.tipoFalta || '';
+            
+            const matchNombre = !buscar || estudiante.includes(buscar);
+            const matchCurso = !cursoFiltro || cursoFiltro === 'Todos los cursos' || cursoInc === cursoFiltro;
+            const matchTipo = !tipoFiltro || tipoFiltro === 'Todos los tipos' || tipoFalta === tipoFiltro;
+            return matchNombre && matchCurso && matchTipo;
+        });
+    }
+    
+    if (incidenciasAExportar.length === 0) {
+        alert('No hay incidencias que coincidan con la búsqueda');
+        return;
+    }
+    
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF('landscape'); // Horizontal para más columnas
     
     // Agregar encabezado
-    const startY = agregarEncabezadoCENSA(doc, 'Reporte de Incidencias');
+    let titulo = 'Reporte de Incidencias';
+    if (buscar) {
+        titulo += ` - ${buscar.charAt(0).toUpperCase() + buscar.slice(1)}`;
+    }
+    const startY = agregarEncabezadoCENSA(doc, titulo);
     
-    // Preparar datos para la tabla
-    const tableData = datosIncidencias.map(inc => [
+    // Preparar datos para la tabla con TODOS los campos
+    const tableData = incidenciasAExportar.map(inc => [
         inc['Fecha y Hora'] ? new Date(inc['Fecha y Hora']).toLocaleDateString('es-DO') : '-',
-        inc['Nombre Estudiante'] || '-',
-        inc['Curso'] || '-',
-        inc['Tipo de falta'] || '-',
-        inc['Docente'] || '-'
+        inc['Nombre Estudiante'] || inc.estudiante || '-',
+        inc['Curso'] || inc.curso || '-',
+        inc['Tipo de falta'] || inc.tipoFalta || '-',
+        inc['Docente'] || inc.docente || '-',
+        (inc['Descripción'] || inc.descripcion || '-').substring(0, 50) + '...',
+        (inc['Acciones Docente'] || inc.acciones || '-').substring(0, 30) + '...',
+        (inc['Seguimiento UGC'] || inc.seguimiento || '-').substring(0, 30) + '...',
+        (inc['Observaciones'] || inc.observaciones || '-').substring(0, 30) + '...'
     ]);
     
     // Agregar tabla
     doc.autoTable({
         startY: startY,
-        head: [['Fecha', 'Estudiante', 'Curso', 'Tipo', 'Docente']],
+        head: [['Fecha', 'Estudiante', 'Curso', 'Tipo', 'Docente', 'Descripción', 'Acciones', 'Seguimiento', 'Observaciones']],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [44, 90, 160] },
-        styles: { fontSize: 8 }
+        headStyles: { fillColor: [44, 90, 160], fontSize: 7 },
+        styles: { fontSize: 6, cellPadding: 2 },
+        columnStyles: {
+            0: { cellWidth: 20 },  // Fecha
+            1: { cellWidth: 35 },  // Estudiante
+            2: { cellWidth: 15 },  // Curso
+            3: { cellWidth: 20 },  // Tipo
+            4: { cellWidth: 30 },  // Docente
+            5: { cellWidth: 50 },  // Descripción
+            6: { cellWidth: 30 },  // Acciones
+            7: { cellWidth: 30 },  // Seguimiento
+            8: { cellWidth: 30 }   // Observaciones
+        }
     });
     
-    // Fecha de generación
+    // Pie de página con info
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(8);
-    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY);
+    doc.text(`Total de incidencias: ${incidenciasAExportar.length}`, 14, finalY);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
     
-    doc.save(`Incidencias_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+    // Nombre del archivo
+    let nombreArchivo = 'Incidencias_CENSA';
+    if (buscar) {
+        nombreArchivo += `_${buscar.replace(/ /g, '_')}`;
+    }
+    nombreArchivo += `_${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    doc.save(nombreArchivo);
 }
 
 // Exportar Tardanzas a PDF
