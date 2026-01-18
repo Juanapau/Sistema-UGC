@@ -24,7 +24,12 @@ const CURSOS = ['1roA','1roB','1roC','2doA','2doB','2doC','3roA','3roB','3roC',
 // FUNCIONES PARA CARGAR DATOS DESDE GOOGLE SHEETS
 // ==================
 async function cargarDatosDesdeGoogleSheets(url) {
-    if (!url) return [];
+    if (!url) {
+        console.log('No hay URL configurada');
+        return [];
+    }
+    
+    console.log('Cargando datos desde:', url);
     
     try {
         const response = await fetch(url, {
@@ -41,7 +46,7 @@ async function cargarDatosDesdeGoogleSheets(url) {
             console.log('Datos cargados desde Google Sheets:', data.length, 'registros');
             return data;
         } else {
-            console.error('Error al cargar datos:', response.status);
+            console.error('Error al cargar datos:', response.status, response.statusText);
             return [];
         }
     } catch (error) {
@@ -49,6 +54,7 @@ async function cargarDatosDesdeGoogleSheets(url) {
         // Reintentar una vez en caso de error de red (común en móviles)
         try {
             console.log('Reintentando carga de datos...');
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Esperar 1 segundo
             const response = await fetch(url, {
                 method: 'GET',
                 redirect: 'follow'
@@ -65,21 +71,114 @@ async function cargarDatosDesdeGoogleSheets(url) {
     }
 }
 
+// Funciones de recarga manual
+async function recargarIncidencias() {
+    const tbody = document.getElementById('bodyIncidencias');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    
+    if (CONFIG.urlIncidencias) {
+        const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias);
+        if (datos && datos.length > 0) {
+            datosIncidencias = datos;
+            cargarTablaIncidencias();
+            mostrarAlerta('alertIncidencias', `✅ ${datos.length} incidencias recargadas`);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
+        }
+    }
+}
+
+async function recargarTardanzas() {
+    const tbody = document.getElementById('bodyTardanzas');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    
+    if (CONFIG.urlTardanzas) {
+        const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas);
+        if (datos && datos.length > 0) {
+            datosTardanzas = datos;
+            cargarTablaTardanzas();
+            mostrarAlerta('alertTardanzas', `✅ ${datos.length} tardanzas recargadas`);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
+        }
+    }
+}
+
+async function recargarContactos() {
+    const tbody = document.getElementById('bodyContactos');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    
+    if (CONFIG.urlContactos) {
+        const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlContactos);
+        if (datos && datos.length > 0) {
+            datosContactos = datos;
+            cargarTablaContactos();
+            mostrarAlerta('alertContactos', `✅ ${datos.length} contactos recargados`);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
+        }
+    }
+}
+
+async function recargarEstudiantes() {
+    const tbody = document.getElementById('bodyEstudiantes');
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    
+    if (CONFIG.urlEstudiantes) {
+        const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes);
+        if (datos && datos.length > 0) {
+            datosEstudiantes = datos;
+            cargarTablaEstudiantes();
+            actualizarDatalistsEstudiantes();
+            mostrarAlerta('alertEstudiantes', `✅ ${datos.length} estudiantes recargados`);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
+        }
+    }
+}
+
 // ==================
 // INICIALIZACIÓN
 // ==================
-window.onload = function() {
+function inicializarSistema() {
+    console.log('Inicializando sistema CENSA...');
     const configGuardada = localStorage.getItem('censaConfig');
     if (configGuardada) {
         CONFIG = JSON.parse(configGuardada);
+        console.log('Configuración cargada:', CONFIG);
+    } else {
+        console.log('No hay configuración guardada');
     }
     cargarDatosEjemplo();
-};
+}
+
+// Ejecutar en múltiples eventos para compatibilidad con móviles
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarSistema);
+} else {
+    // DOM ya está listo
+    inicializarSistema();
+}
+
+// Backup con window.onload
+window.addEventListener('load', function() {
+    console.log('Window load event');
+    if (!CONFIG.urlIncidencias && !CONFIG.urlTardanzas) {
+        inicializarSistema();
+    }
+});
 
 // ==================
 // NAVEGACIÓN
 // ==================
 function openModule(moduleName) {
+    // Recargar configuración en cada apertura de módulo (importante para móviles)
+    const configGuardada = localStorage.getItem('censaConfig');
+    if (configGuardada) {
+        CONFIG = JSON.parse(configGuardada);
+        console.log('Config recargada para módulo:', moduleName, CONFIG);
+    }
+    
     const modals = {
         'incidencias': crearModalIncidencias,
         'tardanzas': crearModalTardanzas,
@@ -189,6 +288,7 @@ function crearModalIncidencias() {
                     <option value="Muy Grave">Muy Grave</option>
                 </select>
                 <button class="btn btn-primary" onclick="buscarIncidencias()">🔍 Buscar</button>
+                <button class="btn" onclick="recargarIncidencias()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarIncidenciasPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
@@ -399,6 +499,7 @@ function crearModalTardanzas() {
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
                 <button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
+                <button class="btn" onclick="recargarTardanzas()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarTardanzasPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
@@ -830,6 +931,7 @@ function crearModalContactos() {
             <div class="search-bar">
                 <input type="text" id="buscarContacto" placeholder="🔍 Buscar...">
                 <button class="btn btn-primary" onclick="buscarContactos()">🔍 Buscar</button>
+                <button class="btn" onclick="recargarContactos()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarContactosPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
@@ -1068,6 +1170,7 @@ function crearModalEstudiantes() {
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
                 <button class="btn btn-primary" onclick="buscarEstudiantes()">🔍 Buscar</button>
+                <button class="btn" onclick="recargarEstudiantes()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarEstudiantesPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
