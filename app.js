@@ -999,12 +999,15 @@ function cargarTablaEstudiantes() {
 }
 
 function buscarEstudiantes() {
-    const buscar = document.getElementById('buscarEst').value.toLowerCase();
+    const buscar = document.getElementById('buscarEst').value.toLowerCase().trim();
     const curso = document.getElementById('filtrarCursoEst').value;
     
     const filtrados = datosEstudiantes.filter(e => {
-        const matchNombre = e.nombre.toLowerCase().includes(buscar);
-        const matchCurso = !curso || e.curso === curso;
+        const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+        const cursoE = e['Curso'] || e.curso || '';
+        
+        const matchNombre = !buscar || nombre.includes(buscar);
+        const matchCurso = !curso || curso === 'Todos' || cursoE === curso;
         return matchNombre && matchCurso;
     });
     
@@ -1013,12 +1016,16 @@ function buscarEstudiantes() {
         tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
-    tbody.innerHTML = filtrados.map(e => `
+    tbody.innerHTML = filtrados.map(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '-';
+        const curso = e['Curso'] || e.curso || '-';
+        return `
         <tr>
-            <td><strong>${e.nombre}</strong></td>
-            <td>${e.curso}</td>
+            <td><strong>${nombre}</strong></td>
+            <td>${curso}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function exportarEstudiantes() {
