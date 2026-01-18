@@ -410,10 +410,13 @@ function registrarTardanza(e) {
     datosTardanzas.push(tard);
     if (CONFIG.urlTardanzas) enviarGoogleSheets(CONFIG.urlTardanzas, tard);
     
-    // Contar tardanzas del mes
-    const tardanzasMes = datosTardanzas.filter(t => 
-        t.estudiante === estudiante && t.mes === mes && t.año === año
-    ).length;
+    // Contar tardanzas del mes - usar nombres de campos correctos
+    const tardanzasMes = datosTardanzas.filter(t => {
+        const estT = t['Nombre Estudiante'] || t.estudiante || '';
+        const mesT = t['Mes'] || t.mes || '';
+        const añoT = t['Año'] || t.año || '';
+        return estT === estudiante && mesT === mes && añoT == año;
+    }).length;
     
     document.getElementById('contadorTardanzas').style.display = 'block';
     document.getElementById('estNombre').textContent = estudiante;
@@ -697,15 +700,15 @@ function importarContactos(event) {
         let importados = 0;
         jsonData.forEach(row => {
             const contacto = {
-                estudiante: row['Nombre del Estudiante'] || row['Estudiante'] || '',
-                curso: row['Curso'] || '',
-                nombrePadre: row['Nombre del Padre'] || row['Padre'] || '',
-                telPadre: row['Contacto del Padre'] || row['Tel. Padre'] || '',
-                nombreMadre: row['Nombre de la Madre'] || row['Madre'] || '',
-                telMadre: row['Contacto de la Madre'] || row['Tel. Madre'] || '',
-                telEmergencia: row['Contacto de Emergencia'] || row['Emergencia'] || ''
+                'Nombre Estudiante': row['Nombre del Estudiante'] || row['Estudiante'] || row['Nombre Estudiante'] || '',
+                'Curso': row['Curso'] || '',
+                'Nombre Padre': row['Nombre del Padre'] || row['Padre'] || row['Nombre Padre'] || '',
+                'Contacto Padre': row['Contacto del Padre'] || row['Tel. Padre'] || row['Contacto Padre'] || '',
+                'Nombre Madre': row['Nombre de la Madre'] || row['Madre'] || row['Nombre Madre'] || '',
+                'Contacto Madre': row['Contacto de la Madre'] || row['Tel. Madre'] || row['Contacto Madre'] || '',
+                'Contacto Emergencia': row['Contacto de Emergencia'] || row['Emergencia'] || row['Contacto Emergencia'] || ''
             };
-            if (contacto.estudiante && contacto.curso) {
+            if (contacto['Nombre Estudiante'] && contacto['Curso']) {
                 datosContactos.push(contacto);
                 importados++;
                 if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
@@ -890,10 +893,10 @@ function importarEstudiantes(event) {
         let importados = 0;
         jsonData.forEach(row => {
             const est = {
-                nombre: row['Nombre Completo'] || row['Nombre'] || '',
-                curso: row['Curso'] || ''
+                'Nombre Completo': row['Nombre Completo'] || row['Nombre'] || '',
+                'Curso': row['Curso'] || ''
             };
-            if (est.nombre && est.curso) {
+            if (est['Nombre Completo'] && est['Curso']) {
                 datosEstudiantes.push(est);
                 importados++;
                 if (CONFIG.urlEstudiantes) enviarGoogleSheets(CONFIG.urlEstudiantes, est);
@@ -1119,13 +1122,13 @@ function generarReporte() {
     const contenedor = document.getElementById('contenidoReporte');
     
     if (!curso) {
-        contenedor.innerHTML = '<div class="alert alert-info">Seleccione un curso</div>';
+        contenedor.innerHTML = '<div class="alert alert-info" style="display:block;">Seleccione un curso</div>';
         return;
     }
     
-    const incCurso = datosIncidencias.filter(i => i.curso === curso);
-    const tardCurso = datosTardanzas.filter(t => t.curso === curso);
-    const estCurso = datosEstudiantes.filter(e => e.curso === curso);
+    const incCurso = datosIncidencias.filter(i => (i['Curso'] || i.curso) === curso);
+    const tardCurso = datosTardanzas.filter(t => (t['Curso'] || t.curso) === curso);
+    const estCurso = datosEstudiantes.filter(e => (e['Curso'] || e.curso) === curso);
     
     contenedor.innerHTML = `
         <div class="config-section">
@@ -1146,9 +1149,9 @@ function generarReporte() {
             </div>
             <h4>Desglose de Incidencias:</h4>
             <ul style="line-height:2;">
-                <li>Leves: ${incCurso.filter(i => i.tipoFalta === 'Leve').length}</li>
-                <li>Graves: ${incCurso.filter(i => i.tipoFalta === 'Grave').length}</li>
-                <li>Muy Graves: ${incCurso.filter(i => i.tipoFalta === 'Muy Grave').length}</li>
+                <li>Leves: ${incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Leve').length}</li>
+                <li>Graves: ${incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Grave').length}</li>
+                <li>Muy Graves: ${incCurso.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Muy Grave').length}</li>
             </ul>
         </div>
     `;
@@ -1159,34 +1162,51 @@ function generarReporteEstudiante() {
     const contenedor = document.getElementById('contenidoReporte');
     
     if (!estudiante) {
-        contenedor.innerHTML = '<div class="alert alert-info">Escriba el nombre de un estudiante</div>';
+        contenedor.innerHTML = '<div class="alert alert-info" style="display:block;">Escriba el nombre de un estudiante</div>';
         return;
     }
     
-    // Buscar información del estudiante
-    const infoEstudiante = datosEstudiantes.find(e => e.nombre.toLowerCase() === estudiante.toLowerCase());
+    // Buscar información del estudiante con compatibilidad de nombres
+    const infoEstudiante = datosEstudiantes.find(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
     
     if (!infoEstudiante) {
-        contenedor.innerHTML = '<div class="alert alert-info">Estudiante no encontrado en el sistema</div>';
+        contenedor.innerHTML = '<div class="alert alert-info" style="display:block;">Estudiante no encontrado en el sistema</div>';
         return;
     }
     
+    const cursoEst = infoEstudiante['Curso'] || infoEstudiante.curso || '';
+    
     // Buscar incidencias del estudiante
-    const incEstudiante = datosIncidencias.filter(i => i.estudiante.toLowerCase() === estudiante.toLowerCase());
+    const incEstudiante = datosIncidencias.filter(i => {
+        const nombre = i['Nombre Estudiante'] || i.estudiante || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
     
     // Buscar tardanzas del estudiante
-    const tardEstudiante = datosTardanzas.filter(t => t.estudiante.toLowerCase() === estudiante.toLowerCase());
+    const tardEstudiante = datosTardanzas.filter(t => {
+        const nombre = t['Nombre Estudiante'] || t.estudiante || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
     
     // Buscar contactos
-    const contactoEstudiante = datosContactos.find(c => c.estudiante.toLowerCase() === estudiante.toLowerCase());
+    const contactoEstudiante = datosContactos.find(c => {
+        const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
     
     // Generar reporte detallado
     let htmlIncidencias = '';
     if (incEstudiante.length > 0) {
         htmlIncidencias = '<h4>Incidencias Registradas:</h4><ul style="line-height:2;">';
         incEstudiante.forEach(inc => {
-            const fecha = new Date(inc.fecha).toLocaleDateString('es-DO');
-            htmlIncidencias += `<li><strong>${fecha}</strong> - ${inc.tipoFalta}: ${inc.descripcion}</li>`;
+            const fechaInc = inc['Fecha y Hora'] || inc.fecha || '';
+            const tipoFalta = inc['Tipo de falta'] || inc.tipoFalta || '';
+            const descripcion = inc['Descripción'] || inc.descripcion || '';
+            const fecha = fechaInc ? new Date(fechaInc).toLocaleDateString('es-DO') : '';
+            htmlIncidencias += `<li><strong>${fecha}</strong> - ${tipoFalta}: ${descripcion}</li>`;
         });
         htmlIncidencias += '</ul>';
     } else {
@@ -1198,9 +1218,12 @@ function generarReporteEstudiante() {
         // Agrupar por mes
         const tardanzasPorMes = {};
         tardEstudiante.forEach(t => {
-            const key = `${t.mes} ${t.año}`;
+            const mes = t['Mes'] || t.mes || '';
+            const año = t['Año'] || t.año || '';
+            const fecha = t['Fecha'] || t.fecha || '';
+            const key = `${mes} ${año}`;
             if (!tardanzasPorMes[key]) tardanzasPorMes[key] = [];
-            tardanzasPorMes[key].push(t.fecha);
+            tardanzasPorMes[key].push(fecha);
         });
         
         htmlTardanzas = '<h4>Tardanzas Registradas:</h4><ul style="line-height:2;">';
@@ -1217,12 +1240,18 @@ function generarReporteEstudiante() {
     
     let htmlContacto = '';
     if (contactoEstudiante) {
+        const nombrePadre = contactoEstudiante['Nombre Padre'] || contactoEstudiante.nombrePadre || 'No registrado';
+        const telPadre = contactoEstudiante['Contacto Padre'] || contactoEstudiante.telPadre || 'Sin teléfono';
+        const nombreMadre = contactoEstudiante['Nombre Madre'] || contactoEstudiante.nombreMadre || 'No registrado';
+        const telMadre = contactoEstudiante['Contacto Madre'] || contactoEstudiante.telMadre || 'Sin teléfono';
+        const telEmergencia = contactoEstudiante['Contacto Emergencia'] || contactoEstudiante.telEmergencia || 'No registrado';
+        
         htmlContacto = `
             <h4>Información de Contacto:</h4>
             <ul style="line-height:2;">
-                <li><strong>Padre:</strong> ${contactoEstudiante.nombrePadre || 'No registrado'} - ${contactoEstudiante.telPadre || 'Sin teléfono'}</li>
-                <li><strong>Madre:</strong> ${contactoEstudiante.nombreMadre || 'No registrado'} - ${contactoEstudiante.telMadre || 'Sin teléfono'}</li>
-                <li><strong>Contacto de Emergencia:</strong> ${contactoEstudiante.telEmergencia || 'No registrado'}</li>
+                <li><strong>Padre:</strong> ${nombrePadre} - ${telPadre}</li>
+                <li><strong>Madre:</strong> ${nombreMadre} - ${telMadre}</li>
+                <li><strong>Contacto de Emergencia:</strong> ${telEmergencia}</li>
             </ul>
         `;
     } else {
@@ -1232,7 +1261,7 @@ function generarReporteEstudiante() {
     contenedor.innerHTML = `
         <div class="config-section">
             <h3>📋 Reporte Individual: ${estudiante}</h3>
-            <p><strong>Curso:</strong> ${infoEstudiante.curso}</p>
+            <p><strong>Curso:</strong> ${cursoEst}</p>
             
             <hr style="margin:20px 0;">
             
@@ -1247,11 +1276,14 @@ function generarReporteEstudiante() {
                 </div>
                 <div class="stat-card">
                     <h4>Faltas Leves</h4>
-                    <div class="number">${incEstudiante.filter(i => i.tipoFalta === 'Leve').length}</div>
+                    <div class="number">${incEstudiante.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Leve').length}</div>
                 </div>
                 <div class="stat-card">
                     <h4>Faltas Graves</h4>
-                    <div class="number">${incEstudiante.filter(i => i.tipoFalta === 'Grave').length + incEstudiante.filter(i => i.tipoFalta === 'Muy Grave').length}</div>
+                    <div class="number">${incEstudiante.filter(i => {
+                        const tipo = i['Tipo de falta'] || i.tipoFalta || '';
+                        return tipo === 'Grave' || tipo === 'Muy Grave';
+                    }).length}</div>
                 </div>
             </div>
             
