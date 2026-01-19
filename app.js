@@ -2416,27 +2416,163 @@ function exportarReporteIndividualPDF() {
         const nombre = t['Nombre Estudiante'] || t.estudiante || '';
         return nombre.toLowerCase() === estudiante.toLowerCase();
     });
+    const contactoEstudiante = datosContactos.find(c => {
+        const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+        return nombre.toLowerCase() === estudiante.toLowerCase();
+    });
     
+    let yPos = startY + 5;
+    
+    // Curso
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Curso: ${curso}`, 14, startY);
+    doc.text(`Curso: ${curso}`, 14, yPos);
+    yPos += 10;
     
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(`Total de Incidencias: ${incEstudiante.length}`, 14, startY + 8);
-    doc.text(`Total de Tardanzas: ${tardEstudiante.length}`, 14, startY + 14);
-    
+    // Estadísticas en formato de tarjetas
     const leves = incEstudiante.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Leve').length;
     const graves = incEstudiante.filter(i => {
         const tipo = i['Tipo de falta'] || i.tipoFalta || '';
         return tipo === 'Grave' || tipo === 'Muy Grave';
     }).length;
     
-    doc.text(`Faltas Leves: ${leves}`, 14, startY + 20);
-    doc.text(`Faltas Graves/Muy Graves: ${graves}`, 14, startY + 26);
+    // Fondo de color para las estadísticas
+    doc.setFillColor(220, 53, 69); // Rojo para incidencias
+    doc.rect(14, yPos, 40, 20, 'F');
+    doc.setFillColor(40, 167, 69); // Verde para tardanzas
+    doc.rect(58, yPos, 40, 20, 'F');
+    doc.setFillColor(0, 123, 255); // Azul para leves
+    doc.rect(102, yPos, 40, 20, 'F');
+    doc.setFillColor(108, 117, 125); // Gris para graves
+    doc.rect(146, yPos, 40, 20, 'F');
     
+    // Texto de las tarjetas
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
-    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, 280);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Incidencias', 34, yPos + 6, { align: 'center' });
+    doc.text('Tardanzas', 78, yPos + 6, { align: 'center' });
+    doc.text('Faltas Leves', 122, yPos + 6, { align: 'center' });
+    doc.text('Faltas Graves', 166, yPos + 6, { align: 'center' });
+    
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(incEstudiante.length), 34, yPos + 15, { align: 'center' });
+    doc.text(String(tardEstudiante.length), 78, yPos + 15, { align: 'center' });
+    doc.text(String(leves), 122, yPos + 15, { align: 'center' });
+    doc.text(String(graves), 166, yPos + 15, { align: 'center' });
+    
+    // Restablecer color de texto
+    doc.setTextColor(0, 0, 0);
+    yPos += 28;
+    
+    // Incidencias Registradas
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Incidencias Registradas:', 14, yPos);
+    yPos += 5;
+    
+    if (incEstudiante.length > 0) {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        
+        incEstudiante.forEach(inc => {
+            const fechaInc = inc['Fecha y Hora'] || inc.fecha || '';
+            const tipoFalta = inc['Tipo de falta'] || inc.tipoFalta || '';
+            const descripcion = inc['Descripción'] || inc.descripcion || '';
+            const fecha = fechaInc ? new Date(fechaInc).toLocaleDateString('es-DO') : '';
+            
+            // Verificar si hay espacio
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text(`• ${fecha}`, 14, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`- ${tipoFalta}:`, 45, yPos);
+            
+            // Descripción con word wrap
+            const descripcionLineas = doc.splitTextToSize(descripcion, 150);
+            doc.text(descripcionLineas, 14, yPos + 4);
+            yPos += 4 + (descripcionLineas.length * 4) + 3;
+        });
+    } else {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(40, 167, 69);
+        doc.text('✓ Sin incidencias registradas', 14, yPos);
+        doc.setTextColor(0, 0, 0);
+        yPos += 5;
+    }
+    
+    yPos += 5;
+    
+    // Tardanzas
+    if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Tardanzas:', 14, yPos);
+    yPos += 5;
+    
+    if (tardEstudiante.length > 0) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(40, 167, 69);
+        doc.text(`Total de tardanzas: ${tardEstudiante.length}`, 14, yPos);
+        doc.setTextColor(0, 0, 0);
+    } else {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(40, 167, 69);
+        doc.text('✓ Sin tardanzas registradas', 14, yPos);
+        doc.setTextColor(0, 0, 0);
+    }
+    
+    yPos += 8;
+    
+    // Información de Contacto
+    if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Información de Contacto:', 14, yPos);
+    yPos += 5;
+    
+    if (contactoEstudiante) {
+        const nombrePadre = contactoEstudiante['Nombre Padre'] || contactoEstudiante.nombrePadre || 'No registrado';
+        const telPadre = contactoEstudiante['Contacto Padre'] || contactoEstudiante.telPadre || 'Sin teléfono';
+        const nombreMadre = contactoEstudiante['Nombre Madre'] || contactoEstudiante.nombreMadre || 'No registrado';
+        const telMadre = contactoEstudiante['Contacto Madre'] || contactoEstudiante.telMadre || 'Sin teléfono';
+        const telEmergencia = contactoEstudiante['Contacto Emergencia'] || contactoEstudiante.telEmergencia || 'No registrado';
+        
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`• Padre: ${nombrePadre} - ${telPadre}`, 14, yPos);
+        yPos += 5;
+        doc.text(`• Madre: ${nombreMadre} - ${telMadre}`, 14, yPos);
+        yPos += 5;
+        doc.text(`• Contacto de Emergencia: ${telEmergencia}`, 14, yPos);
+    } else {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(255, 193, 7);
+        doc.text('⚠ Sin contactos registrados', 14, yPos);
+        doc.setTextColor(0, 0, 0);
+    }
+    
+    // Pie de página
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, 285);
     
     doc.save(`Reporte_${estudiante.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
 }
