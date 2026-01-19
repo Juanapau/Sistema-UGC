@@ -553,29 +553,40 @@ function autocompletarCursoTardanza() {
     }
     
     // Buscar el estudiante en la lista (búsqueda exacta)
-    const estudiante = datosEstudiantes.find(e => e.nombre === nombreEstudiante);
+    // Probar con ambos formatos de nombre
+    const estudiante = datosEstudiantes.find(e => {
+        const nombreCompleto = e['Nombre Completo'] || e.nombre || '';
+        return nombreCompleto === nombreEstudiante;
+    });
     
-    if (estudiante && estudiante.curso) {
-        // Auto-seleccionar el curso
-        cursoSelect.value = estudiante.curso;
-        
-        // Cambiar color del select para indicar que se autocompletó
-        cursoSelect.style.background = '#e8f5e9';
-        setTimeout(() => {
-            cursoSelect.style.background = '';
-        }, 1000);
-    } else {
-        // Si no se encuentra exactamente, intentar búsqueda parcial
-        const estudianteParcial = datosEstudiantes.find(e => 
-            e.nombre.toLowerCase().includes(nombreEstudiante.toLowerCase())
-        );
-        
-        if (estudianteParcial && estudianteParcial.curso) {
-            cursoSelect.value = estudianteParcial.curso;
-            cursoSelect.style.background = '#fff3cd'; // Color amarillo para indicar coincidencia parcial
+    if (estudiante) {
+        const curso = estudiante['Curso'] || estudiante.curso || '';
+        if (curso) {
+            // Auto-seleccionar el curso
+            cursoSelect.value = curso;
+            
+            // Cambiar color del select para indicar que se autocompletó
+            cursoSelect.style.background = '#e8f5e9';
             setTimeout(() => {
                 cursoSelect.style.background = '';
             }, 1000);
+        }
+    } else {
+        // Si no se encuentra exactamente, intentar búsqueda parcial
+        const estudianteParcial = datosEstudiantes.find(e => {
+            const nombreCompleto = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+            return nombreCompleto.includes(nombreEstudiante.toLowerCase());
+        });
+        
+        if (estudianteParcial) {
+            const curso = estudianteParcial['Curso'] || estudianteParcial.curso || '';
+            if (curso) {
+                cursoSelect.value = curso;
+                cursoSelect.style.background = '#fff3cd'; // Color amarillo para indicar coincidencia parcial
+                setTimeout(() => {
+                    cursoSelect.style.background = '';
+                }, 1000);
+            }
         } else {
             // Si no se encuentra, limpiar el select
             cursoSelect.value = '';
@@ -1323,12 +1334,13 @@ function actualizarDatalistsEstudiantes() {
         }).join('');
     }
     
-    // Actualizar datalist en Tardanzas
+    // Actualizar datalist en Tardanzas - CON DATA-CURSO
     const listaEst2 = document.getElementById('listaEst2');
     if (listaEst2) {
         listaEst2.innerHTML = datosEstudiantes.map(e => {
             const nombre = e['Nombre Completo'] || e.nombre || '';
-            return `<option value="${nombre}">`;
+            const curso = e['Curso'] || e.curso || '';
+            return `<option value="${nombre}" data-curso="${curso}">`;
         }).join('');
     }
     
