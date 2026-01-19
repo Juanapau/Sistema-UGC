@@ -463,8 +463,8 @@ function crearModalTardanzas() {
                     </div>
                     <div class="form-group">
                         <label>Estudiante *</label>
-                        <input type="text" id="estudianteTard" required list="listaEst2">
-                        <datalist id="listaEst2">${datosEstudiantes.map(e => `<option value="${e.nombre}">`).join('')}</datalist>
+                        <input type="text" id="estudianteTard" required list="listaEst2" onchange="autocompletarCursoTardanza()">
+                        <datalist id="listaEst2">${datosEstudiantes.map(e => `<option value="${e.nombre}" data-curso="${e.curso}">`).join('')}</datalist>
                     </div>
                     <div class="form-group">
                         <label>Curso *</label>
@@ -539,6 +539,22 @@ function crearModalTardanzas() {
         });
     } else {
         cargarTablaTardanzas();
+    }
+}
+
+function autocompletarCursoTardanza() {
+    const nombreEstudiante = document.getElementById('estudianteTard').value.trim();
+    const cursoSelect = document.getElementById('cursoTard');
+    
+    // Buscar el estudiante en la lista
+    const estudiante = datosEstudiantes.find(e => e.nombre === nombreEstudiante);
+    
+    if (estudiante && estudiante.curso) {
+        // Auto-seleccionar el curso
+        cursoSelect.value = estudiante.curso;
+    } else {
+        // Si no se encuentra, limpiar el select
+        cursoSelect.value = '';
     }
 }
 
@@ -771,10 +787,38 @@ function generarCircular() {
     
     const lineasMensaje = doc.splitTextToSize(mensaje, 170);
     doc.text(lineasMensaje, 20, yPos);
-    yPos += lineasMensaje.length * 6 + 5;
+    yPos += lineasMensaje.length * 6 + 10;
+    
+    // Texto del Manual de Convivencia
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Lo que establece el Manual de Convivencia de las Hijas de María Auxiliadora FMA', 20, yPos);
+    doc.text('sobre las tardanzas en el artículo 38:', 20, yPos + 5);
+    yPos += 12;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    const textoManual = `1. Los estudiantes que acumulen tres tardanzas en un mes: Cuando el estudiante llegue después de las 7:45 deberá permanecer en la recepción hasta que culmine el acto cívico, luego se dirigen a un espacio donde se registre la tardanza y se realiza el acto cívico, se canta el himno nacional, se realiza la oración y reciben las orientaciones del día, después se dirigen al aula en la segunda hora de clases, quedando ausente en la primera hora.
+
+Cuando acumule tres tardanzas en un mes, se citará a los padres, haciendo acuerdos y compromisos, puntualizando que la reincidencia de la tardanza se evaluará al final del año escolar para tomar las medidas necesarias y considerar la reinscripción del estudiante en el siguiente año.
+
+Nota: Todo este proceso deberá ser escrito y firmado por ambas partes para tener todas las evidencias registradas.`;
+    
+    const lineasManual = doc.splitTextToSize(textoManual, 170);
+    doc.text(lineasManual, 20, yPos);
+    yPos += lineasManual.length * 4 + 10;
+    
+    // Solicitud de cita
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    const textoCita = 'Por tal razón, le solicitamos cordialmente que se presente al centro este __________ a las __________ para tener un diálogo al respecto.';
+    const lineasCita = doc.splitTextToSize(textoCita, 170);
+    doc.text(lineasCita, 20, yPos);
+    yPos += lineasCita.length * 5 + 10;
     
     // Título de tabla
     doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
     doc.text('Registro de Tardanzas del Mes:', 20, yPos);
     yPos += 5;
     
