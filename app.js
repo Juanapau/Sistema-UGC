@@ -1126,12 +1126,11 @@ function buscarContactos() {
     
     const tbody = document.getElementById('bodyContactos');
     if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
     tbody.innerHTML = filtrados.map(c => {
         const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-';
-        const curso = c['Curso'] || c.curso || '-';
         const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '-';
         const telPadre = c['Contacto Padre'] || c.telPadre || '-';
         const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '-';
@@ -1141,7 +1140,6 @@ function buscarContactos() {
         return `
         <tr>
             <td><strong>${estudiante}</strong></td>
-            <td>${curso}</td>
             <td>${nombrePadre}</td>
             <td>${telPadre}</td>
             <td>${nombreMadre}</td>
