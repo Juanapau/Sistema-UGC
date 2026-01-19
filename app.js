@@ -938,18 +938,9 @@ function crearModalContactos() {
             <hr style="margin:30px 0;">
             <h3>Registrar Contacto Individual</h3>
             <form id="formContacto" onsubmit="registrarContacto(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Estudiante *</label>
-                        <input type="text" id="estContacto" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Curso *</label>
-                        <select id="cursoContacto" required>
-                            <option value="">Seleccione</option>
-                            ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label>Estudiante *</label>
+                    <input type="text" id="estContacto" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -991,7 +982,6 @@ function crearModalContactos() {
                     <thead>
                         <tr>
                             <th>Estudiante</th>
-                            <th>Curso</th>
                             <th>Padre</th>
                             <th>Tel. Padre</th>
                             <th>Madre</th>
@@ -1009,7 +999,7 @@ function crearModalContactos() {
     
     // Mostrar mensaje de carga
     const tbody = document.getElementById('bodyContactos');
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666;">📥 Cargando contactos...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#666;">📥 Cargando contactos...</td></tr>';
     
     // Cargar datos desde Google Sheets
     if (CONFIG.urlContactos) {
@@ -1022,7 +1012,7 @@ function crearModalContactos() {
             }
         }).catch(error => {
             console.error('Error:', error);
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
         });
     } else {
         cargarTablaContactos();
@@ -1033,7 +1023,6 @@ function registrarContacto(e) {
     e.preventDefault();
     const contacto = {
         'Nombre Estudiante': document.getElementById('estContacto').value,
-        'Curso': document.getElementById('cursoContacto').value,
         'Nombre Padre': document.getElementById('nombrePadre').value,
         'Contacto Padre': document.getElementById('telPadre').value,
         'Nombre Madre': document.getElementById('nombreMadre').value,
@@ -1100,12 +1089,11 @@ function importarContactos(event) {
 function cargarTablaContactos() {
     const tbody = document.getElementById('bodyContactos');
     if (datosContactos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
         return;
     }
     tbody.innerHTML = datosContactos.map(c => {
         const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-';
-        const curso = c['Curso'] || c.curso || '-';
         const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '-';
         const telPadre = c['Contacto Padre'] || c.telPadre || '-';
         const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '-';
@@ -1115,7 +1103,6 @@ function cargarTablaContactos() {
         return `
         <tr>
             <td><strong>${estudiante}</strong></td>
-            <td>${curso}</td>
             <td>${nombrePadre}</td>
             <td>${telPadre}</td>
             <td>${nombreMadre}</td>
@@ -2264,7 +2251,6 @@ function exportarContactosPDF() {
     
     const tableData = contactosAExportar.map(c => [
         c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-',
-        c['Curso'] || c.curso || '-',
         c['Nombre Padre'] || c.nombrePadre || '-',
         c['Contacto Padre'] || c.telPadre || '-',
         c['Nombre Madre'] || c.nombreMadre || '-',
@@ -2274,19 +2260,25 @@ function exportarContactosPDF() {
     
     doc.autoTable({
         startY: startY,
-        head: [['Estudiante', 'Curso', 'Padre', 'Tel. Padre', 'Madre', 'Tel. Madre', 'Emergencia']],
+        head: [['Estudiante', 'Padre', 'Tel. Padre', 'Madre', 'Tel. Madre', 'Emergencia']],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [44, 90, 160], fontSize: 8 },
-        styles: { fontSize: 7 },
+        headStyles: { 
+            fillColor: [30, 58, 138], 
+            fontSize: 9,
+            fontStyle: 'bold'
+        },
+        styles: { 
+            fontSize: 8,
+            cellPadding: 3
+        },
         columnStyles: {
-            0: { cellWidth: 45 },
-            1: { cellWidth: 20 },
-            2: { cellWidth: 40 },
-            3: { cellWidth: 30 },
-            4: { cellWidth: 40 },
-            5: { cellWidth: 30 },
-            6: { cellWidth: 30 }
+            0: { cellWidth: 50 },  // Estudiante
+            1: { cellWidth: 45 },  // Padre
+            2: { cellWidth: 32 },  // Tel. Padre
+            3: { cellWidth: 45 },  // Madre
+            4: { cellWidth: 32 },  // Tel. Madre
+            5: { cellWidth: 32 }   // Emergencia
         }
     });
     
