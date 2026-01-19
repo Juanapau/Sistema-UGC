@@ -265,10 +265,6 @@ function crearModalIncidencias() {
                     <label>Seguimiento UGC</label>
                     <textarea id="seguimientoUGC"></textarea>
                 </div>
-                <div class="form-group">
-                    <label>Otras Observaciones</label>
-                    <textarea id="otrasObservaciones"></textarea>
-                </div>
                 <button type="submit" class="btn btn-primary">💾 Registrar</button>
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('formIncidencia').reset()">🔄 Limpiar</button>
             </form>
@@ -301,8 +297,8 @@ function crearModalIncidencias() {
                             <th>Tipo</th>
                             <th>Docente</th>
                             <th>Descripción</th>
+                            <th>Acciones</th>
                             <th>Seguimiento UGC</th>
-                            <th>Observaciones</th>
                         </tr>
                     </thead>
                     <tbody id="bodyIncidencias"></tbody>
@@ -349,8 +345,7 @@ function registrarIncidencia(e) {
         'Docente': document.getElementById('docenteReporta').value,
         'Descripción': document.getElementById('descripcionIncidencia').value,
         'Acciones Docente': document.getElementById('accionesDocente').value,
-        'Seguimiento UGC': document.getElementById('seguimientoUGC').value,
-        'Observaciones': document.getElementById('otrasObservaciones').value
+        'Seguimiento UGC': document.getElementById('seguimientoUGC').value
     };
     
     datosIncidencias.push(inc);
@@ -373,8 +368,8 @@ function cargarTablaIncidencias() {
         const tipo = inc['Tipo de falta'] || inc.tipoFalta || '';
         const docente = inc['Docente'] || inc.docente || '';
         const descripcion = inc['Descripción'] || inc.descripcion || '';
+        const acciones = inc['Acciones Docente'] || inc.acciones || '';
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
-        const observaciones = inc['Observaciones'] || inc.observaciones || '';
         
         return `
         <tr>
@@ -383,9 +378,9 @@ function cargarTablaIncidencias() {
             <td>${curso}</td>
             <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
             <td>${docente}</td>
-            <td>${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
-            <td>${seguimiento ? seguimiento.substring(0,60) + '...' : '-'}</td>
-            <td>${observaciones ? observaciones.substring(0,60) + '...' : '-'}</td>
+            <td style="white-space:normal;max-width:250px;">${descripcion}</td>
+            <td style="white-space:normal;max-width:200px;">${acciones || '-'}</td>
+            <td style="white-space:normal;max-width:200px;">${seguimiento || '-'}</td>
         </tr>
     `;
     }).join('');
@@ -1979,37 +1974,44 @@ function exportarIncidenciasPDF() {
     }
     const startY = agregarEncabezadoCENSA(doc, titulo);
     
-    // Preparar datos para la tabla con TODOS los campos
+    // Preparar datos para la tabla con textos completos
     const tableData = incidenciasAExportar.map(inc => [
         inc['Fecha y Hora'] ? new Date(inc['Fecha y Hora']).toLocaleDateString('es-DO') : '-',
         inc['Nombre Estudiante'] || inc.estudiante || '-',
         inc['Curso'] || inc.curso || '-',
         inc['Tipo de falta'] || inc.tipoFalta || '-',
         inc['Docente'] || inc.docente || '-',
-        (inc['Descripción'] || inc.descripcion || '-').substring(0, 50) + '...',
-        (inc['Acciones Docente'] || inc.acciones || '-').substring(0, 30) + '...',
-        (inc['Seguimiento UGC'] || inc.seguimiento || '-').substring(0, 30) + '...',
-        (inc['Observaciones'] || inc.observaciones || '-').substring(0, 30) + '...'
+        inc['Descripción'] || inc.descripcion || '-',
+        inc['Acciones Docente'] || inc.acciones || '-',
+        inc['Seguimiento UGC'] || inc.seguimiento || '-'
     ]);
     
     // Agregar tabla
     doc.autoTable({
         startY: startY,
-        head: [['Fecha', 'Estudiante', 'Curso', 'Tipo', 'Docente', 'Descripción', 'Acciones', 'Seguimiento', 'Observaciones']],
+        head: [['Fecha', 'Estudiante', 'Curso', 'Tipo', 'Docente', 'Descripción', 'Acciones', 'Seguimiento']],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [44, 90, 160], fontSize: 7 },
-        styles: { fontSize: 6, cellPadding: 2 },
+        headStyles: { 
+            fillColor: [30, 58, 138], 
+            fontSize: 8,
+            fontStyle: 'bold'
+        },
+        styles: { 
+            fontSize: 7, 
+            cellPadding: 3,
+            overflow: 'linebreak',
+            cellWidth: 'wrap'
+        },
         columnStyles: {
-            0: { cellWidth: 20 },  // Fecha
-            1: { cellWidth: 35 },  // Estudiante
-            2: { cellWidth: 15 },  // Curso
-            3: { cellWidth: 20 },  // Tipo
-            4: { cellWidth: 30 },  // Docente
-            5: { cellWidth: 50 },  // Descripción
-            6: { cellWidth: 30 },  // Acciones
-            7: { cellWidth: 30 },  // Seguimiento
-            8: { cellWidth: 30 }   // Observaciones
+            0: { cellWidth: 22 },   // Fecha
+            1: { cellWidth: 35 },   // Estudiante
+            2: { cellWidth: 18 },   // Curso
+            3: { cellWidth: 20 },   // Tipo
+            4: { cellWidth: 32 },   // Docente
+            5: { cellWidth: 55 },   // Descripción
+            6: { cellWidth: 45 },   // Acciones
+            7: { cellWidth: 45 }    // Seguimiento
         }
     });
     
