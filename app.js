@@ -463,7 +463,7 @@ function crearModalTardanzas() {
                     </div>
                     <div class="form-group">
                         <label>Estudiante *</label>
-                        <input type="text" id="estudianteTard" required list="listaEst2" onchange="autocompletarCursoTardanza()">
+                        <input type="text" id="estudianteTard" required list="listaEst2" oninput="autocompletarCursoTardanza()">
                         <datalist id="listaEst2">${datosEstudiantes.map(e => `<option value="${e.nombre}" data-curso="${e.curso}">`).join('')}</datalist>
                     </div>
                     <div class="form-group">
@@ -546,15 +546,40 @@ function autocompletarCursoTardanza() {
     const nombreEstudiante = document.getElementById('estudianteTard').value.trim();
     const cursoSelect = document.getElementById('cursoTard');
     
-    // Buscar el estudiante en la lista
+    // Si el campo está vacío, limpiar el select
+    if (!nombreEstudiante) {
+        cursoSelect.value = '';
+        return;
+    }
+    
+    // Buscar el estudiante en la lista (búsqueda exacta)
     const estudiante = datosEstudiantes.find(e => e.nombre === nombreEstudiante);
     
     if (estudiante && estudiante.curso) {
         // Auto-seleccionar el curso
         cursoSelect.value = estudiante.curso;
+        
+        // Cambiar color del select para indicar que se autocompletó
+        cursoSelect.style.background = '#e8f5e9';
+        setTimeout(() => {
+            cursoSelect.style.background = '';
+        }, 1000);
     } else {
-        // Si no se encuentra, limpiar el select
-        cursoSelect.value = '';
+        // Si no se encuentra exactamente, intentar búsqueda parcial
+        const estudianteParcial = datosEstudiantes.find(e => 
+            e.nombre.toLowerCase().includes(nombreEstudiante.toLowerCase())
+        );
+        
+        if (estudianteParcial && estudianteParcial.curso) {
+            cursoSelect.value = estudianteParcial.curso;
+            cursoSelect.style.background = '#fff3cd'; // Color amarillo para indicar coincidencia parcial
+            setTimeout(() => {
+                cursoSelect.style.background = '';
+            }, 1000);
+        } else {
+            // Si no se encuentra, limpiar el select
+            cursoSelect.value = '';
+        }
     }
 }
 
