@@ -470,7 +470,7 @@ function crearModalTardanzas() {
                     <div class="form-group">
                         <label>Estudiante *</label>
                         <input type="text" id="estudianteTard" required list="listaEst2" oninput="autocompletarCursoTardanza()">
-                        <datalist id="listaEst2">${datosEstudiantes.map(e => `<option value="${e.nombre}" data-curso="${e.curso}">`).join('')}</datalist>
+                        <datalist id="listaEst2"></datalist>
                     </div>
                     <div class="form-group">
                         <label>Curso *</label>
@@ -523,8 +523,18 @@ function crearModalTardanzas() {
     document.getElementById('modalContainer').innerHTML = html;
     document.getElementById('fechaTardanza').value = new Date().toISOString().split('T')[0];
     
-    // Actualizar datalist con estudiantes
-    actualizarDatalistsEstudiantes();
+    // Cargar estudiantes si no están cargados
+    if (datosEstudiantes.length === 0 && CONFIG.urlEstudiantes) {
+        cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
+            if (datos && datos.length > 0) {
+                datosEstudiantes = datos;
+                actualizarDatalistsEstudiantes();
+            }
+        });
+    } else {
+        // Actualizar datalist con estudiantes
+        actualizarDatalistsEstudiantes();
+    }
     
     // Mostrar mensaje de carga
     const tbody = document.getElementById('bodyTardanzas');
