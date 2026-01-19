@@ -106,16 +106,22 @@ async function recargarTardanzas() {
 
 async function recargarContactos() {
     const tbody = document.getElementById('bodyContactos');
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
     
     if (CONFIG.urlContactos) {
         const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlContactos);
         if (datos && datos.length > 0) {
-            datosContactos = datos;
+            // Limpiar datos: eliminar campo Curso si existe
+            datosContactos = datos.map(c => {
+                const contactoLimpio = {...c};
+                delete contactoLimpio['Curso'];
+                delete contactoLimpio.curso;
+                return contactoLimpio;
+            });
             cargarTablaContactos();
             mostrarAlerta('alertContactos', `✅ ${datos.length} contactos recargados`);
         } else {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
         }
     }
 }
@@ -1005,7 +1011,13 @@ function crearModalContactos() {
     if (CONFIG.urlContactos) {
         cargarDatosDesdeGoogleSheets(CONFIG.urlContactos).then(datos => {
             if (datos && datos.length > 0) {
-                datosContactos = datos;
+                // Limpiar datos: eliminar campo Curso si existe
+                datosContactos = datos.map(c => {
+                    const contactoLimpio = {...c};
+                    delete contactoLimpio['Curso'];
+                    delete contactoLimpio.curso;
+                    return contactoLimpio;
+                });
                 cargarTablaContactos();
             } else {
                 cargarTablaContactos();
