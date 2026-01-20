@@ -3235,11 +3235,10 @@ function actualizarEstadisticasReuniones() {
         return estado === 'En seguimiento' || estado === 'Parcialmente cumplido';
     }).length;
     
+    // Contar TODAS las reuniones con estado "En seguimiento" (sin importar fecha)
     const seguimientosPendientes = datosReuniones.filter(r => {
-        const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
-        if (!fechaSeg) return false;
-        const fechaSeguimiento = new Date(fechaSeg);
-        return fechaSeguimiento >= hoy && (r['Estado'] || r.estado) === 'En seguimiento';
+        const estado = r['Estado'] || r.estado || '';
+        return estado === 'En seguimiento';
     }).length;
     
     document.getElementById('totalReuniones').textContent = totalReuniones;
