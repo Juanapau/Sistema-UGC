@@ -523,18 +523,24 @@ function crearModalTardanzas() {
     document.getElementById('modalContainer').innerHTML = html;
     document.getElementById('fechaTardanza').value = new Date().toISOString().split('T')[0];
     
-    // Cargar estudiantes si no están cargados
-    if (datosEstudiantes.length === 0 && CONFIG.urlEstudiantes) {
-        cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
-            if (datos && datos.length > 0) {
-                datosEstudiantes = datos;
-                actualizarDatalistsEstudiantes();
-            }
-        });
-    } else {
-        // Actualizar datalist con estudiantes
-        actualizarDatalistsEstudiantes();
-    }
+    // Usar setTimeout para asegurar que el DOM esté completamente renderizado
+    setTimeout(() => {
+        // Cargar estudiantes si no están cargados
+        if (datosEstudiantes.length === 0 && CONFIG.urlEstudiantes) {
+            console.log('Cargando estudiantes desde Google Sheets...');
+            cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosEstudiantes = datos;
+                    console.log('Estudiantes cargados:', datosEstudiantes.length);
+                    actualizarDatalistsEstudiantes();
+                }
+            });
+        } else {
+            console.log('Usando estudiantes ya cargados:', datosEstudiantes.length);
+            // Actualizar datalist con estudiantes
+            actualizarDatalistsEstudiantes();
+        }
+    }, 100);
     
     // Mostrar mensaje de carga
     const tbody = document.getElementById('bodyTardanzas');
@@ -1332,6 +1338,8 @@ function importarEstudiantes(event) {
 
 // Función para actualizar todos los datalists de estudiantes
 function actualizarDatalistsEstudiantes() {
+    console.log('Actualizando datalists. Total estudiantes:', datosEstudiantes.length);
+    
     // Actualizar datalist en Incidencias
     const listaEst1 = document.getElementById('listaEst1');
     if (listaEst1) {
@@ -1339,6 +1347,7 @@ function actualizarDatalistsEstudiantes() {
             const nombre = e['Nombre Completo'] || e.nombre || '';
             return `<option value="${nombre}">`;
         }).join('');
+        console.log('Datalist Incidencias actualizado con', datosEstudiantes.length, 'estudiantes');
     }
     
     // Actualizar datalist en Tardanzas - CON DATA-CURSO
@@ -1349,6 +1358,7 @@ function actualizarDatalistsEstudiantes() {
             const curso = e['Curso'] || e.curso || '';
             return `<option value="${nombre}" data-curso="${curso}">`;
         }).join('');
+        console.log('Datalist Tardanzas actualizado con', datosEstudiantes.length, 'estudiantes');
     }
     
     // Actualizar datalist en Reportes
