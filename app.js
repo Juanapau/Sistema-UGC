@@ -525,20 +525,35 @@ function crearModalTardanzas() {
     
     // Usar setTimeout para asegurar que el DOM esté completamente renderizado
     setTimeout(() => {
-        // Cargar estudiantes si no están cargados
-        if (datosEstudiantes.length === 0 && CONFIG.urlEstudiantes) {
+        // SIEMPRE cargar estudiantes desde Google Sheets para tener datos actualizados
+        if (CONFIG.urlEstudiantes) {
             console.log('Cargando estudiantes desde Google Sheets...');
             cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
                 if (datos && datos.length > 0) {
                     datosEstudiantes = datos;
                     console.log('Estudiantes cargados:', datosEstudiantes.length);
                     actualizarDatalistsEstudiantes();
+                } else {
+                    console.log('No se pudieron cargar estudiantes o la lista está vacía');
+                    // Intentar usar datos locales si existen
+                    if (datosEstudiantes.length > 0) {
+                        actualizarDatalistsEstudiantes();
+                    }
+                }
+            }).catch(error => {
+                console.error('Error cargando estudiantes:', error);
+                // Usar datos locales si hay error
+                if (datosEstudiantes.length > 0) {
+                    console.log('Usando estudiantes locales por error:', datosEstudiantes.length);
+                    actualizarDatalistsEstudiantes();
                 }
             });
         } else {
-            console.log('Usando estudiantes ya cargados:', datosEstudiantes.length);
-            // Actualizar datalist con estudiantes
-            actualizarDatalistsEstudiantes();
+            console.log('No hay URL de estudiantes configurada. Usando datos locales:', datosEstudiantes.length);
+            // Actualizar datalist con estudiantes locales
+            if (datosEstudiantes.length > 0) {
+                actualizarDatalistsEstudiantes();
+            }
         }
     }, 100);
     
