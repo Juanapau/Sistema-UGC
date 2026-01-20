@@ -467,10 +467,16 @@ function crearModalTardanzas() {
                         <label>Fecha *</label>
                         <input type="date" id="fechaTardanza" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="position:relative;">
                         <label>Estudiante *</label>
-                        <input type="text" id="estudianteTard" required list="listaEst2" oninput="autocompletarCursoTardanza()">
-                        <datalist id="listaEst2"></datalist>
+                        <input type="text" 
+                               id="estudianteTard" 
+                               required 
+                               autocomplete="off"
+                               oninput="filtrarEstudiantesTardanza()"
+                               onfocus="mostrarSugerenciasTardanza()"
+                               placeholder="Escribe el nombre del estudiante...">
+                        <div id="sugerenciasTardanza" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                     </div>
                     <div class="form-group">
                         <label>Curso *</label>
@@ -630,6 +636,79 @@ function autocompletarCursoTardanza() {
         }
     }
 }
+
+// Funciones para autocompletado dinámico en Tardanzas
+function filtrarEstudiantesTardanza() {
+    const input = document.getElementById('estudianteTard');
+    const sugerencias = document.getElementById('sugerenciasTardanza');
+    const texto = input.value.toLowerCase().trim();
+    
+    if (texto.length === 0) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    // Filtrar estudiantes que coincidan
+    const coincidencias = datosEstudiantes.filter(e => {
+        const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+        return nombre.includes(texto);
+    }).slice(0, 20); // Limitar a 20 resultados
+    
+    if (coincidencias.length === 0) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    // Crear lista de sugerencias
+    sugerencias.innerHTML = coincidencias.map(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        const curso = e['Curso'] || e.curso || '';
+        return `<div onclick="seleccionarEstudianteTardanza('${nombre}', '${curso}')" 
+                     style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
+                     onmouseover="this.style.background='#f0f0f0'" 
+                     onmouseout="this.style.background='white'">
+                    <strong>${nombre}</strong><br>
+                    <small style="color:#666;">${curso}</small>
+                </div>`;
+    }).join('');
+    
+    sugerencias.style.display = 'block';
+}
+
+function mostrarSugerenciasTardanza() {
+    const input = document.getElementById('estudianteTard');
+    if (input.value.trim().length > 0) {
+        filtrarEstudiantesTardanza();
+    }
+}
+
+function seleccionarEstudianteTardanza(nombre, curso) {
+    const input = document.getElementById('estudianteTard');
+    const cursoSelect = document.getElementById('cursoTard');
+    const sugerencias = document.getElementById('sugerenciasTardanza');
+    
+    // Establecer valores
+    input.value = nombre;
+    cursoSelect.value = curso;
+    
+    // Indicador visual
+    cursoSelect.style.background = '#e8f5e9';
+    setTimeout(() => {
+        cursoSelect.style.background = '';
+    }, 1000);
+    
+    // Ocultar sugerencias
+    sugerencias.style.display = 'none';
+}
+
+// Cerrar sugerencias al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const sugerencias = document.getElementById('sugerenciasTardanza');
+    const input = document.getElementById('estudianteTard');
+    if (sugerencias && input && e.target !== input && e.target !== sugerencias) {
+        sugerencias.style.display = 'none';
+    }
+});
 
 function registrarTardanza(e) {
     e.preventDefault();
