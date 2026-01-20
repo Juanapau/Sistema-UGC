@@ -287,7 +287,10 @@ function crearModalIncidencias() {
             <hr style="margin: 40px 0;">
             <h3>Consultar Incidencias</h3>
             <div class="search-bar">
-                <input type="text" id="buscarInc" placeholder="🔍 Buscar estudiante...">
+                <div style="position:relative;flex:1;min-width:200px;">
+                    <input type="text" id="buscarInc" data-sugerencias="sugerenciasBuscarInc" placeholder="🔍 Buscar estudiante..." style="width:100%;">
+                    <div id="sugerenciasBuscarInc" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
                 <select id="filtrarCursoInc">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
@@ -379,6 +382,11 @@ function crearModalIncidencias() {
     } else {
         cargarTablaIncidencias();
     }
+    
+    // Inicializar autocompletado de búsqueda
+    setTimeout(() => {
+        crearAutocompletadoBusqueda('buscarInc', 'sugerenciasBuscarInc');
+    }, 200);
 }
 
 // Funciones para autocompletado dinámico en Incidencias
@@ -1297,7 +1305,10 @@ function crearModalContactos() {
             <hr style="margin:40px 0;">
             <h3>Buscar Contactos</h3>
             <div class="search-bar">
-                <input type="text" id="buscarContacto" placeholder="🔍 Buscar...">
+                <div style="position:relative;flex:1;min-width:200px;">
+                    <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;">
+                    <div id="sugerenciasBuscarCont" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
                 <button class="btn btn-primary" onclick="buscarContactos()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarContactos()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarContactosPDF()">📥 Exportar</button>
@@ -1348,6 +1359,11 @@ function crearModalContactos() {
     } else {
         cargarTablaContactos();
     }
+    
+    // Inicializar autocompletado de búsqueda
+    setTimeout(() => {
+        crearAutocompletadoBusqueda('buscarContacto', 'sugerenciasBuscarCont');
+    }, 200);
 }
 
 function registrarContacto(e) {
@@ -1532,7 +1548,10 @@ function crearModalEstudiantes() {
             <hr style="margin:40px 0;">
             <h3>Buscar Estudiantes</h3>
             <div class="search-bar">
-                <input type="text" id="buscarEst" placeholder="🔍 Buscar...">
+                <div style="position:relative;flex:1;min-width:200px;">
+                    <input type="text" id="buscarEst" data-sugerencias="sugerenciasBuscarEst" placeholder="🔍 Buscar estudiante..." style="width:100%;">
+                    <div id="sugerenciasBuscarEst" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
                 <select id="filtrarCursoEst">
                     <option value="">Todos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
@@ -1578,6 +1597,11 @@ function crearModalEstudiantes() {
     } else {
         cargarTablaEstudiantes();
     }
+    
+    // Inicializar autocompletado de búsqueda
+    setTimeout(() => {
+        crearAutocompletadoBusqueda('buscarEst', 'sugerenciasBuscarEst');
+    }, 200);
 }
 
 function registrarEstudiante(e) {
@@ -1862,7 +1886,10 @@ function crearModalReuniones() {
             <hr style="margin:40px 0;">
             <h3>🔍 Buscar Reuniones</h3>
             <div class="search-bar">
-                <input type="text" id="buscarReunion" placeholder="🔍 Buscar por estudiante o padre...">
+                <div style="position:relative;flex:1;min-width:200px;">
+                    <input type="text" id="buscarReunion" data-sugerencias="sugerenciasBuscarReun" placeholder="🔍 Buscar por estudiante..." style="width:100%;">
+                    <div id="sugerenciasBuscarReun" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
                 <select id="filtrarCursoReunion">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
@@ -1945,6 +1972,11 @@ function crearModalReuniones() {
         cargarTablaReuniones();
         actualizarEstadisticasReuniones();
     }
+    
+    // Inicializar autocompletado de búsqueda
+    setTimeout(() => {
+        crearAutocompletadoBusqueda('buscarReunion', 'sugerenciasBuscarReun');
+    }, 200);
 }
 
 // ==================
@@ -2093,10 +2125,10 @@ function crearModalReportes() {
             
             <hr style="margin:40px 0;">
             <h3>Reporte por Estudiante</h3>
-            <div class="form-group">
+            <div class="form-group" style="position:relative;">
                 <label>Buscar Estudiante</label>
-                <input type="text" id="estudianteReporte" placeholder="Escriba el nombre del estudiante..." list="listaEstReporte">
-                <datalist id="listaEstReporte"></datalist>
+                <input type="text" id="estudianteReporte" data-sugerencias="sugerenciasReporte" placeholder="Escriba el nombre del estudiante..." style="width:100%;">
+                <div id="sugerenciasReporte" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
             </div>
             <button class="btn btn-primary" onclick="generarReporteEstudiante()">📊 Generar Reporte Individual</button>
             
@@ -2111,6 +2143,11 @@ function crearModalReportes() {
     
     // Cargar datos desde Google Sheets y actualizar estadísticas
     cargarDatosYActualizarEstadisticas();
+    
+    // Inicializar autocompletado de búsqueda
+    setTimeout(() => {
+        crearAutocompletadoBusqueda('estudianteReporte', 'sugerenciasReporte');
+    }, 200);
 }
 
 // Nueva función para cargar datos y actualizar estadísticas
