@@ -607,7 +607,10 @@ function crearModalTardanzas() {
             <hr style="margin: 40px 0;">
             <h3>Consultar Tardanzas</h3>
             <div class="search-bar">
-                <input type="text" id="buscarTard" placeholder="🔍 Buscar...">
+                <div style="position:relative;flex:1;min-width:200px;">
+                    <input type="text" id="buscarTard" data-sugerencias="sugerenciasBuscarTard" placeholder="🔍 Buscar estudiante..." style="width:100%;">
+                    <div id="sugerenciasBuscarTard" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
                 <select id="filtrarCursoTard">
                     <option value="">Todos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
@@ -690,6 +693,11 @@ function crearModalTardanzas() {
     } else {
         cargarTablaTardanzas();
     }
+    
+    // Inicializar autocompletado de búsqueda
+    setTimeout(() => {
+        crearAutocompletadoBusqueda('buscarTard', 'sugerenciasBuscarTard');
+    }, 200);
 }
 
 function autocompletarCursoTardanza() {
@@ -811,6 +819,67 @@ function seleccionarEstudianteTardanza(nombre, curso) {
     sugerencias.style.display = 'none';
 }
 
+// ==================
+// FUNCIONES GENÉRICAS DE AUTOCOMPLETADO PARA BÚSQUEDAS
+// ==================
+
+// Autocompletado genérico para campos de búsqueda de estudiantes
+function crearAutocompletadoBusqueda(inputId, sugerenciasId, callbackSeleccion) {
+    const input = document.getElementById(inputId);
+    const contenedorSugerencias = document.getElementById(sugerenciasId);
+    
+    if (!input || !contenedorSugerencias) return;
+    
+    input.addEventListener('input', function() {
+        const texto = this.value.toLowerCase().trim();
+        
+        if (texto.length === 0) {
+            contenedorSugerencias.style.display = 'none';
+            return;
+        }
+        
+        const coincidencias = datosEstudiantes.filter(e => {
+            const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+            return nombre.includes(texto);
+        }).slice(0, 15);
+        
+        if (coincidencias.length === 0) {
+            contenedorSugerencias.style.display = 'none';
+            return;
+        }
+        
+        contenedorSugerencias.innerHTML = coincidencias.map(e => {
+            const nombre = e['Nombre Completo'] || e.nombre || '';
+            const curso = e['Curso'] || e.curso || '';
+            const nombreEscapado = nombre.replace(/'/g, "\\'");
+            return `<div onclick="seleccionarEstudianteBusqueda('${inputId}', '${sugerenciasId}', '${nombreEscapado}', ${callbackSeleccion ? 'function(){' + callbackSeleccion + '(\'' + nombreEscapado + '\')}' : 'null'})" 
+                         style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
+                         onmouseover="this.style.background='#f0f0f0'" 
+                         onmouseout="this.style.background='white'">
+                        <strong>${nombre}</strong><br>
+                        <small style="color:#666;">${curso}</small>
+                    </div>`;
+        }).join('');
+        
+        contenedorSugerencias.style.display = 'block';
+    });
+    
+    input.addEventListener('focus', function() {
+        if (this.value.trim().length > 0) {
+            input.dispatchEvent(new Event('input'));
+        }
+    });
+}
+
+function seleccionarEstudianteBusqueda(inputId, sugerenciasId, nombre, callback) {
+    const input = document.getElementById(inputId);
+    const sugerencias = document.getElementById(sugerenciasId);
+    
+    if (input) input.value = nombre;
+    if (sugerencias) sugerencias.style.display = 'none';
+    if (callback) callback(nombre);
+}
+
 // Cerrar sugerencias al hacer clic fuera
 document.addEventListener('click', function(e) {
     // Cerrar sugerencias de Tardanzas
@@ -833,6 +902,21 @@ document.addEventListener('click', function(e) {
     if (sugerenciasReunion && inputReunion && e.target !== inputReunion && !sugerenciasReunion.contains(e.target)) {
         sugerenciasReunion.style.display = 'none';
     }
+    
+    // Cerrar todas las sugerencias de búsqueda genéricas
+    ['sugerenciasBuscarTard', 'sugerenciasBuscarInc', 'sugerenciasBuscarCont', 'sugerenciasBuscarEst', 'sugerenciasBuscarReun', 'sugerenciasReporte'].forEach(id => {
+        const sugerencias = document.getElementById(id);
+        if (sugerencias && !sugerencias.contains(e.target)) {
+            const inputs = document.querySelectorAll(`input[data-sugerencias="${id}"]`);
+            let clickEnInput = false;
+            inputs.forEach(input => {
+                if (e.target === input) clickEnInput = true;
+            });
+            if (!clickEnInput) {
+                sugerencias.style.display = 'none';
+            }
+        }
+    });
 });
 
 function registrarTardanza(e) {
@@ -3023,6 +3107,112 @@ function exportarReporteIndividualPDF() {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(255, 193, 7);
         doc.text('⚠ Sin contactos registrados', 14, yPos);
+        doc.setTextColor(0, 0, 0);
+    }
+    
+    // Reuniones y Acuerdos con Padres
+    yPos += 10;
+    if (yPos > 230) {
+        doc.addPage();
+        yPos = 20;
+    }
+    
+    const reunionesEstudiante = datosReuniones
+        .filter(r => {
+            const nombre = r['Nombre Estudiante'] || r.estudiante || '';
+            return nombre.toLowerCase() === estudiante.toLowerCase();
+        })
+        .sort((a, b) => {
+            const fechaA = new Date(a['Fecha y Hora'] || a.fecha || '');
+            const fechaB = new Date(b['Fecha y Hora'] || b.fecha || '');
+            return fechaB - fechaA; // Más recientes primero
+        })
+        .slice(0, 5); // Últimas 5 reuniones
+    
+    doc.setFillColor(76, 175, 80); // Verde para reuniones
+    doc.rect(14, yPos, 40, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Reuniones', 34, yPos + 6, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(reunionesEstudiante.length.toString(), 34, yPos + 15, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+    yPos += 25;
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('🤝 Reuniones con Padres:', 14, yPos);
+    yPos += 5;
+    
+    if (reunionesEstudiante.length > 0) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        
+        reunionesEstudiante.forEach((reunion, index) => {
+            if (yPos > 260) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            const fecha = reunion['Fecha y Hora'] || reunion.fecha || '';
+            const padrePresente = reunion['Padre/Madre Presente'] || reunion.padrePresente || '';
+            const nombrePadre = reunion['Nombre Padre/Madre'] || reunion.nombrePadre || '';
+            const motivo = reunion['Motivo'] || reunion.motivo || '';
+            const acuerdos = reunion['Acuerdos Establecidos'] || reunion.acuerdos || '';
+            const estado = reunion['Estado'] || reunion.estado || '';
+            
+            // Número de reunión
+            const numeroReunion = reunionesEstudiante.length - index;
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text(`• Reunión #${numeroReunion} - ${fecha ? new Date(fecha).toLocaleDateString('es-DO') : 'Sin fecha'}`, 14, yPos);
+            yPos += 5;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.text(`  Presente: ${nombrePadre || padrePresente}`, 14, yPos);
+            yPos += 4;
+            doc.text(`  Motivo: ${motivo}`, 14, yPos);
+            yPos += 4;
+            
+            // Acuerdos (máximo 3 líneas por reunión)
+            if (acuerdos) {
+                doc.setFont('helvetica', 'italic');
+                const acuerdosLineas = doc.splitTextToSize(`  Acuerdos: ${acuerdos}`, 180);
+                const maxLineas = Math.min(acuerdosLineas.length, 3);
+                for (let i = 0; i < maxLineas; i++) {
+                    if (yPos > 275) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.text(acuerdosLineas[i], 14, yPos);
+                    yPos += 4;
+                }
+                if (acuerdosLineas.length > 3) {
+                    doc.text('  ...', 14, yPos);
+                    yPos += 4;
+                }
+            }
+            
+            // Estado con color
+            doc.setFont('helvetica', 'bold');
+            if (estado === 'Cumplido') {
+                doc.setTextColor(21, 87, 36); // Verde
+            } else if (estado === 'En seguimiento') {
+                doc.setTextColor(12, 84, 96); // Azul
+            } else {
+                doc.setTextColor(114, 28, 36); // Rojo
+            }
+            doc.text(`  Estado: ${estado}`, 14, yPos);
+            doc.setTextColor(0, 0, 0);
+            yPos += 7;
+        });
+    } else {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(76, 175, 80);
+        doc.text('✓ Sin reuniones registradas', 14, yPos);
         doc.setTextColor(0, 0, 0);
     }
     
