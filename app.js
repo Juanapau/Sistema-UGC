@@ -3168,27 +3168,46 @@ function cargarTablaReuniones() {
         const estado = r['Estado'] || r.estado || '';
         const fechaSeguimiento = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
         
-        // Contar reuniones del mismo padre
-        const conteoReuniones = datosReuniones.filter(reunion => {
-            const est = reunion['Nombre Estudiante'] || reunion.estudiante || '';
-            return est.toLowerCase() === estudiante.toLowerCase();
-        }).length;
+        // Calcular número de reunión en orden cronológico
+        const reunionesEstudiante = datosReuniones
+            .filter(reunion => {
+                const est = reunion['Nombre Estudiante'] || reunion.estudiante || '';
+                return est.toLowerCase() === estudiante.toLowerCase();
+            })
+            .sort((a, b) => {
+                const fechaA = new Date(a['Fecha y Hora'] || a.fecha || '');
+                const fechaB = new Date(b['Fecha y Hora'] || b.fecha || '');
+                return fechaA - fechaB;
+            });
         
-        const badgeReuniones = conteoReuniones >= 5 ? 'badge-warning' : 
-                              conteoReuniones >= 3 ? 'badge-info' : 'badge-success';
+        const numeroReunion = reunionesEstudiante.findIndex(reunion => reunion === r) + 1;
         
-        const badgeEstado = estado === 'Cumplido' ? 'badge-success' :
-                           estado === 'No cumplido' ? 'badge-muy-grave' :
-                           'badge-info';
+        // Colores según número de reunión
+        const badgeReuniones = numeroReunion >= 5 ? 'badge-warning' : 
+                              numeroReunion >= 3 ? 'badge-info' : 'badge-success';
+        
+        // Colores según estado
+        let badgeEstado = 'badge-info';
+        let colorEstado = '#0c5460';
+        if (estado === 'Cumplido') {
+            badgeEstado = 'badge-success';
+            colorEstado = '#155724';
+        } else if (estado === 'No cumplido') {
+            badgeEstado = 'badge-muy-grave';
+            colorEstado = '#721c24';
+        } else if (estado === 'Parcialmente cumplido') {
+            badgeEstado = 'badge-warning';
+            colorEstado = '#856404';
+        }
         
         return `
         <tr onclick="verDetalleReunion(${index})" style="cursor:pointer;">
-            <td>${fecha ? new Date(fecha).toLocaleString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</td>
+            <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric'}) : ''}<br><small>${fecha ? new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : ''}</small></td>
             <td><strong>${estudiante}</strong><br><small>${curso}</small></td>
             <td>${nombrePadre || padrePresente}<br><small>${padrePresente}</small></td>
-            <td style="text-align:center;"><span class="status-badge ${badgeReuniones}">${conteoReuniones}ª vez</span></td>
+            <td style="text-align:center;"><span class="status-badge ${badgeReuniones}">${numeroReunion}ª vez</span></td>
             <td>${motivo}</td>
-            <td><span class="status-badge ${badgeEstado}">${estado}</span></td>
+            <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
             <td>${fechaSeguimiento ? new Date(fechaSeguimiento).toLocaleDateString('es-DO') : '-'}</td>
             <td>
                 <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${index})" style="padding:5px 10px;font-size:0.85em;">👁️ Ver</button>
@@ -3293,32 +3312,64 @@ function verDetalleReunion(index) {
     const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
     const observaciones = r['Observaciones'] || r.observaciones || '';
     
-    const conteoReuniones = datosReuniones.filter(reunion => {
-        const est = reunion['Nombre Estudiante'] || reunion.estudiante || '';
-        return est.toLowerCase() === estudiante.toLowerCase();
-    }).length;
+    // Calcular número de reunión en orden cronológico
+    const reunionesEstudiante = datosReuniones
+        .filter(reunion => {
+            const est = reunion['Nombre Estudiante'] || reunion.estudiante || '';
+            return est.toLowerCase() === estudiante.toLowerCase();
+        })
+        .sort((a, b) => {
+            const fechaA = new Date(a['Fecha y Hora'] || a.fecha || '');
+            const fechaB = new Date(b['Fecha y Hora'] || b.fecha || '');
+            return fechaA - fechaB;
+        });
     
-    alert(`📋 DETALLE DE REUNIÓN
-
-Estudiante: ${estudiante} (${curso})
-Reunión #${conteoReuniones} con este padre/madre
-
-Fecha: ${fecha ? new Date(fecha).toLocaleString('es-DO') : '-'}
-Presente: ${nombrePadre || padrePresente} (${padrePresente})
-Personal UGC: ${personal}
-
-Motivo: ${motivo}
-
-Situación:
-${situacion}
-
-Acuerdos Establecidos:
-${acuerdos}
-
-Estado: ${estado}
-${fechaSeg ? 'Seguimiento: ' + new Date(fechaSeg).toLocaleDateString('es-DO') : ''}
-
-${observaciones ? 'Observaciones: ' + observaciones : ''}`);
+    const numeroReunion = reunionesEstudiante.findIndex(reunion => reunion === r) + 1;
+    
+    // Separar acuerdos en lista
+    const acuerdosLista = acuerdos.split('\n').filter(a => a.trim()).map((acuerdo, i) => {
+        const textoLimpio = acuerdo.replace(/^\d+[\.\)]\s*/, '').trim();
+        return `
+            <div style="background:white;padding:12px;margin-bottom:8px;border-radius:6px;border-left:3px solid #2a5298;">
+                <strong>${i + 1}.</strong> ${textoLimpio}
+            </div>`;
+    }).join('');
+    
+    const modalHTML = `
+    <div id="modalDetalleReunion" class="modal" style="display:block;">
+        <div class="modal-content" style="max-width:800px;">
+            <div class="modal-header" style="background:linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                <h2>✨ Vista Detallada de Reunión (Al hacer clic en "Ver")</h2>
+                <span class="close" onclick="closeModal('modalDetalleReunion')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="background:white;padding:20px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color:#28a745;margin-bottom:15px;">📅 Reunión del ${fecha ? new Date(fecha).toLocaleDateString('es-DO') + ' - ' + new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : '-'}</h3>
+                    <p><strong>Estudiante:</strong> ${estudiante} (${curso})</p>
+                    <p><strong>Presente:</strong> ${nombrePadre || padrePresente} (${padrePresente})</p>
+                    <p><strong>Reunión #${numeroReunion}</strong> con este padre/madre</p>
+                    <p><strong>Personal UGC:</strong> ${personal}</p>
+                    <p><strong>Motivo:</strong> ${motivo}</p>
+                    ${situacion ? `<p><strong>Situación:</strong> ${situacion}</p>` : ''}
+                </div>
+                
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <h4 style="margin-bottom:10px;">📋 Acuerdos Establecidos:</h4>
+                    ${acuerdosLista}
+                </div>
+                
+                <div style="margin-top:15px;padding:15px;background:${estado === 'Cumplido' ? '#d4edda' : estado === 'En seguimiento' ? '#d1ecf1' : '#f8d7da'};border-radius:8px;">
+                    <p><strong>Estado:</strong> <span style="color:${estado === 'Cumplido' ? '#155724' : estado === 'En seguimiento' ? '#0c5460' : '#721c24'}">${estado}</span></p>
+                    ${fechaSeg ? `<p><strong>Seguimiento:</strong> ${new Date(fechaSeg).toLocaleDateString('es-DO')}</p>` : ''}
+                    ${observaciones ? `<p><strong>Observaciones:</strong> ${observaciones}</p>` : ''}
+                </div>
+                
+                <button class="btn btn-success" onclick="generarActaReunion(${index})" style="margin-top:15px;">📄 Generar Acta de esta Reunión</button>
+            </div>
+        </div>
+    </div>`;
+    
+    document.getElementById('modalContainer').insertAdjacentHTML('beforeend', modalHTML);
 }
 
 function generarActaReunion(index) {
