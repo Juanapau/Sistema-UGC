@@ -231,10 +231,16 @@ function crearModalIncidencias() {
                         <label>Fecha y Hora *</label>
                         <input type="datetime-local" id="fechaIncidencia" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="position:relative;">
                         <label>Estudiante *</label>
-                        <input type="text" id="nombreEstudianteInc" required list="listaEst1">
-                        <datalist id="listaEst1">${datosEstudiantes.map(e => `<option value="${e.nombre}">`).join('')}</datalist>
+                        <input type="text" 
+                               id="nombreEstudianteInc" 
+                               required 
+                               autocomplete="off"
+                               oninput="filtrarEstudiantesIncidencia()"
+                               onfocus="mostrarSugerenciasIncidencia()"
+                               placeholder="Escribe el nombre del estudiante...">
+                        <div id="sugerenciasIncidencia" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -316,8 +322,39 @@ function crearModalIncidencias() {
     document.getElementById('modalContainer').innerHTML = html;
     document.getElementById('fechaIncidencia').value = new Date().toISOString().slice(0,16);
     
-    // Actualizar datalist con estudiantes
-    actualizarDatalistsEstudiantes();
+    // Usar setTimeout para asegurar que el DOM esté completamente renderizado
+    setTimeout(() => {
+        // SIEMPRE cargar estudiantes desde Google Sheets para tener datos actualizados
+        if (CONFIG.urlEstudiantes) {
+            console.log('Cargando estudiantes desde Google Sheets (Incidencias)...');
+            cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosEstudiantes = datos;
+                    console.log('Estudiantes cargados (Incidencias):', datosEstudiantes.length);
+                    actualizarDatalistsEstudiantes();
+                } else {
+                    console.log('No se pudieron cargar estudiantes o la lista está vacía');
+                    // Intentar usar datos locales si existen
+                    if (datosEstudiantes.length > 0) {
+                        actualizarDatalistsEstudiantes();
+                    }
+                }
+            }).catch(error => {
+                console.error('Error cargando estudiantes:', error);
+                // Usar datos locales si hay error
+                if (datosEstudiantes.length > 0) {
+                    console.log('Usando estudiantes locales por error:', datosEstudiantes.length);
+                    actualizarDatalistsEstudiantes();
+                }
+            });
+        } else {
+            console.log('No hay URL de estudiantes configurada. Usando datos locales:', datosEstudiantes.length);
+            // Actualizar datalist con estudiantes locales
+            if (datosEstudiantes.length > 0) {
+                actualizarDatalistsEstudiantes();
+            }
+        }
+    }, 100);
     
     // Mostrar mensaje de carga
     const tbody = document.getElementById('bodyIncidencias');
@@ -339,6 +376,70 @@ function crearModalIncidencias() {
     } else {
         cargarTablaIncidencias();
     }
+}
+
+// Funciones para autocompletado dinámico en Incidencias
+function filtrarEstudiantesIncidencia() {
+    const input = document.getElementById('nombreEstudianteInc');
+    const sugerencias = document.getElementById('sugerenciasIncidencia');
+    const texto = input.value.toLowerCase().trim();
+    
+    if (texto.length === 0) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    // Filtrar estudiantes que coincidan
+    const coincidencias = datosEstudiantes.filter(e => {
+        const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+        return nombre.includes(texto);
+    }).slice(0, 20); // Limitar a 20 resultados
+    
+    if (coincidencias.length === 0) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    // Crear lista de sugerencias
+    sugerencias.innerHTML = coincidencias.map(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        const curso = e['Curso'] || e.curso || '';
+        return `<div onclick="seleccionarEstudianteIncidencia('${nombre}', '${curso}')" 
+                     style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
+                     onmouseover="this.style.background='#f0f0f0'" 
+                     onmouseout="this.style.background='white'">
+                    <strong>${nombre}</strong><br>
+                    <small style="color:#666;">${curso}</small>
+                </div>`;
+    }).join('');
+    
+    sugerencias.style.display = 'block';
+}
+
+function mostrarSugerenciasIncidencia() {
+    const input = document.getElementById('nombreEstudianteInc');
+    if (input.value.trim().length > 0) {
+        filtrarEstudiantesIncidencia();
+    }
+}
+
+function seleccionarEstudianteIncidencia(nombre, curso) {
+    const input = document.getElementById('nombreEstudianteInc');
+    const cursoSelect = document.getElementById('cursoIncidencia');
+    const sugerencias = document.getElementById('sugerenciasIncidencia');
+    
+    // Establecer valores
+    input.value = nombre;
+    cursoSelect.value = curso;
+    
+    // Indicador visual
+    cursoSelect.style.background = '#e8f5e9';
+    setTimeout(() => {
+        cursoSelect.style.background = '';
+    }, 1000);
+    
+    // Ocultar sugerencias
+    sugerencias.style.display = 'none';
 }
 
 function registrarIncidencia(e) {
@@ -703,10 +804,18 @@ function seleccionarEstudianteTardanza(nombre, curso) {
 
 // Cerrar sugerencias al hacer clic fuera
 document.addEventListener('click', function(e) {
-    const sugerencias = document.getElementById('sugerenciasTardanza');
-    const input = document.getElementById('estudianteTard');
-    if (sugerencias && input && e.target !== input && e.target !== sugerencias) {
-        sugerencias.style.display = 'none';
+    // Cerrar sugerencias de Tardanzas
+    const sugerenciasTardanza = document.getElementById('sugerenciasTardanza');
+    const inputTardanza = document.getElementById('estudianteTard');
+    if (sugerenciasTardanza && inputTardanza && e.target !== inputTardanza && !sugerenciasTardanza.contains(e.target)) {
+        sugerenciasTardanza.style.display = 'none';
+    }
+    
+    // Cerrar sugerencias de Incidencias
+    const sugerenciasIncidencia = document.getElementById('sugerenciasIncidencia');
+    const inputIncidencia = document.getElementById('nombreEstudianteInc');
+    if (sugerenciasIncidencia && inputIncidencia && e.target !== inputIncidencia && !sugerenciasIncidencia.contains(e.target)) {
+        sugerenciasIncidencia.style.display = 'none';
     }
 });
 
