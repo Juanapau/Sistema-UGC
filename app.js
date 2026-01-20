@@ -1773,7 +1773,6 @@ function crearModalReuniones() {
                     <textarea id="observacionesReunion" placeholder="Notas, observaciones o compromisos adicionales..."></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary">💾 Registrar Reunión</button>
-                <button type="button" class="btn btn-success" onclick="generarActaAcuerdos()">📄 Generar Acta de Acuerdos</button>
             </form>
             
             <hr style="margin:40px 0;">
@@ -3335,71 +3334,59 @@ function verDetalleReunion(index) {
             </div>`;
     }).join('');
     
-    const modalHTML = `
-    <div id="modalDetalleReunion" class="modal" style="display:block;">
-        <div class="modal-content" style="max-width:800px;">
-            <div class="modal-header" style="background:linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                <h2>✨ Vista Detallada de Reunión (Al hacer clic en "Ver")</h2>
-                <span class="close" onclick="closeModal('modalDetalleReunion')">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div style="background:white;padding:20px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                    <h3 style="color:#28a745;margin-bottom:15px;">📅 Reunión del ${fecha ? new Date(fecha).toLocaleDateString('es-DO') + ' - ' + new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : '-'}</h3>
-                    <p><strong>Estudiante:</strong> ${estudiante} (${curso})</p>
-                    <p><strong>Presente:</strong> ${nombrePadre || padrePresente} (${padrePresente})</p>
-                    <p><strong>Reunión #${numeroReunion}</strong> con este padre/madre</p>
-                    <p><strong>Personal UGC:</strong> ${personal}</p>
-                    <p><strong>Motivo:</strong> ${motivo}</p>
-                    ${situacion ? `<p><strong>Situación:</strong> ${situacion}</p>` : ''}
-                </div>
-                
-                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
-                    <h4 style="margin-bottom:10px;">📋 Acuerdos Establecidos:</h4>
-                    ${acuerdosLista}
-                </div>
-                
-                <div style="margin-top:15px;padding:15px;background:${estado === 'Cumplido' ? '#d4edda' : estado === 'En seguimiento' ? '#d1ecf1' : '#f8d7da'};border-radius:8px;">
-                    <p><strong>Estado:</strong> <span style="color:${estado === 'Cumplido' ? '#155724' : estado === 'En seguimiento' ? '#0c5460' : '#721c24'}">${estado}</span></p>
-                    ${fechaSeg ? `<p><strong>Seguimiento:</strong> ${new Date(fechaSeg).toLocaleDateString('es-DO')}</p>` : ''}
-                    ${observaciones ? `<p><strong>Observaciones:</strong> ${observaciones}</p>` : ''}
-                </div>
-                
-                <button class="btn btn-success" onclick="generarActaReunion(${index})" style="margin-top:15px;">📄 Generar Acta de esta Reunión</button>
-            </div>
-        </div>
-    </div>`;
+    // Crear o actualizar sección de detalle debajo de la tabla
+    let detalleSection = document.getElementById('detalleReunionSection');
+    if (!detalleSection) {
+        detalleSection = document.createElement('div');
+        detalleSection.id = 'detalleReunionSection';
+        detalleSection.style.marginTop = '30px';
+        document.querySelector('#bodyReuniones').parentElement.parentElement.appendChild(detalleSection);
+    }
     
-    document.getElementById('modalContainer').insertAdjacentHTML('beforeend', modalHTML);
+    const detalleHTML = `
+        <div style="padding:20px;background:linear-gradient(135deg, #28a745 0%, #20c997 100%);border-radius:10px;margin-bottom:15px;">
+            <h3 style="color:white;margin:0;">✨ Vista Detallada de Reunión (Al hacer clic en "Ver")</h3>
+        </div>
+        
+        <div style="background:white;padding:20px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+            <h4 style="color:#28a745;margin-bottom:15px;">📅 Reunión del ${fecha ? new Date(fecha).toLocaleDateString('es-DO') + ' - ' + new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : '-'}</h4>
+            <p><strong>Estudiante:</strong> ${estudiante} (${curso})</p>
+            <p><strong>Presente:</strong> ${nombrePadre || padrePresente} (${padrePresente})</p>
+            <p><strong>Reunión #${numeroReunion}</strong> con este padre/madre</p>
+            <p><strong>Personal UGC:</strong> ${personal}</p>
+            <p><strong>Motivo:</strong> ${motivo}</p>
+            ${situacion ? `<p><strong>Situación:</strong> ${situacion}</p>` : ''}
+        </div>
+        
+        <div style="background:#f8f9fa;padding:15px;border-radius:8px;margin-bottom:15px;">
+            <h4 style="margin-bottom:10px;">📋 Acuerdos Establecidos:</h4>
+            ${acuerdosLista}
+        </div>
+        
+        <div style="padding:15px;background:${estado === 'Cumplido' ? '#d4edda' : estado === 'En seguimiento' ? '#d1ecf1' : '#f8d7da'};border-radius:8px;margin-bottom:15px;">
+            <p><strong>Estado:</strong> <span style="color:${estado === 'Cumplido' ? '#155724' : estado === 'En seguimiento' ? '#0c5460' : '#721c24'}">${estado}</span></p>
+            ${fechaSeg ? `<p><strong>Seguimiento:</strong> ${new Date(fechaSeg).toLocaleDateString('es-DO')}</p>` : ''}
+            ${observaciones ? `<p><strong>Observaciones:</strong> ${observaciones}</p>` : ''}
+        </div>
+        
+        <button class="btn btn-success" onclick="generarActaReunion(${index})">📄 Generar Acta de esta Reunión</button>
+        <button class="btn" onclick="ocultarDetalleReunion()" style="background:#6c757d;color:white;margin-left:10px;">✕ Cerrar</button>
+    `;
+    
+    detalleSection.innerHTML = detalleHTML;
+    detalleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function ocultarDetalleReunion() {
+    const detalleSection = document.getElementById('detalleReunionSection');
+    if (detalleSection) {
+        detalleSection.innerHTML = '';
+    }
 }
 
 function generarActaReunion(index) {
     const r = datosReuniones[index];
     generarActaPDF(r);
-}
-
-function generarActaAcuerdos() {
-    // Generar acta con los datos del formulario actual
-    const reunion = {
-        'Fecha y Hora': document.getElementById('fechaReunion').value,
-        'Nombre Estudiante': document.getElementById('estudianteReunion').value,
-        'Curso': document.getElementById('cursoReunion').value,
-        'Padre/Madre Presente': document.getElementById('padrePresente').value,
-        'Nombre Padre/Madre': document.getElementById('nombrePadreReunion').value,
-        'Personal UGC': document.getElementById('docenteReunion').value,
-        'Motivo': document.getElementById('motivoReunion').value,
-        'Situación Tratada': document.getElementById('situacionTratada').value,
-        'Acuerdos Establecidos': document.getElementById('acuerdosEstablecidos').value,
-        'Fecha Seguimiento': document.getElementById('fechaSeguimiento').value,
-        'Estado': document.getElementById('estadoAcuerdo').value,
-        'Observaciones': document.getElementById('observacionesReunion').value
-    };
-    
-    if (!reunion['Nombre Estudiante'] || !reunion['Acuerdos Establecidos']) {
-        alert('Por favor complete al menos el nombre del estudiante y los acuerdos establecidos');
-        return;
-    }
-    
-    generarActaPDF(reunion);
 }
 
 function generarActaPDF(reunion) {
