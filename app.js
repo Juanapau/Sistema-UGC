@@ -7,7 +7,8 @@ let CONFIG = {
     urlIncidencias: '',
     urlTardanzas: '',
     urlContactos: '',
-    urlEstudiantes: ''
+    urlEstudiantes: '',
+    urlReuniones: ''
 };
 
 // Almacenamiento de datos local
@@ -15,6 +16,7 @@ let datosIncidencias = [];
 let datosTardanzas = [];
 let datosContactos = [];
 let datosEstudiantes = [];
+let datosReuniones = [];
 
 // Cursos disponibles
 const CURSOS = ['1roA','1roB','1roC','2doA','2doB','2doC','3roA','3roB','3roC',
@@ -190,6 +192,7 @@ function openModule(moduleName) {
         'tardanzas': crearModalTardanzas,
         'contactos': crearModalContactos,
         'estudiantes': crearModalEstudiantes,
+        'reuniones': crearModalReuniones,
         'configuracion': crearModalConfiguracion,
         'reportes': crearModalReportes
     };
@@ -822,6 +825,13 @@ document.addEventListener('click', function(e) {
     const inputIncidencia = document.getElementById('nombreEstudianteInc');
     if (sugerenciasIncidencia && inputIncidencia && e.target !== inputIncidencia && !sugerenciasIncidencia.contains(e.target)) {
         sugerenciasIncidencia.style.display = 'none';
+    }
+    
+    // Cerrar sugerencias de Reuniones
+    const sugerenciasReunion = document.getElementById('sugerenciasReunion');
+    const inputReunion = document.getElementById('estudianteReunion');
+    if (sugerenciasReunion && inputReunion && e.target !== inputReunion && !sugerenciasReunion.contains(e.target)) {
+        sugerenciasReunion.style.display = 'none';
     }
 });
 
@@ -1641,6 +1651,220 @@ function exportarEstudiantes() {
 }
 
 // ==================
+// MODAL REUNIONES Y ACUERDOS
+// ==================
+function crearModalReuniones() {
+    const html = `
+<div id="modalReuniones" class="modal" style="display:block;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🤝 Reuniones y Acuerdos con Padres</h2>
+            <span class="close" onclick="closeModal('modalReuniones')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-success" id="alertReuniones" style="display:none;"></div>
+            
+            <!-- Estadísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total de Reuniones</h4>
+                    <div class="number" id="totalReuniones">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Este Mes</h4>
+                    <div class="number" id="reunionesMes">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Acuerdos Activos</h4>
+                    <div class="number" id="acuerdosActivos">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Seguimientos Pendientes</h4>
+                    <div class="number" id="seguimientosPendientes">0</div>
+                </div>
+            </div>
+            
+            <h3>📝 Registrar Nueva Reunión</h3>
+            <form id="formReunion" onsubmit="registrarReunion(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha y Hora *</label>
+                        <input type="datetime-local" id="fechaReunion" required>
+                    </div>
+                    <div class="form-group" style="position:relative;">
+                        <label>Estudiante *</label>
+                        <input type="text" 
+                               id="estudianteReunion" 
+                               required 
+                               autocomplete="off"
+                               oninput="filtrarEstudiantesReunion()"
+                               onfocus="mostrarSugerenciasReunion()"
+                               placeholder="Escribe el nombre del estudiante...">
+                        <div id="sugerenciasReunion" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Curso *</label>
+                        <select id="cursoReunion" required>
+                            <option value="">Seleccione</option>
+                            ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Padre/Madre Presente *</label>
+                        <select id="padrePresente" required>
+                            <option value="">Seleccione</option>
+                            <option value="Madre">Madre</option>
+                            <option value="Padre">Padre</option>
+                            <option value="Ambos padres">Ambos padres</option>
+                            <option value="Tutor/a">Tutor/a</option>
+                            <option value="Otro familiar">Otro familiar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Padre/Madre</label>
+                        <input type="text" id="nombrePadreReunion" placeholder="Nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label>Personal UGC/Docente *</label>
+                        <input type="text" id="docenteReunion" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Motivo de la Reunión *</label>
+                    <select id="motivoReunion" required>
+                        <option value="">Seleccione</option>
+                        <option value="Comportamiento en clase">Comportamiento en clase</option>
+                        <option value="Agresividad física o verbal">Agresividad física o verbal</option>
+                        <option value="Tardanzas frecuentes">Tardanzas frecuentes</option>
+                        <option value="Inasistencias">Inasistencias</option>
+                        <option value="Bajo rendimiento académico">Bajo rendimiento académico</option>
+                        <option value="Seguimiento de acuerdos previos">Seguimiento de acuerdos previos</option>
+                        <option value="Problemas de convivencia">Problemas de convivencia</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Situación Tratada *</label>
+                    <textarea id="situacionTratada" required placeholder="Describa detalladamente la situación discutida en la reunión..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Acuerdos Establecidos *</label>
+                    <textarea id="acuerdosEstablecidos" required placeholder="Liste los acuerdos y compromisos establecidos con los padres..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha de Seguimiento</label>
+                        <input type="date" id="fechaSeguimiento">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado del Acuerdo *</label>
+                        <select id="estadoAcuerdo" required>
+                            <option value="En seguimiento">En seguimiento</option>
+                            <option value="Cumplido">Cumplido</option>
+                            <option value="No cumplido">No cumplido</option>
+                            <option value="Parcialmente cumplido">Parcialmente cumplido</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones Adicionales</label>
+                    <textarea id="observacionesReunion" placeholder="Notas, observaciones o compromisos adicionales..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">💾 Registrar Reunión</button>
+                <button type="button" class="btn btn-success" onclick="generarActaAcuerdos()">📄 Generar Acta de Acuerdos</button>
+            </form>
+            
+            <hr style="margin:40px 0;">
+            <h3>🔍 Buscar Reuniones</h3>
+            <div class="search-bar">
+                <input type="text" id="buscarReunion" placeholder="🔍 Buscar por estudiante o padre...">
+                <select id="filtrarCursoReunion">
+                    <option value="">Todos los cursos</option>
+                    ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+                <select id="filtrarEstadoReunion">
+                    <option value="">Todos los estados</option>
+                    <option value="En seguimiento">En seguimiento</option>
+                    <option value="Cumplido">Cumplido</option>
+                    <option value="No cumplido">No cumplido</option>
+                    <option value="Parcialmente cumplido">Parcialmente cumplido</option>
+                </select>
+                <button class="btn btn-primary" onclick="buscarReuniones()">🔍 Buscar</button>
+                <button class="btn" onclick="recargarReuniones()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
+                <button class="btn btn-success" onclick="exportarReunionesPDF()">📥 Exportar</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Estudiante</th>
+                            <th>Padre/Madre</th>
+                            <th>Reuniones</th>
+                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th>Seguimiento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyReuniones"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>`;
+    document.getElementById('modalContainer').innerHTML = html;
+    document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
+    
+    // Cargar estudiantes
+    setTimeout(() => {
+        if (CONFIG.urlEstudiantes) {
+            console.log('Cargando estudiantes desde Google Sheets (Reuniones)...');
+            cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosEstudiantes = datos;
+                    console.log('Estudiantes cargados (Reuniones):', datosEstudiantes.length);
+                    actualizarDatalistsEstudiantes();
+                }
+            }).catch(error => {
+                console.error('Error cargando estudiantes:', error);
+                if (datosEstudiantes.length > 0) {
+                    actualizarDatalistsEstudiantes();
+                }
+            });
+        } else if (datosEstudiantes.length > 0) {
+            actualizarDatalistsEstudiantes();
+        }
+    }, 100);
+    
+    // Mostrar mensaje de carga
+    const tbody = document.getElementById('bodyReuniones');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#666;">📥 Cargando reuniones...</td></tr>';
+    
+    // Cargar datos desde Google Sheets
+    if (CONFIG.urlReuniones) {
+        cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones).then(datos => {
+            if (datos && datos.length > 0) {
+                datosReuniones = datos;
+                cargarTablaReuniones();
+                actualizarEstadisticasReuniones();
+            } else {
+                cargarTablaReuniones();
+                actualizarEstadisticasReuniones();
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
+        });
+    } else {
+        cargarTablaReuniones();
+        actualizarEstadisticasReuniones();
+    }
+}
+
+// ==================
 // MODAL CONFIGURACIÓN
 // ==================
 function crearModalConfiguracion() {
@@ -1717,6 +1941,10 @@ function doGet(e) {
                         <label>URL Estudiantes</label>
                         <input type="url" id="urlEst" value="${CONFIG.urlEstudiantes}">
                     </div>
+                    <div class="form-group">
+                        <label>URL Reuniones</label>
+                        <input type="url" id="urlReun" value="${CONFIG.urlReuniones}">
+                    </div>
                     <button type="submit" class="btn btn-success">💾 Guardar</button>
                 </form>
             </div>
@@ -1732,6 +1960,7 @@ function guardarConfig(e) {
     CONFIG.urlTardanzas = document.getElementById('urlTard').value;
     CONFIG.urlContactos = document.getElementById('urlCont').value;
     CONFIG.urlEstudiantes = document.getElementById('urlEst').value;
+    CONFIG.urlReuniones = document.getElementById('urlReun').value;
     localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
     mostrarAlerta('alertConfig', '✅ Configuración guardada');
 }
@@ -2804,4 +3033,481 @@ function exportarReporteIndividualPDF() {
     doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, 285);
     
     doc.save(`Reporte_${estudiante.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// ==================
+// FUNCIONES MÓDULO REUNIONES
+// ==================
+
+// Autocompletado para Reuniones
+function filtrarEstudiantesReunion() {
+    const input = document.getElementById('estudianteReunion');
+    const sugerencias = document.getElementById('sugerenciasReunion');
+    const texto = input.value.toLowerCase().trim();
+    
+    if (texto.length === 0) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    const coincidencias = datosEstudiantes.filter(e => {
+        const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+        return nombre.includes(texto);
+    }).slice(0, 20);
+    
+    if (coincidencias.length === 0) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    sugerencias.innerHTML = coincidencias.map(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        const curso = e['Curso'] || e.curso || '';
+        const nombreEscapado = nombre.replace(/'/g, "\\'");
+        const cursoEscapado = curso.replace(/'/g, "\\'");
+        return `<div onclick="seleccionarEstudianteReunion('${nombreEscapado}', '${cursoEscapado}')" 
+                     style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
+                     onmouseover="this.style.background='#f0f0f0'" 
+                     onmouseout="this.style.background='white'">
+                    <strong>${nombre}</strong><br>
+                    <small style="color:#666;">${curso}</small>
+                </div>`;
+    }).join('');
+    
+    sugerencias.style.display = 'block';
+}
+
+function mostrarSugerenciasReunion() {
+    const input = document.getElementById('estudianteReunion');
+    if (input.value.trim().length > 0) {
+        filtrarEstudiantesReunion();
+    }
+}
+
+function seleccionarEstudianteReunion(nombre, curso) {
+    const input = document.getElementById('estudianteReunion');
+    const cursoSelect = document.getElementById('cursoReunion');
+    const sugerencias = document.getElementById('sugerenciasReunion');
+    
+    input.value = nombre;
+    cursoSelect.value = curso;
+    
+    cursoSelect.style.background = '#e8f5e9';
+    setTimeout(() => {
+        cursoSelect.style.background = '';
+    }, 1000);
+    
+    sugerencias.style.display = 'none';
+    
+    // Auto-llenar nombre del padre si existe en contactos
+    autocompletarNombrePadre(nombre);
+}
+
+function autocompletarNombrePadre(nombreEstudiante) {
+    const contacto = datosContactos.find(c => {
+        const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+        return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    if (contacto) {
+        const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || '';
+        const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || '';
+        
+        const campoNombre = document.getElementById('nombrePadreReunion');
+        if (campoNombre) {
+            if (nombreMadre) {
+                campoNombre.value = nombreMadre;
+                campoNombre.placeholder = `Padre: ${nombrePadre || 'No registrado'}`;
+            } else if (nombrePadre) {
+                campoNombre.value = nombrePadre;
+            }
+        }
+    }
+}
+
+function registrarReunion(e) {
+    e.preventDefault();
+    const reunion = {
+        'Fecha y Hora': document.getElementById('fechaReunion').value,
+        'Nombre Estudiante': document.getElementById('estudianteReunion').value,
+        'Curso': document.getElementById('cursoReunion').value,
+        'Padre/Madre Presente': document.getElementById('padrePresente').value,
+        'Nombre Padre/Madre': document.getElementById('nombrePadreReunion').value,
+        'Personal UGC': document.getElementById('docenteReunion').value,
+        'Motivo': document.getElementById('motivoReunion').value,
+        'Situación Tratada': document.getElementById('situacionTratada').value,
+        'Acuerdos Establecidos': document.getElementById('acuerdosEstablecidos').value,
+        'Fecha Seguimiento': document.getElementById('fechaSeguimiento').value,
+        'Estado': document.getElementById('estadoAcuerdo').value,
+        'Observaciones': document.getElementById('observacionesReunion').value
+    };
+    
+    datosReuniones.push(reunion);
+    if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion);
+    mostrarAlerta('alertReuniones', '✅ Reunión registrada correctamente');
+    document.getElementById('formReunion').reset();
+    document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
+    cargarTablaReuniones();
+    actualizarEstadisticasReuniones();
+}
+
+function cargarTablaReuniones() {
+    const tbody = document.getElementById('bodyReuniones');
+    if (datosReuniones.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No hay reuniones registradas</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = datosReuniones.map((r, index) => {
+        const fecha = r['Fecha y Hora'] || r.fecha || '';
+        const estudiante = r['Nombre Estudiante'] || r.estudiante || '';
+        const curso = r['Curso'] || r.curso || '';
+        const padrePresente = r['Padre/Madre Presente'] || r.padrePresente || '';
+        const nombrePadre = r['Nombre Padre/Madre'] || r.nombrePadre || '';
+        const motivo = r['Motivo'] || r.motivo || '';
+        const estado = r['Estado'] || r.estado || '';
+        const fechaSeguimiento = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
+        
+        // Contar reuniones del mismo padre
+        const conteoReuniones = datosReuniones.filter(reunion => {
+            const est = reunion['Nombre Estudiante'] || reunion.estudiante || '';
+            return est.toLowerCase() === estudiante.toLowerCase();
+        }).length;
+        
+        const badgeReuniones = conteoReuniones >= 5 ? 'badge-warning' : 
+                              conteoReuniones >= 3 ? 'badge-info' : 'badge-success';
+        
+        const badgeEstado = estado === 'Cumplido' ? 'badge-success' :
+                           estado === 'No cumplido' ? 'badge-muy-grave' :
+                           'badge-info';
+        
+        return `
+        <tr onclick="verDetalleReunion(${index})" style="cursor:pointer;">
+            <td>${fecha ? new Date(fecha).toLocaleString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : ''}</td>
+            <td><strong>${estudiante}</strong><br><small>${curso}</small></td>
+            <td>${nombrePadre || padrePresente}<br><small>${padrePresente}</small></td>
+            <td style="text-align:center;"><span class="status-badge ${badgeReuniones}">${conteoReuniones}ª vez</span></td>
+            <td>${motivo}</td>
+            <td><span class="status-badge ${badgeEstado}">${estado}</span></td>
+            <td>${fechaSeguimiento ? new Date(fechaSeguimiento).toLocaleDateString('es-DO') : '-'}</td>
+            <td>
+                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${index})" style="padding:5px 10px;font-size:0.85em;">👁️ Ver</button>
+                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${index})" style="padding:5px 10px;font-size:0.85em;">📄 Acta</button>
+            </td>
+        </tr>
+        `;
+    }).join('');
+}
+
+function actualizarEstadisticasReuniones() {
+    const totalReuniones = datosReuniones.length;
+    const hoy = new Date();
+    const mesActual = hoy.getMonth();
+    const añoActual = hoy.getFullYear();
+    
+    const reunionesMes = datosReuniones.filter(r => {
+        const fecha = r['Fecha y Hora'] || r.fecha || '';
+        if (!fecha) return false;
+        const fechaReunion = new Date(fecha);
+        return fechaReunion.getMonth() === mesActual && fechaReunion.getFullYear() === añoActual;
+    }).length;
+    
+    const acuerdosActivos = datosReuniones.filter(r => {
+        const estado = r['Estado'] || r.estado || '';
+        return estado === 'En seguimiento' || estado === 'Parcialmente cumplido';
+    }).length;
+    
+    const seguimientosPendientes = datosReuniones.filter(r => {
+        const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
+        if (!fechaSeg) return false;
+        const fechaSeguimiento = new Date(fechaSeg);
+        return fechaSeguimiento >= hoy && (r['Estado'] || r.estado) === 'En seguimiento';
+    }).length;
+    
+    document.getElementById('totalReuniones').textContent = totalReuniones;
+    document.getElementById('reunionesMes').textContent = reunionesMes;
+    document.getElementById('acuerdosActivos').textContent = acuerdosActivos;
+    document.getElementById('seguimientosPendientes').textContent = seguimientosPendientes;
+}
+
+function buscarReuniones() {
+    const buscar = document.getElementById('buscarReunion').value.toLowerCase().trim();
+    const curso = document.getElementById('filtrarCursoReunion').value;
+    const estado = document.getElementById('filtrarEstadoReunion').value;
+    
+    const filtrados = datosReuniones.filter(r => {
+        const estudiante = (r['Nombre Estudiante'] || r.estudiante || '').toLowerCase();
+        const nombrePadre = (r['Nombre Padre/Madre'] || r.nombrePadre || '').toLowerCase();
+        const cursoR = r['Curso'] || r.curso || '';
+        const estadoR = r['Estado'] || r.estado || '';
+        
+        const coincideBusqueda = !buscar || estudiante.includes(buscar) || nombrePadre.includes(buscar);
+        const coincideCurso = !curso || cursoR === curso;
+        const coincideEstado = !estado || estadoR === estado;
+        
+        return coincideBusqueda && coincideCurso && coincideEstado;
+    });
+    
+    const tbody = document.getElementById('bodyReuniones');
+    if (filtrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+        return;
+    }
+    
+    // Mostrar resultados filtrados (reutilizando lógica de cargarTablaReuniones)
+    const reunionesTemp = datosReuniones;
+    datosReuniones = filtrados;
+    cargarTablaReuniones();
+    datosReuniones = reunionesTemp;
+}
+
+async function recargarReuniones() {
+    const tbody = document.getElementById('bodyReuniones');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    
+    if (CONFIG.urlReuniones) {
+        const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones);
+        if (datos && datos.length > 0) {
+            datosReuniones = datos;
+            cargarTablaReuniones();
+            actualizarEstadisticasReuniones();
+            mostrarAlerta('alertReuniones', `✅ ${datos.length} reuniones recargadas`);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
+        }
+    }
+}
+
+function verDetalleReunion(index) {
+    const r = datosReuniones[index];
+    const estudiante = r['Nombre Estudiante'] || r.estudiante || '';
+    const curso = r['Curso'] || r.curso || '';
+    const fecha = r['Fecha y Hora'] || r.fecha || '';
+    const padrePresente = r['Padre/Madre Presente'] || r.padrePresente || '';
+    const nombrePadre = r['Nombre Padre/Madre'] || r.nombrePadre || '';
+    const personal = r['Personal UGC'] || r.personal || '';
+    const motivo = r['Motivo'] || r.motivo || '';
+    const situacion = r['Situación Tratada'] || r.situacion || '';
+    const acuerdos = r['Acuerdos Establecidos'] || r.acuerdos || '';
+    const estado = r['Estado'] || r.estado || '';
+    const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
+    const observaciones = r['Observaciones'] || r.observaciones || '';
+    
+    const conteoReuniones = datosReuniones.filter(reunion => {
+        const est = reunion['Nombre Estudiante'] || reunion.estudiante || '';
+        return est.toLowerCase() === estudiante.toLowerCase();
+    }).length;
+    
+    alert(`📋 DETALLE DE REUNIÓN
+
+Estudiante: ${estudiante} (${curso})
+Reunión #${conteoReuniones} con este padre/madre
+
+Fecha: ${fecha ? new Date(fecha).toLocaleString('es-DO') : '-'}
+Presente: ${nombrePadre || padrePresente} (${padrePresente})
+Personal UGC: ${personal}
+
+Motivo: ${motivo}
+
+Situación:
+${situacion}
+
+Acuerdos Establecidos:
+${acuerdos}
+
+Estado: ${estado}
+${fechaSeg ? 'Seguimiento: ' + new Date(fechaSeg).toLocaleDateString('es-DO') : ''}
+
+${observaciones ? 'Observaciones: ' + observaciones : ''}`);
+}
+
+function generarActaReunion(index) {
+    const r = datosReuniones[index];
+    generarActaPDF(r);
+}
+
+function generarActaAcuerdos() {
+    // Generar acta con los datos del formulario actual
+    const reunion = {
+        'Fecha y Hora': document.getElementById('fechaReunion').value,
+        'Nombre Estudiante': document.getElementById('estudianteReunion').value,
+        'Curso': document.getElementById('cursoReunion').value,
+        'Padre/Madre Presente': document.getElementById('padrePresente').value,
+        'Nombre Padre/Madre': document.getElementById('nombrePadreReunion').value,
+        'Personal UGC': document.getElementById('docenteReunion').value,
+        'Motivo': document.getElementById('motivoReunion').value,
+        'Situación Tratada': document.getElementById('situacionTratada').value,
+        'Acuerdos Establecidos': document.getElementById('acuerdosEstablecidos').value,
+        'Fecha Seguimiento': document.getElementById('fechaSeguimiento').value,
+        'Estado': document.getElementById('estadoAcuerdo').value,
+        'Observaciones': document.getElementById('observacionesReunion').value
+    };
+    
+    if (!reunion['Nombre Estudiante'] || !reunion['Acuerdos Establecidos']) {
+        alert('Por favor complete al menos el nombre del estudiante y los acuerdos establecidos');
+        return;
+    }
+    
+    generarActaPDF(reunion);
+}
+
+function generarActaPDF(reunion) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const estudiante = reunion['Nombre Estudiante'] || reunion.estudiante || '';
+    const startY = agregarEncabezadoCENSA(doc, 'Acta de Acuerdos y Compromisos');
+    
+    let yPos = startY + 5;
+    
+    // Título
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REUNIÓN CON PADRES/TUTORES', 105, yPos, { align: 'center' });
+    yPos += 10;
+    
+    // Información de la reunión
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    
+    const fecha = reunion['Fecha y Hora'] || reunion.fecha || '';
+    const curso = reunion['Curso'] || reunion.curso || '';
+    const padrePresente = reunion['Padre/Madre Presente'] || reunion.padrePresente || '';
+    const nombrePadre = reunion['Nombre Padre/Madre'] || reunion.nombrePadre || '';
+    const personal = reunion['Personal UGC'] || reunion.personal || '';
+    const motivo = reunion['Motivo'] || reunion.motivo || '';
+    
+    doc.text(`Fecha: ${fecha ? new Date(fecha).toLocaleString('es-DO') : '-'}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Estudiante: ${estudiante}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Curso: ${curso}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Presente en la reunión: ${nombrePadre || padrePresente} (${padrePresente})`, 14, yPos);
+    yPos += 6;
+    doc.text(`Personal UGC/Docente: ${personal}`, 14, yPos);
+    yPos += 10;
+    
+    // Motivo
+    doc.setFont('helvetica', 'bold');
+    doc.text('Motivo de la Reunión:', 14, yPos);
+    yPos += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.text(motivo, 14, yPos);
+    yPos += 10;
+    
+    // Situación tratada
+    const situacion = reunion['Situación Tratada'] || reunion.situacion || '';
+    if (situacion) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('Situación Tratada:', 14, yPos);
+        yPos += 5;
+        doc.setFont('helvetica', 'normal');
+        const situacionLineas = doc.splitTextToSize(situacion, 180);
+        doc.text(situacionLineas, 14, yPos);
+        yPos += (situacionLineas.length * 5) + 5;
+    }
+    
+    // Acuerdos
+    if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+    }
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('ACUERDOS Y COMPROMISOS ESTABLECIDOS:', 14, yPos);
+    yPos += 7;
+    
+    const acuerdos = reunion['Acuerdos Establecidos'] || reunion.acuerdos || '';
+    doc.setFont('helvetica', 'normal');
+    const acuerdosLineas = doc.splitTextToSize(acuerdos, 180);
+    doc.text(acuerdosLineas, 14, yPos);
+    yPos += (acuerdosLineas.length * 5) + 10;
+    
+    // Fecha de seguimiento
+    const fechaSeg = reunion['Fecha Seguimiento'] || reunion.fechaSeguimiento || '';
+    if (fechaSeg) {
+        if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Fecha de seguimiento: ${new Date(fechaSeg).toLocaleDateString('es-DO')}`, 14, yPos);
+        yPos += 10;
+    }
+    
+    // Firmas
+    if (yPos > 230) {
+        doc.addPage();
+        yPos = 20;
+    }
+    
+    yPos += 20;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.line(20, yPos, 90, yPos);
+    doc.line(120, yPos, 190, yPos);
+    doc.text('Padre/Madre/Tutor', 55, yPos + 5, { align: 'center' });
+    doc.text('Personal UGC/Docente', 155, yPos + 5, { align: 'center' });
+    
+    // Pie de página
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, 285);
+    
+    doc.save(`Acta_Reunion_${estudiante.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+function exportarReunionesPDF() {
+    if (datosReuniones.length === 0) {
+        alert('No hay reuniones para exportar');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
+    
+    const startY = agregarEncabezadoCENSA(doc, 'Reporte de Reuniones con Padres');
+    
+    const tableData = datosReuniones.map(r => [
+        (r['Fecha y Hora'] || r.fecha) ? new Date(r['Fecha y Hora'] || r.fecha).toLocaleDateString('es-DO') : '',
+        r['Nombre Estudiante'] || r.estudiante || '',
+        r['Curso'] || r.curso || '',
+        r['Nombre Padre/Madre'] || r.nombrePadre || '',
+        r['Motivo'] || r.motivo || '',
+        r['Estado'] || r.estado || '',
+        (r['Fecha Seguimiento'] || r.fechaSeguimiento) ? new Date(r['Fecha Seguimiento'] || r.fechaSeguimiento).toLocaleDateString('es-DO') : '-'
+    ]);
+    
+    doc.autoTable({
+        startY: startY,
+        head: [['Fecha', 'Estudiante', 'Curso', 'Padre/Madre', 'Motivo', 'Estado', 'Seguimiento']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { 
+            fillColor: [30, 58, 138],
+            fontSize: 9,
+            fontStyle: 'bold'
+        },
+        styles: { 
+            fontSize: 8,
+            cellPadding: 3
+        },
+        columnStyles: {
+            0: { cellWidth: 25 },
+            1: { cellWidth: 45 },
+            2: { cellWidth: 20 },
+            3: { cellWidth: 45 },
+            4: { cellWidth: 50 },
+            5: { cellWidth: 30 },
+            6: { cellWidth: 25 }
+        }
+    });
+    
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text(`Total de reuniones: ${datosReuniones.length}`, 14, finalY);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
+    
+    doc.save(`Reuniones_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
 }
