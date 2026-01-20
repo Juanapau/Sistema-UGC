@@ -404,7 +404,10 @@ function filtrarEstudiantesIncidencia() {
     sugerencias.innerHTML = coincidencias.map(e => {
         const nombre = e['Nombre Completo'] || e.nombre || '';
         const curso = e['Curso'] || e.curso || '';
-        return `<div onclick="seleccionarEstudianteIncidencia('${nombre}', '${curso}')" 
+        // Escapar comillas para evitar problemas en onclick
+        const nombreEscapado = nombre.replace(/'/g, "\\'");
+        const cursoEscapado = curso.replace(/'/g, "\\'");
+        return `<div onclick="seleccionarEstudianteIncidencia('${nombreEscapado}', '${cursoEscapado}')" 
                      style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
                      onmouseover="this.style.background='#f0f0f0'" 
                      onmouseout="this.style.background='white'">
@@ -764,7 +767,10 @@ function filtrarEstudiantesTardanza() {
     sugerencias.innerHTML = coincidencias.map(e => {
         const nombre = e['Nombre Completo'] || e.nombre || '';
         const curso = e['Curso'] || e.curso || '';
-        return `<div onclick="seleccionarEstudianteTardanza('${nombre}', '${curso}')" 
+        // Escapar comillas para evitar problemas en onclick
+        const nombreEscapado = nombre.replace(/'/g, "\\'");
+        const cursoEscapado = curso.replace(/'/g, "\\'");
+        return `<div onclick="seleccionarEstudianteTardanza('${nombreEscapado}', '${cursoEscapado}')" 
                      style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
                      onmouseover="this.style.background='#f0f0f0'" 
                      onmouseout="this.style.background='white'">
