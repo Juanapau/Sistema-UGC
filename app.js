@@ -3275,7 +3275,13 @@ function exportarReporteIndividualPDF() {
             }
             doc.text(estado, 30, yPos);
             doc.setTextColor(0, 0, 0);
-            yPos += 8;
+            yPos += 6;
+            
+            // Línea separadora entre reuniones
+            doc.setDrawColor(0, 0, 0); // Color negro
+            doc.setLineWidth(0.5); // Grosor de línea
+            doc.line(14, yPos, 196, yPos); // Línea horizontal de margen a margen
+            yPos += 6;
         });
     } else {
         doc.setFontSize(9);
