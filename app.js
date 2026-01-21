@@ -4105,7 +4105,7 @@ function crearModalDashboard() {
     const html = `
 <div class="modal" id="modalDashboard" style="display:block;">
     <div class="modal-content" style="max-width:1400px;">
-        <span class="close" onclick="closeModal('modalDashboard')">&times;</span>
+        <span class="close" onclick="closeModal('modalDashboard')" style="color:#000;position:absolute;right:25px;top:20px;font-size:35px;font-weight:bold;cursor:pointer;">&times;</span>
         <h2>📊 Dashboard Sistema UGC</h2>
         
         <!-- Estadísticas Principales -->
