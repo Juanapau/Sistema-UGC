@@ -4106,7 +4106,7 @@ function crearModalDashboard() {
 <div class="modal" id="modalDashboard" style="display:block;">
     <div class="modal-content" style="max-width:1400px;">
         <span class="close" onclick="closeModal('modalDashboard')">&times;</span>
-        <h2>📊 Dashboard CENSA</h2>
+        <h2>📊 Dashboard Sistema UGC</h2>
         
         <!-- Estadísticas Principales -->
         <div class="stats-grid" style="margin-bottom:30px;">
