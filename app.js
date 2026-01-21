@@ -3823,13 +3823,19 @@ function realizarBusquedaGlobal() {
     const input = document.getElementById('globalSearchInput');
     const clearIcon = document.getElementById('clearSearch');
     const resultsContainer = document.getElementById('globalSearchResults');
+    
+    if (!input || !resultsContainer) {
+        console.error('Elementos de búsqueda no encontrados');
+        return;
+    }
+    
     const query = input.value.toLowerCase().trim();
     
     // Mostrar/ocultar icono de limpiar
     if (query.length > 0) {
-        clearIcon.style.display = 'block';
+        if (clearIcon) clearIcon.style.display = 'block';
     } else {
-        clearIcon.style.display = 'none';
+        if (clearIcon) clearIcon.style.display = 'none';
         resultsContainer.style.display = 'none';
         return;
     }
@@ -3838,6 +3844,14 @@ function realizarBusquedaGlobal() {
         resultsContainer.style.display = 'none';
         return;
     }
+    
+    console.log('Buscando:', query);
+    console.log('Datos disponibles:', {
+        incidencias: datosIncidencias.length,
+        tardanzas: datosTardanzas.length,
+        reuniones: datosReuniones.length,
+        contactos: datosContactos.length
+    });
     
     let resultados = [];
     
@@ -3957,6 +3971,11 @@ document.addEventListener('click', function(e) {
 function toggleAlertsPanel() {
     const panel = document.getElementById('alertsPanel');
     panel.classList.toggle('open');
+    
+    // Actualizar alertas al abrir el panel
+    if (panel.classList.contains('open')) {
+        actualizarAlertas();
+    }
 }
 
 function actualizarAlertas() {
@@ -4075,10 +4094,18 @@ const actualizarAlertasOriginal = setInterval(() => {
 // ==========================================
 
 function crearModalDashboard() {
+    console.log('Creando Dashboard...');
+    console.log('Datos disponibles:', {
+        incidencias: datosIncidencias.length,
+        tardanzas: datosTardanzas.length,
+        reuniones: datosReuniones.length,
+        estudiantes: datosEstudiantes.length
+    });
+    
     const html = `
-<div class="modal" id="modalDashboard">
+<div class="modal" id="modalDashboard" style="display:block;">
     <div class="modal-content" style="max-width:1400px;">
-        <span class="close" onclick="closeModal()">&times;</span>
+        <span class="close" onclick="closeModal('modalDashboard')">&times;</span>
         <h2>📊 Dashboard CENSA</h2>
         
         <!-- Estadísticas Principales -->
@@ -4120,18 +4147,36 @@ function crearModalDashboard() {
 </div>`;
     
     document.getElementById('modalContainer').innerHTML = html;
+    console.log('Modal Dashboard creado en DOM');
     
     // Actualizar estadísticas
-    actualizarDashboardStats();
-    
-    // Crear gráfico
     setTimeout(() => {
-        crearGraficoIncidenciasPorCurso();
+        console.log('Actualizando estadísticas del dashboard...');
+        actualizarDashboardStats();
     }, 100);
+    
+    // Crear gráfico con más tiempo
+    setTimeout(() => {
+        console.log('Creando gráfico...');
+        crearGraficoIncidenciasPorCurso();
+    }, 500);
 }
 
 function actualizarDashboardStats() {
+    console.log('Actualizando stats con datos:', {
+        incidencias: datosIncidencias.length,
+        tardanzas: datosTardanzas.length,
+        reuniones: datosReuniones.length,
+        estudiantes: datosEstudiantes.length
+    });
+    
     // Incidencias
+    const incEl = document.getElementById('dashIncidencias');
+    if (incEl) {
+        incEl.textContent = datosIncidencias.length;
+    } else {
+        console.error('Elemento dashIncidencias no encontrado');
+    }
     document.getElementById('dashIncidencias').textContent = datosIncidencias.length;
     const graves = datosIncidencias.filter(i => {
         const tipo = i['Tipo de falta'] || i.tipoFalta || '';
