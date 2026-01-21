@@ -188,6 +188,7 @@ function openModule(moduleName) {
     }
     
     const modals = {
+        'dashboard': crearModalDashboard,
         'incidencias': crearModalIncidencias,
         'tardanzas': crearModalTardanzas,
         'contactos': crearModalContactos,
@@ -3812,4 +3813,473 @@ function exportarReunionesPDF() {
     doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
     
     doc.save(`Reuniones_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// ==========================================
+// BÚSQUEDA GLOBAL
+// ==========================================
+
+function realizarBusquedaGlobal() {
+    const input = document.getElementById('globalSearchInput');
+    const clearIcon = document.getElementById('clearSearch');
+    const resultsContainer = document.getElementById('globalSearchResults');
+    const query = input.value.toLowerCase().trim();
+    
+    // Mostrar/ocultar icono de limpiar
+    if (query.length > 0) {
+        clearIcon.style.display = 'block';
+    } else {
+        clearIcon.style.display = 'none';
+        resultsContainer.style.display = 'none';
+        return;
+    }
+    
+    if (query.length < 2) {
+        resultsContainer.style.display = 'none';
+        return;
+    }
+    
+    let resultados = [];
+    
+    // Buscar en incidencias
+    datosIncidencias.forEach(inc => {
+        const estudiante = (inc['Nombre Estudiante'] || inc.estudiante || '').toLowerCase();
+        const descripcion = (inc['Descripción'] || inc.descripcion || '').toLowerCase();
+        if (estudiante.includes(query) || descripcion.includes(query)) {
+            resultados.push({
+                tipo: 'incidencia',
+                tipoLabel: '📋 Incidencia',
+                titulo: inc['Descripción'] || inc.descripcion || 'Sin descripción',
+                meta: `${inc['Nombre Estudiante'] || inc.estudiante || 'Sin nombre'} - ${inc['Fecha'] || 'Sin fecha'}`,
+                data: inc
+            });
+        }
+    });
+    
+    // Buscar en tardanzas
+    datosTardanzas.forEach(tard => {
+        const estudiante = (tard['Nombre Estudiante'] || tard.estudiante || '').toLowerCase();
+        if (estudiante.includes(query)) {
+            resultados.push({
+                tipo: 'tardanza',
+                tipoLabel: '⏰ Tardanza',
+                titulo: `Tardanza de ${tard['Nombre Estudiante'] || tard.estudiante}`,
+                meta: `${tard['Fecha'] || 'Sin fecha'} - ${tard['Hora'] || 'Sin hora'}`,
+                data: tard
+            });
+        }
+    });
+    
+    // Buscar en reuniones
+    datosReuniones.forEach(reun => {
+        const estudiante = (reun['Nombre Estudiante'] || reun.estudiante || '').toLowerCase();
+        const padre = (reun['Nombre Padre/Madre'] || reun.nombrePadre || '').toLowerCase();
+        if (estudiante.includes(query) || padre.includes(query)) {
+            resultados.push({
+                tipo: 'reunion',
+                tipoLabel: '🤝 Reunión',
+                titulo: `Reunión con ${reun['Nombre Padre/Madre'] || reun.nombrePadre || 'padre/madre'}`,
+                meta: `${reun['Nombre Estudiante'] || reun.estudiante} - ${reun['Fecha y Hora'] || reun.fecha || 'Sin fecha'}`,
+                data: reun
+            });
+        }
+    });
+    
+    // Buscar en contactos
+    datosContactos.forEach(cont => {
+        const estudiante = (cont['Nombre Estudiante'] || cont['Mombre Estudiante'] || cont.estudiante || '').toLowerCase();
+        if (estudiante.includes(query)) {
+            resultados.push({
+                tipo: 'contacto',
+                tipoLabel: '📞 Contacto',
+                titulo: `Contactos de ${cont['Nombre Estudiante'] || cont['Mombre Estudiante'] || cont.estudiante}`,
+                meta: `Tel. Madre: ${cont['Contacto Madre'] || 'N/A'} - Tel. Padre: ${cont['Contacto Padre'] || 'N/A'}`,
+                data: cont
+            });
+        }
+    });
+    
+    // Limitar a 10 resultados
+    resultados = resultados.slice(0, 10);
+    
+    if (resultados.length === 0) {
+        resultsContainer.innerHTML = '<div class="search-result-item"><div class="search-result-meta" style="text-align:center;color:#9ca3af;">No se encontraron resultados</div></div>';
+        resultsContainer.style.display = 'block';
+        return;
+    }
+    
+    let html = '';
+    resultados.forEach(r => {
+        html += `
+            <div class="search-result-item" onclick="abrirDesdeB usqueda('${r.tipo}', ${JSON.stringify(r.data).replace(/'/g, "\\'")})">
+                <span class="search-result-type ${r.tipo}">${r.tipoLabel}</span>
+                <div class="search-result-title">${r.titulo}</div>
+                <div class="search-result-meta">${r.meta}</div>
+            </div>
+        `;
+    });
+    
+    resultsContainer.innerHTML = html;
+    resultsContainer.style.display = 'block';
+}
+
+function limpiarBusquedaGlobal() {
+    document.getElementById('globalSearchInput').value = '';
+    document.getElementById('clearSearch').style.display = 'none';
+    document.getElementById('globalSearchResults').style.display = 'none';
+}
+
+function mostrarResultadosBusqueda() {
+    const query = document.getElementById('globalSearchInput').value;
+    if (query.length >= 2) {
+        document.getElementById('globalSearchResults').style.display = 'block';
+    }
+}
+
+function abrirDesdeBusqueda(tipo, data) {
+    limpiarBusquedaGlobal();
+    // Aquí puedes agregar lógica para abrir el módulo específico con el dato seleccionado
+    alert(`Abrir ${tipo}: ${JSON.stringify(data, null, 2)}`);
+}
+
+// Cerrar resultados al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const searchContainer = document.querySelector('.global-search');
+    if (searchContainer && !searchContainer.contains(e.target)) {
+        document.getElementById('globalSearchResults').style.display = 'none';
+    }
+});
+
+// ==========================================
+// SISTEMA DE ALERTAS
+// ==========================================
+
+function toggleAlertsPanel() {
+    const panel = document.getElementById('alertsPanel');
+    panel.classList.toggle('open');
+}
+
+function actualizarAlertas() {
+    const alertsContent = document.getElementById('alertsContent');
+    const alertsCount = document.getElementById('alertsCount');
+    
+    let alertas = [];
+    
+    // Alerta crítica: 5+ reuniones con mismo estudiante
+    const reunionesPorEstudiante = {};
+    datosReuniones.forEach(r => {
+        const estudiante = r['Nombre Estudiante'] || r.estudiante;
+        if (!reunionesPorEstudiante[estudiante]) {
+            reunionesPorEstudiante[estudiante] = [];
+        }
+        reunionesPorEstudiante[estudiante].push(r);
+    });
+    
+    Object.keys(reunionesPorEstudiante).forEach(estudiante => {
+        const reuniones = reunionesPorEstudiante[estudiante];
+        if (reuniones.length >= 5) {
+            const curso = reuniones[0]['Curso'] || reuniones[0].curso || '';
+            alertas.push({
+                tipo: 'critical',
+                titulo: `${estudiante} (${curso})`,
+                descripcion: `${reuniones.length} reuniones con padres - Caso requiere escalamiento a Dirección`,
+                accion: '→ Sugerencia: Reunión con equipo multidisciplinario'
+            });
+        }
+    });
+    
+    // Advertencia: 3+ tardanzas en las últimas 2 semanas
+    const hoy = new Date();
+    const dosSemanasAtras = new Date(hoy.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const tardanzasPorEstudiante = {};
+    datosTardanzas.forEach(t => {
+        const fecha = new Date(t['Fecha'] || t.fecha || '');
+        if (fecha >= dosSemanasAtras) {
+            const estudiante = t['Nombre Estudiante'] || t.estudiante;
+            if (!tardanzasPorEstudiante[estudiante]) {
+                tardanzasPorEstudiante[estudiante] = 0;
+            }
+            tardanzasPorEstudiante[estudiante]++;
+        }
+    });
+    
+    Object.keys(tardanzasPorEstudiante).forEach(estudiante => {
+        const count = tardanzasPorEstudiante[estudiante];
+        if (count >= 3) {
+            alertas.push({
+                tipo: 'warning',
+                titulo: `${estudiante}`,
+                descripcion: `${count} tardanzas en las últimas 2 semanas`,
+                accion: '→ Sugerencia: Reunión con padres / Circular'
+            });
+        }
+    });
+    
+    // Recordatorio: Seguimientos pendientes
+    datosReuniones.forEach(r => {
+        const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
+        const estado = r['Estado'] || r.estado || '';
+        if (fechaSeg && estado === 'En seguimiento') {
+            const fechaSeguimiento = new Date(fechaSeg);
+            if (fechaSeguimiento <= hoy) {
+                const estudiante = r['Nombre Estudiante'] || r.estudiante;
+                const curso = r['Curso'] || r.curso || '';
+                const diasPasados = Math.floor((hoy - fechaSeguimiento) / (24 * 60 * 60 * 1000));
+                alertas.push({
+                    tipo: 'info',
+                    titulo: `${estudiante} (${curso})`,
+                    descripcion: `Seguimiento de acuerdo ${diasPasados > 0 ? 'vencido hace ' + diasPasados + ' días' : 'programado para hoy'}`,
+                    accion: '→ Acción: Contactar a los padres'
+                });
+            }
+        }
+    });
+    
+    // Actualizar contador
+    alertsCount.textContent = alertas.length;
+    
+    if (alertas.length === 0) {
+        alertsContent.innerHTML = `
+            <div class="alert-empty">
+                <div class="alert-empty-icon">✓</div>
+                <div>No hay alertas pendientes</div>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    alertas.forEach(alerta => {
+        html += `
+            <div class="alert-card ${alerta.tipo}">
+                <div class="alert-card-title">${alerta.titulo}</div>
+                <div class="alert-card-description">${alerta.descripcion}</div>
+                <div class="alert-card-action">${alerta.accion}</div>
+            </div>
+        `;
+    });
+    
+    alertsContent.innerHTML = html;
+}
+
+// Actualizar alertas cada vez que se cargan datos
+const actualizarAlertasOriginal = setInterval(() => {
+    if (datosReuniones.length > 0 || datosTardanzas.length > 0) {
+        actualizarAlertas();
+    }
+}, 2000);
+
+// ==========================================
+// MODAL DASHBOARD
+// ==========================================
+
+function crearModalDashboard() {
+    const html = `
+<div class="modal" id="modalDashboard">
+    <div class="modal-content" style="max-width:1400px;">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>📊 Dashboard CENSA</h2>
+        
+        <!-- Estadísticas Principales -->
+        <div class="stats-grid" style="margin-bottom:30px;">
+            <div class="stat-card" style="background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+                <h4>Incidencias Totales</h4>
+                <div class="number" id="dashIncidencias">0</div>
+                <p style="margin-top:10px;font-size:0.9em;color:#666;" id="dashIncidenciasDetalle">0 graves | 0 leves</p>
+            </div>
+            <div class="stat-card" style="background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                <h4>Tardanzas</h4>
+                <div class="number" id="dashTardanzas">0</div>
+                <p style="margin-top:10px;font-size:0.9em;color:#666;" id="dashTardanzasDetalle">0 esta semana</p>
+            </div>
+            <div class="stat-card" style="background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
+                <h4>Reuniones con Padres</h4>
+                <div class="number" id="dashReuniones">0</div>
+                <p style="margin-top:10px;font-size:0.9em;color:#666;" id="dashReunionesDetalle">0 seguimientos pendientes</p>
+            </div>
+            <div class="stat-card" style="background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+                <h4>Estudiantes</h4>
+                <div class="number" id="dashEstudiantes">0</div>
+                <p style="margin-top:10px;font-size:0.9em;color:#666;">Activos en el sistema</p>
+            </div>
+        </div>
+        
+        <!-- Gráfico -->
+        <div style="background:white;padding:20px;border-radius:15px;margin-bottom:30px;">
+            <h3 style="margin-bottom:20px;">📊 Incidencias por Curso</h3>
+            <canvas id="chartIncidenciasPorCurso" style="max-height:300px;"></canvas>
+        </div>
+        
+        <!-- Top 5 Estudiantes -->
+        <div style="background:#f8f9fa;padding:20px;border-radius:15px;">
+            <h3 style="margin-bottom:20px;">⚠️ Top 5 - Estudiantes que Requieren Seguimiento</h3>
+            <div id="dashTop5"></div>
+        </div>
+    </div>
+</div>`;
+    
+    document.getElementById('modalContainer').innerHTML = html;
+    
+    // Actualizar estadísticas
+    actualizarDashboardStats();
+    
+    // Crear gráfico
+    setTimeout(() => {
+        crearGraficoIncidenciasPorCurso();
+    }, 100);
+}
+
+function actualizarDashboardStats() {
+    // Incidencias
+    document.getElementById('dashIncidencias').textContent = datosIncidencias.length;
+    const graves = datosIncidencias.filter(i => {
+        const tipo = i['Tipo de falta'] || i.tipoFalta || '';
+        return tipo === 'Grave' || tipo === 'Muy Grave';
+    }).length;
+    const leves = datosIncidencias.length - graves;
+    document.getElementById('dashIncidenciasDetalle').textContent = `${graves} graves | ${leves} leves`;
+    
+    // Tardanzas
+    document.getElementById('dashTardanzas').textContent = datosTardanzas.length;
+    const hoy = new Date();
+    const inicioSemana = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - hoy.getDay());
+    const tardanzasSemana = datosTardanzas.filter(t => {
+        const fecha = new Date(t['Fecha'] || t.fecha || '');
+        return fecha >= inicioSemana;
+    }).length;
+    document.getElementById('dashTardanzasDetalle').textContent = `${tardanzasSemana} esta semana`;
+    
+    // Reuniones
+    document.getElementById('dashReuniones').textContent = datosReuniones.length;
+    const seguimientos = datosReuniones.filter(r => {
+        const estado = r['Estado'] || r.estado || '';
+        return estado === 'En seguimiento';
+    }).length;
+    document.getElementById('dashReunionesDetalle').textContent = `${seguimientos} seguimientos pendientes`;
+    
+    // Estudiantes
+    document.getElementById('dashEstudiantes').textContent = datosEstudiantes.length;
+    
+    // Top 5
+    actualizarTop5Dashboard();
+}
+
+function actualizarTop5Dashboard() {
+    const estudiantesData = {};
+    
+    // Contar por estudiante
+    datosEstudiantes.forEach(est => {
+        const nombre = est['Nombre Completo'] || est.nombre;
+        estudiantesData[nombre] = {
+            nombre: nombre,
+            curso: est['Curso'] || est.curso || '',
+            incidencias: 0,
+            tardanzas: 0,
+            reuniones: 0
+        };
+    });
+    
+    datosIncidencias.forEach(inc => {
+        const nombre = inc['Nombre Estudiante'] || inc.estudiante;
+        if (estudiantesData[nombre]) {
+            estudiantesData[nombre].incidencias++;
+        }
+    });
+    
+    datosTardanzas.forEach(tard => {
+        const nombre = tard['Nombre Estudiante'] || tard.estudiante;
+        if (estudiantesData[nombre]) {
+            estudiantesData[nombre].tardanzas++;
+        }
+    });
+    
+    datosReuniones.forEach(reun => {
+        const nombre = reun['Nombre Estudiante'] || reun.estudiante;
+        if (estudiantesData[nombre]) {
+            estudiantesData[nombre].reuniones++;
+        }
+    });
+    
+    // Ordenar por total
+    const top5 = Object.values(estudiantesData)
+        .map(e => ({
+            ...e,
+            total: e.incidencias + e.tardanzas + e.reuniones
+        }))
+        .filter(e => e.total > 0)
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+    
+    let html = '';
+    top5.forEach((est, index) => {
+        const color = index === 0 ? '#fee2e2' : index === 1 ? '#fef3c7' : '#f3f4f6';
+        html += `
+            <div style="background:${color};padding:15px;margin-bottom:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <strong>${index + 1}. ${est.nombre} (${est.curso})</strong><br>
+                    <span style="font-size:0.9em;color:#666;">${est.incidencias} incidencias | ${est.tardanzas} tardanzas | ${est.reuniones} reuniones</span>
+                </div>
+                <div style="font-size:1.5em;font-weight:bold;color:#2a5298;">${est.total}</div>
+            </div>
+        `;
+    });
+    
+    if (html === '') {
+        html = '<p style="text-align:center;color:#999;padding:40px;">No hay datos suficientes</p>';
+    }
+    
+    document.getElementById('dashTop5').innerHTML = html;
+}
+
+function crearGraficoIncidenciasPorCurso() {
+    const ctx = document.getElementById('chartIncidenciasPorCurso');
+    if (!ctx) return;
+    
+    // Contar incidencias por curso
+    const incidenciasPorCurso = {};
+    CURSOS.forEach(curso => {
+        incidenciasPorCurso[curso] = 0;
+    });
+    
+    datosIncidencias.forEach(inc => {
+        const curso = inc['Curso'] || inc.curso || 'Sin curso';
+        if (incidenciasPorCurso[curso] !== undefined) {
+            incidenciasPorCurso[curso]++;
+        }
+    });
+    
+    const labels = Object.keys(incidenciasPorCurso);
+    const data = Object.values(incidenciasPorCurso);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Incidencias',
+                data: data,
+                backgroundColor: 'rgba(42, 82, 152, 0.7)',
+                borderColor: 'rgba(42, 82, 152, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
 }
