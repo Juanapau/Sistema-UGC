@@ -2195,6 +2195,16 @@ async function cargarDatosYActualizarEstadisticas() {
         );
     }
     
+    if (CONFIG.urlReuniones) {
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones).then(datos => {
+                if (datos && datos.length > 0) {
+                    datosReuniones = datos;
+                }
+            })
+        );
+    }
+    
     // Esperar a que se carguen todos los datos
     await Promise.all(promesas);
     
