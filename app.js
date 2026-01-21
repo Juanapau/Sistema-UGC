@@ -3180,15 +3180,12 @@ function exportarReporteIndividualPDF() {
     
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('🤝 Reuniones con Padres:', 14, yPos);
-    yPos += 5;
+    doc.text('Reuniones con Padre/Madre/Tutor', 14, yPos);
+    yPos += 6;
     
     if (reunionesEstudiante.length > 0) {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        
         reunionesEstudiante.forEach((reunion, index) => {
-            if (yPos > 260) {
+            if (yPos > 245) {
                 doc.addPage();
                 yPos = 20;
             }
@@ -3203,37 +3200,62 @@ function exportarReporteIndividualPDF() {
             // Número de reunión
             const numeroReunion = reunionesEstudiante.length - index;
             
+            // Título de la reunión
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
-            doc.text(`• Reunión #${numeroReunion} - ${fecha ? new Date(fecha).toLocaleDateString('es-DO') : 'Sin fecha'}`, 14, yPos);
+            doc.text(`Reunión No. ${numeroReunion} el ${fecha ? new Date(fecha).toLocaleDateString('es-DO') : 'Sin fecha'}`, 14, yPos);
             yPos += 5;
             
+            // Información básica
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Presente:', 14, yPos);
             doc.setFont('helvetica', 'normal');
-            doc.text(`  Presente: ${nombrePadre || padrePresente}`, 14, yPos);
-            yPos += 4;
-            doc.text(`  Motivo: ${motivo}`, 14, yPos);
+            doc.text(nombrePadre || padrePresente, 35, yPos);
             yPos += 4;
             
-            // Acuerdos (máximo 3 líneas por reunión)
+            doc.setFont('helvetica', 'bold');
+            doc.text('Motivo:', 14, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(motivo, 30, yPos);
+            yPos += 4;
+            
+            // Acuerdos
             if (acuerdos) {
-                doc.setFont('helvetica', 'italic');
-                const acuerdosLineas = doc.splitTextToSize(`  Acuerdos: ${acuerdos}`, 180);
-                const maxLineas = Math.min(acuerdosLineas.length, 3);
-                for (let i = 0; i < maxLineas; i++) {
+                doc.setFont('helvetica', 'bold');
+                doc.text('Acuerdos:', 14, yPos);
+                yPos += 4;
+                
+                // Separar acuerdos por líneas o por números
+                const acuerdosArray = acuerdos.split(/\n|(?=\d+[\.\)])/g).filter(a => a.trim());
+                
+                acuerdosArray.forEach((acuerdo, i) => {
                     if (yPos > 275) {
                         doc.addPage();
                         yPos = 20;
                     }
-                    doc.text(acuerdosLineas[i], 14, yPos);
-                    yPos += 4;
-                }
-                if (acuerdosLineas.length > 3) {
-                    doc.text('  ...', 14, yPos);
-                    yPos += 4;
-                }
+                    
+                    // Limpiar el acuerdo y numerarlo
+                    let textoAcuerdo = acuerdo.trim().replace(/^\d+[\.\)]\s*/, '');
+                    
+                    doc.setFont('helvetica', 'normal');
+                    const acuerdoFormateado = doc.splitTextToSize(`${i + 1}.${textoAcuerdo}`, 175);
+                    
+                    acuerdoFormateado.forEach(linea => {
+                        if (yPos > 275) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                        doc.text(linea, 14, yPos);
+                        yPos += 4;
+                    });
+                });
             }
             
             // Estado con color
             doc.setFont('helvetica', 'bold');
+            doc.text('Estado:', 14, yPos);
+            
             if (estado === 'Cumplido') {
                 doc.setTextColor(21, 87, 36); // Verde
             } else if (estado === 'En seguimiento') {
@@ -3241,9 +3263,9 @@ function exportarReporteIndividualPDF() {
             } else {
                 doc.setTextColor(114, 28, 36); // Rojo
             }
-            doc.text(`  Estado: ${estado}`, 14, yPos);
+            doc.text(estado, 30, yPos);
             doc.setTextColor(0, 0, 0);
-            yPos += 7;
+            yPos += 8;
         });
     } else {
         doc.setFontSize(9);
