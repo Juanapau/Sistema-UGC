@@ -4105,8 +4105,11 @@ function crearModalDashboard() {
     const html = `
 <div class="modal" id="modalDashboard" style="display:block;">
     <div class="modal-content" style="max-width:1400px;">
-        <span class="close" onclick="closeModal('modalDashboard')" style="color:#000;position:absolute;right:25px;top:20px;font-size:35px;font-weight:bold;cursor:pointer;">&times;</span>
-        <h2>📊 Dashboard Sistema UGC</h2>
+        <div class="modal-header">
+            <h2>📊 Dashboard Sistema UGC</h2>
+            <span class="close" onclick="closeModal('modalDashboard')">&times;</span>
+        </div>
+        <div class="modal-body">
         
         <!-- Estadísticas Principales -->
         <div class="stats-grid" style="margin-bottom:30px;">
@@ -4142,6 +4145,8 @@ function crearModalDashboard() {
         <div style="background:#f8f9fa;padding:20px;border-radius:15px;">
             <h3 style="margin-bottom:20px;">⚠️ Top 5 - Estudiantes que Requieren Seguimiento</h3>
             <div id="dashTop5"></div>
+        </div>
+        
         </div>
     </div>
 </div>`;
