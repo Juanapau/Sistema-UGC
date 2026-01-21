@@ -4343,3 +4343,117 @@ function crearGraficoIncidenciasPorCurso() {
         ctx.parentElement.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">Error al cargar gráfico</p>';
     }
 }
+
+
+// ==========================================
+// CARGA AUTOMÁTICA DE DATOS AL INICIO
+// ==========================================
+
+async function cargarTodosDatosAlInicio() {
+    console.log('🔄 Cargando todos los datos al iniciar...');
+    
+    const configGuardada = localStorage.getItem('censaConfig');
+    if (!configGuardada) {
+        console.log('⚠️ No hay configuración guardada. Configura las URLs primero.');
+        return;
+    }
+    
+    const config = JSON.parse(configGuardada);
+    console.log('✅ Configuración encontrada:', config);
+    
+    const promesas = [];
+    
+    // Cargar Estudiantes
+    if (config.urlEstudiantes) {
+        console.log('📥 Cargando estudiantes...');
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(config.urlEstudiantes)
+                .then(datos => {
+                    if (datos && datos.length > 0) {
+                        datosEstudiantes = datos;
+                        console.log(`✅ ${datos.length} estudiantes cargados`);
+                    }
+                })
+                .catch(err => console.error('❌ Error cargando estudiantes:', err))
+        );
+    }
+    
+    // Cargar Incidencias
+    if (config.urlIncidencias) {
+        console.log('📥 Cargando incidencias...');
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(config.urlIncidencias)
+                .then(datos => {
+                    if (datos && datos.length > 0) {
+                        datosIncidencias = datos;
+                        console.log(`✅ ${datos.length} incidencias cargadas`);
+                    }
+                })
+                .catch(err => console.error('❌ Error cargando incidencias:', err))
+        );
+    }
+    
+    // Cargar Tardanzas
+    if (config.urlTardanzas) {
+        console.log('📥 Cargando tardanzas...');
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(config.urlTardanzas)
+                .then(datos => {
+                    if (datos && datos.length > 0) {
+                        datosTardanzas = datos;
+                        console.log(`✅ ${datos.length} tardanzas cargadas`);
+                    }
+                })
+                .catch(err => console.error('❌ Error cargando tardanzas:', err))
+        );
+    }
+    
+    // Cargar Contactos
+    if (config.urlContactos) {
+        console.log('📥 Cargando contactos...');
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(config.urlContactos)
+                .then(datos => {
+                    if (datos && datos.length > 0) {
+                        datosContactos = datos;
+                        console.log(`✅ ${datos.length} contactos cargados`);
+                    }
+                })
+                .catch(err => console.error('❌ Error cargando contactos:', err))
+        );
+    }
+    
+    // Cargar Reuniones
+    if (config.urlReuniones) {
+        console.log('📥 Cargando reuniones...');
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(config.urlReuniones)
+                .then(datos => {
+                    if (datos && datos.length > 0) {
+                        datosReuniones = datos;
+                        console.log(`✅ ${datos.length} reuniones cargadas`);
+                    }
+                })
+                .catch(err => console.error('❌ Error cargando reuniones:', err))
+        );
+    }
+    
+    await Promise.all(promesas);
+    
+    console.log('✅ CARGA COMPLETA. Datos disponibles:', {
+        estudiantes: datosEstudiantes.length,
+        incidencias: datosIncidencias.length,
+        tardanzas: datosTardanzas.length,
+        contactos: datosContactos.length,
+        reuniones: datosReuniones.length
+    });
+    
+    // Actualizar alertas después de cargar datos
+    actualizarAlertas();
+}
+
+// Ejecutar carga automática cuando la página se carga
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Página cargada. Iniciando carga de datos...');
+    cargarTodosDatosAlInicio();
+});
