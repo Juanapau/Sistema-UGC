@@ -3911,7 +3911,7 @@ function realizarBusquedaGlobal() {
     let html = '';
     resultados.forEach(r => {
         html += `
-            <div class="search-result-item" onclick="abrirDesdeB usqueda('${r.tipo}', ${JSON.stringify(r.data).replace(/'/g, "\\'")})">
+            <div class="search-result-item" onclick="abrirDesdeBusqueda('${r.tipo}', ${JSON.stringify(r.data).replace(/'/g, "\\'")})">
                 <span class="search-result-type ${r.tipo}">${r.tipoLabel}</span>
                 <div class="search-result-title">${r.titulo}</div>
                 <div class="search-result-meta">${r.meta}</div>
@@ -4234,7 +4234,17 @@ function actualizarTop5Dashboard() {
 
 function crearGraficoIncidenciasPorCurso() {
     const ctx = document.getElementById('chartIncidenciasPorCurso');
-    if (!ctx) return;
+    if (!ctx) {
+        console.log('Canvas no encontrado');
+        return;
+    }
+    
+    // Verificar si Chart.js está disponible
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js no está cargado');
+        ctx.parentElement.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">Cargando gráfico...</p>';
+        return;
+    }
     
     // Contar incidencias por curso
     const incidenciasPorCurso = {};
@@ -4252,34 +4262,39 @@ function crearGraficoIncidenciasPorCurso() {
     const labels = Object.keys(incidenciasPorCurso);
     const data = Object.values(incidenciasPorCurso);
     
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Incidencias',
-                data: data,
-                backgroundColor: 'rgba(42, 82, 152, 0.7)',
-                borderColor: 'rgba(42, 82, 152, 1)',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    try {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Incidencias',
+                    data: data,
+                    backgroundColor: 'rgba(42, 82, 152, 0.7)',
+                    borderColor: 'rgba(42, 82, 152, 1)',
+                    borderWidth: 2
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
                     }
                 }
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error('Error al crear gráfico:', error);
+        ctx.parentElement.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">Error al cargar gráfico</p>';
+    }
 }
