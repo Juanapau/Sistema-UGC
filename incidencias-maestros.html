@@ -115,6 +115,12 @@
             box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
         }
 
+        select:disabled {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
         textarea {
             resize: vertical;
             min-height: 120px;
@@ -265,36 +271,9 @@
             </div>
 
             <form id="formIncidencia">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="fechaIncidencia">Fecha y Hora <span class="required">*</span></label>
-                        <input type="datetime-local" id="fechaIncidencia" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cursoIncidencia">Curso <span class="required">*</span></label>
-                        <select id="cursoIncidencia" required>
-                            <option value="">Seleccione un curso</option>
-                            <option value="1roA">1roA</option>
-                            <option value="1roB">1roB</option>
-                            <option value="1roC">1roC</option>
-                            <option value="2doA">2doA</option>
-                            <option value="2doB">2doB</option>
-                            <option value="2doC">2doC</option>
-                            <option value="3roA">3roA</option>
-                            <option value="3roB">3roB</option>
-                            <option value="3roC">3roC</option>
-                            <option value="4toA">4toA</option>
-                            <option value="4toB">4toB</option>
-                            <option value="4toC">4toC</option>
-                            <option value="5toA">5toA</option>
-                            <option value="5toB">5toB</option>
-                            <option value="5toC">5toC</option>
-                            <option value="6toA">6toA</option>
-                            <option value="6toB">6toB</option>
-                            <option value="6toC">6toC</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="fechaIncidencia">Fecha y Hora <span class="required">*</span></label>
+                    <input type="datetime-local" id="fechaIncidencia" required>
                 </div>
 
                 <div class="form-group autocomplete-container">
@@ -307,6 +286,31 @@
                         autocomplete="off"
                     >
                     <div class="suggestions" id="suggestions"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cursoIncidencia">Curso <span class="required">*</span></label>
+                    <select id="cursoIncidencia" required disabled>
+                        <option value="">Seleccione primero un estudiante</option>
+                        <option value="1roA">1roA</option>
+                        <option value="1roB">1roB</option>
+                        <option value="1roC">1roC</option>
+                        <option value="2doA">2doA</option>
+                        <option value="2doB">2doB</option>
+                        <option value="2doC">2doC</option>
+                        <option value="3roA">3roA</option>
+                        <option value="3roB">3roB</option>
+                        <option value="3roC">3roC</option>
+                        <option value="4toA">4toA</option>
+                        <option value="4toB">4toB</option>
+                        <option value="4toC">4toC</option>
+                        <option value="5toA">5toA</option>
+                        <option value="5toB">5toB</option>
+                        <option value="5toC">5toC</option>
+                        <option value="6toA">6toA</option>
+                        <option value="6toB">6toB</option>
+                        <option value="6toC">6toC</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -358,15 +362,8 @@
         // CONFIGURACIÓN
         // ==========================================
         
-        const urlIncidencias = 'https://script.google.com/macros/s/AKfycbx7_pvGcRFlfDu6yoUHa0EN9oNz9d9XIolBksCI2opqhVBwkNNMoYHyt3-4iOTI26uT/exec';
-        const urlEstudiantes = 'https://script.google.com/macros/s/AKfycbyk1gUcU_cFSDbMz34WpEn1s81ctUIExmxzG062TZAx0KQhj5eOyQQVN2Rk8rLdMkicEA/exec';
-
-// Guardar en localStorage
-localStorage.setItem('urlIncidencias', urlIncidencias);
-localStorage.setItem('urlEstudiantes', urlEstudiantes);
-
-// URL del Apps Script (NUEVA LÍNEA)
-localStorage.setItem('urlAppsScript', 'https://script.google.com/macros/s/AKfycbx2Hdz1rYL8GBn9PVG64sFOHC0wBfivmKFNwM4lmSWKzN6C7iKhTHRdxKMbwiowMnNx/exec');
+        // URL del Google Sheet - IMPORTANTE: Cambiar por tu URL
+        const GOOGLE_SHEET_URL = 'TU_URL_DE_GOOGLE_SHEETS_AQUI';
         
         // Arrays de datos
         let estudiantes = [];
@@ -412,6 +409,15 @@ localStorage.setItem('urlAppsScript', 'https://script.google.com/macros/s/AKfycb
         inputEstudiante.addEventListener('input', function() {
             const texto = this.value.toLowerCase().trim();
             
+            // Si se borra el campo, deshabilitar curso
+            if (texto.length === 0) {
+                const cursoCampo = document.getElementById('cursoIncidencia');
+                cursoCampo.disabled = true;
+                cursoCampo.value = '';
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+            
             if (texto.length < 2) {
                 suggestionsDiv.style.display = 'none';
                 return;
@@ -444,7 +450,9 @@ localStorage.setItem('urlAppsScript', 'https://script.google.com/macros/s/AKfycb
         
         function seleccionarEstudiante(nombre, curso) {
             inputEstudiante.value = nombre;
-            document.getElementById('cursoIncidencia').value = curso;
+            const cursoCampo = document.getElementById('cursoIncidencia');
+            cursoCampo.disabled = false;
+            cursoCampo.value = curso;
             suggestionsDiv.style.display = 'none';
         }
         
