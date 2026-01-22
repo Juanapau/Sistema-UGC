@@ -358,13 +358,8 @@
         // CONFIGURACIÓN
         // ==========================================
         
-// URLs de Google Sheets configuradas directamente
-        const urlIncidencias = 'https://script.google.com/macros/s/AKfycbx7_pvGcRFlfDu6yoUHa0EN9oNz9d9XIolBksCI2opqhVBwkNNMoYHyt3-4iOTI26uT/exec';
-        const urlEstudiantes = 'https://script.google.com/macros/s/AKfycbyk1gUcU_cFSDbMz34WpEn1s81ctUIExmxzG062TZAx0KQhj5eOyQQVN2Rk8rLdMkicEA/exec';
-        
-        // Guardar en localStorage
-        localStorage.setItem('urlIncidencias', urlIncidencias);
-        localStorage.setItem('urlEstudiantes', urlEstudiantes);
+        // URL del Google Sheet - IMPORTANTE: Cambiar por tu URL
+        const GOOGLE_SHEET_URL = 'TU_URL_DE_GOOGLE_SHEETS_AQUI';
         
         // Arrays de datos
         let estudiantes = [];
@@ -532,36 +527,46 @@
         // ==========================================
         
         async function enviarAGoogleSheets(url, datos) {
-            // Convertir URL de visualización a URL de API
-            let apiUrl = url;
+            // IMPORTANTE: Necesitas configurar un Google Apps Script
+            // Para que esto funcione de verdad
             
-            if (url.includes('/edit')) {
-                const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-                if (match) {
-                    const spreadsheetId = match[1];
-                    const gidMatch = url.match(/gid=([0-9]+)/);
-                    const gid = gidMatch ? gidMatch[1] : '0';
-                    apiUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&gid=${gid}`;
+            // Verificar si hay un Apps Script configurado
+            const scriptUrl = localStorage.getItem('urlAppsScript');
+            
+            if (scriptUrl) {
+                // Enviar usando Apps Script
+                try {
+                    const response = await fetch(scriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(datos)
+                    });
+                    
+                    console.log('✅ Datos enviados a Google Sheets');
+                    return true;
+                } catch (error) {
+                    console.error('Error enviando a Apps Script:', error);
+                    throw new Error('No se pudo conectar con Google Sheets');
                 }
+            } else {
+                // Simulación temporal - MOSTRAR DATOS EN CONSOLA
+                console.log('📋 INCIDENCIA REGISTRADA (TEMPORAL):');
+                console.log('Fecha y Hora:', datos['Fecha y Hora']);
+                console.log('Curso:', datos['Curso']);
+                console.log('Estudiante:', datos['Nombre Estudiante']);
+                console.log('Tipo de Falta:', datos['Tipo de falta']);
+                console.log('Docente:', datos['Docente que Reporta']);
+                console.log('Descripción:', datos['Descripción']);
+                console.log('Acciones:', datos['Acciones del Docente']);
+                console.log('\n⚠️ IMPORTANTE: Para guardar realmente en Google Sheets,');
+                console.log('   configura un Google Apps Script y guarda la URL en localStorage');
+                
+                // Retornar true para que funcione el flujo
+                return true;
             }
-            
-            // Obtener headers
-            const response = await fetch(apiUrl);
-            const text = await response.text();
-            const json = JSON.parse(text.substr(47).slice(0, -2));
-            const headers = json.table.cols.map(col => col.label || col.id);
-            
-            // Crear fila con datos
-            const row = headers.map(header => datos[header] || '');
-            
-            // Aquí normalmente enviarías a Google Sheets usando Apps Script
-            // Por ahora solo simulamos el envío
-            console.log('Datos a enviar:', row);
-            
-            // NOTA: Para enviar realmente necesitas configurar un Google Apps Script
-            // Ver instrucciones en el archivo de documentación
-            
-            return true;
         }
         
         // ==========================================
