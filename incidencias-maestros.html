@@ -290,8 +290,8 @@
 
                 <div class="form-group">
                     <label for="cursoIncidencia">Curso <span class="required">*</span></label>
-                    <select id="cursoIncidencia" required disabled>
-                        <option value="">Seleccione primero un estudiante</option>
+                    <select id="cursoIncidencia" required>
+                        <option value="">Seleccione un curso</option>
                         <option value="1roA">1roA</option>
                         <option value="1roB">1roB</option>
                         <option value="1roC">1roC</option>
@@ -409,15 +409,6 @@
         inputEstudiante.addEventListener('input', function() {
             const texto = this.value.toLowerCase().trim();
             
-            // Si se borra el campo, deshabilitar curso
-            if (texto.length === 0) {
-                const cursoCampo = document.getElementById('cursoIncidencia');
-                cursoCampo.disabled = true;
-                cursoCampo.value = '';
-                suggestionsDiv.style.display = 'none';
-                return;
-            }
-            
             if (texto.length < 2) {
                 suggestionsDiv.style.display = 'none';
                 return;
@@ -433,26 +424,33 @@
                 return;
             }
             
-            suggestionsDiv.innerHTML = coincidencias.map(e => {
+            suggestionsDiv.innerHTML = coincidencias.map((e, index) => {
                 const nombre = e['Nombre Completo'] || e.nombre || '';
                 const curso = e['Curso'] || e.curso || '';
-                const nombreEscapado = nombre.replace(/'/g, "\\'");
                 return `
-                    <div class="suggestion-item" onclick="seleccionarEstudiante('${nombreEscapado}', '${curso}')">
+                    <div class="suggestion-item" data-index="${index}">
                         <span class="suggestion-name">${nombre}</span>
                         <span class="suggestion-course">(${curso})</span>
                     </div>
                 `;
             }).join('');
             
+            // Agregar event listeners a cada sugerencia
+            document.querySelectorAll('.suggestion-item').forEach((item, index) => {
+                item.addEventListener('click', function() {
+                    const estudiante = coincidencias[index];
+                    const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
+                    const curso = estudiante['Curso'] || estudiante.curso || '';
+                    seleccionarEstudiante(nombre, curso);
+                });
+            });
+            
             suggestionsDiv.style.display = 'block';
         });
         
         function seleccionarEstudiante(nombre, curso) {
             inputEstudiante.value = nombre;
-            const cursoCampo = document.getElementById('cursoIncidencia');
-            cursoCampo.disabled = false;
-            cursoCampo.value = curso;
+            document.getElementById('cursoIncidencia').value = curso;
             suggestionsDiv.style.display = 'none';
         }
         
