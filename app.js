@@ -535,8 +535,8 @@ function editarIncidencia(indice) {
         btnCancelar = document.createElement('button');
         btnCancelar.id = 'btnCancelarEdicion';
         btnCancelar.type = 'button';
-        btnCancelar.className = 'btn-secondary';
-        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.className = 'btn btn-secondary';
+        btnCancelar.textContent = '🔄 Cancelar';
         btnCancelar.style.marginLeft = '10px';
         btnCancelar.onclick = cancelarEdicionIncidencia;
         btnSubmit.parentNode.appendChild(btnCancelar);
@@ -1596,8 +1596,8 @@ function editarContacto(indice) {
         btnCancelar = document.createElement('button');
         btnCancelar.id = 'btnCancelarEdicionContacto';
         btnCancelar.type = 'button';
-        btnCancelar.className = 'btn-secondary';
-        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.className = 'btn btn-secondary';
+        btnCancelar.textContent = '🔄 Cancelar';
         btnCancelar.style.marginLeft = '10px';
         btnCancelar.onclick = cancelarEdicionContacto;
         btnSubmit.parentNode.appendChild(btnCancelar);
@@ -3735,8 +3735,8 @@ function editarReunion(indice) {
         btnCancelar = document.createElement('button');
         btnCancelar.id = 'btnCancelarEdicionReunion';
         btnCancelar.type = 'button';
-        btnCancelar.className = 'btn-secondary';
-        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.className = 'btn btn-secondary';
+        btnCancelar.textContent = '🔄 Cancelar';
         btnCancelar.style.marginLeft = '10px';
         btnCancelar.onclick = cancelarEdicionReunion;
         btnSubmit.parentNode.appendChild(btnCancelar);
