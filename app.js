@@ -1524,6 +1524,11 @@ function crearModalContactos() {
 
 function registrarContacto(e) {
     e.preventDefault();
+    
+    // Verificar si estamos en modo edición
+    const modoEdicion = document.getElementById('formContacto').dataset.modoEdicion;
+    const indiceEdicion = document.getElementById('formContacto').dataset.indiceEdicion;
+    
     const contacto = {
         'Nombre Estudiante': document.getElementById('estContacto').value,
         'Nombre Padre': document.getElementById('nombrePadre').value,
@@ -1532,12 +1537,105 @@ function registrarContacto(e) {
         'Contacto Madre': document.getElementById('telMadre').value,
         'Contacto Emergencia': document.getElementById('telEmergencia').value
     };
-    datosContactos.push(contacto);
-    if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
-    mostrarAlerta('alertContactos', '✅ Contacto registrado');
+    
+    if (modoEdicion === 'true') {
+        // Actualizar contacto existente
+        datosContactos[parseInt(indiceEdicion)] = contacto;
+        if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto, 'actualizar', parseInt(indiceEdicion));
+        mostrarAlerta('alertContactos', '✅ Contacto actualizado correctamente');
+        
+        // Salir del modo edición
+        document.getElementById('formContacto').dataset.modoEdicion = 'false';
+        document.getElementById('formContacto').dataset.indiceEdicion = '';
+        
+        // Cambiar texto del botón de vuelta
+        const btnSubmit = document.querySelector('#formContacto button[type="submit"]');
+        if (btnSubmit) btnSubmit.textContent = 'Registrar Contacto';
+        
+        // Ocultar botón cancelar
+        const btnCancelar = document.getElementById('btnCancelarEdicionContacto');
+        if (btnCancelar) btnCancelar.style.display = 'none';
+    } else {
+        // Registrar nuevo contacto
+        datosContactos.push(contacto);
+        if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
+        mostrarAlerta('alertContactos', '✅ Contacto registrado');
+    }
+    
     document.getElementById('formContacto').reset();
     cargarTablaContactos();
+    buscarContactos(); // Actualizar tabla de búsqueda también
 }
+
+function editarContacto(indice) {
+    const contacto = datosContactos[indice];
+    if (!contacto) return;
+    
+    // Scroll al formulario
+    document.querySelector('#formContacto').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Llenar el formulario con los datos
+    document.getElementById('estContacto').value = contacto['Nombre Estudiante'] || contacto['Mombre Estudiante'] || '';
+    document.getElementById('nombrePadre').value = contacto['Nombre Padre'] || '';
+    document.getElementById('telPadre').value = contacto['Contacto Padre'] || '';
+    document.getElementById('nombreMadre').value = contacto['Nombre Madre'] || '';
+    document.getElementById('telMadre').value = contacto['Contacto Madre'] || '';
+    document.getElementById('telEmergencia').value = contacto['Contacto Emergencia'] || '';
+    
+    // Marcar el formulario como en modo edición
+    document.getElementById('formContacto').dataset.modoEdicion = 'true';
+    document.getElementById('formContacto').dataset.indiceEdicion = indice;
+    
+    // Cambiar texto del botón
+    const btnSubmit = document.querySelector('#formContacto button[type="submit"]');
+    if (btnSubmit) btnSubmit.textContent = '✅ Actualizar Contacto';
+    
+    // Mostrar botón cancelar si no existe
+    let btnCancelar = document.getElementById('btnCancelarEdicionContacto');
+    if (!btnCancelar) {
+        btnCancelar = document.createElement('button');
+        btnCancelar.id = 'btnCancelarEdicionContacto';
+        btnCancelar.type = 'button';
+        btnCancelar.className = 'btn-secondary';
+        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.style.marginLeft = '10px';
+        btnCancelar.onclick = cancelarEdicionContacto;
+        btnSubmit.parentNode.appendChild(btnCancelar);
+    } else {
+        btnCancelar.style.display = 'inline-block';
+    }
+    
+    // Resaltar el formulario
+    const form = document.getElementById('formContacto');
+    form.style.background = '#fff3cd';
+    setTimeout(() => {
+        form.style.background = '';
+    }, 2000);
+    
+    // Mostrar mensaje informativo
+    mostrarAlerta('alertContactos', '✏️ Editando contacto. Realiza los cambios y guarda.', 'info');
+}
+
+function cancelarEdicionContacto() {
+    // Limpiar formulario
+    document.getElementById('formContacto').reset();
+    
+    // Salir del modo edición
+    document.getElementById('formContacto').dataset.modoEdicion = 'false';
+    document.getElementById('formContacto').dataset.indiceEdicion = '';
+    
+    // Cambiar texto del botón
+    const btnSubmit = document.querySelector('#formContacto button[type="submit"]');
+    if (btnSubmit) btnSubmit.textContent = 'Registrar Contacto';
+    
+    // Ocultar botón cancelar
+    const btnCancelar = document.getElementById('btnCancelarEdicionContacto');
+    if (btnCancelar) btnCancelar.style.display = 'none';
+    
+    // Ocultar alerta
+    document.getElementById('alertContactos').style.display = 'none';
+}
+
 
 function importarContactos(event) {
     const file = event.target.files[0];
@@ -1595,7 +1693,7 @@ function cargarTablaContactos() {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
         return;
     }
-    tbody.innerHTML = datosContactos.map(c => {
+    tbody.innerHTML = datosContactos.map((c, i) => {
         const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-';
         const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '-';
         const telPadre = c['Contacto Padre'] || c.telPadre || '-';
@@ -1604,7 +1702,7 @@ function cargarTablaContactos() {
         const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
         
         return `
-        <tr>
+        <tr onclick="editarContacto(${i})" style="cursor:pointer;" title="Click para editar">
             <td><strong>${estudiante}</strong></td>
             <td>${nombrePadre}</td>
             <td>${telPadre}</td>
@@ -1640,8 +1738,11 @@ function buscarContactos() {
         const telMadre = c['Contacto Madre'] || c.telMadre || '-';
         const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
         
+        // Encontrar el índice real en datosContactos
+        const indiceReal = datosContactos.findIndex(i => i === c);
+        
         return `
-        <tr>
+        <tr onclick="editarContacto(${indiceReal})" style="cursor:pointer;" title="Click para editar">
             <td><strong>${estudiante}</strong></td>
             <td>${nombrePadre}</td>
             <td>${telPadre}</td>
