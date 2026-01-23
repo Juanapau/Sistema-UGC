@@ -31,6 +31,7 @@
             text-align: center;
             margin-bottom: 30px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            position: relative;
         }
 
         header h1 {
@@ -43,6 +44,29 @@
             color: #4a9eff;
         }
 
+        .config-icon {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 2em;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .config-icon:hover {
+            background: rgba(74, 158, 255, 0.3);
+            transform: rotate(90deg);
+            color: #4a9eff;
+        }
+
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -52,7 +76,7 @@
         .module-card {
             background: white;
             border-radius: 15px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             cursor: pointer;
             transition: all 0.3s ease;
@@ -67,18 +91,19 @@
 
         .module-card h3 {
             color: #000000;
-            font-size: 1.5em;
-            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-bottom: 10px;
         }
 
         .module-card p {
             color: #666;
-            line-height: 1.6;
+            line-height: 1.4;
+            font-size: 0.9em;
         }
 
         .module-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
+            font-size: 2.5em;
+            margin-bottom: 10px;
             color: #2a5298;
         }
 
@@ -690,6 +715,9 @@
 <body>
     <div class="container">
         <header>
+            <div class="config-icon" onclick="openModule('configuracion')" title="Configuración">
+                ⚙️
+            </div>
             <h1>🏫 Sistema de Gestión de Convivencia</h1>
             <p>Centro Educativo Nuestra Señora de la Altagracia (CENSA)</p>
         </header>
@@ -769,12 +797,6 @@
                 <div class="module-icon">📊</div>
                 <h3>Reportes y Estadísticas</h3>
                 <p>Visualizar estadísticas y exportar datos del sistema.</p>
-            </div>
-
-            <div class="module-card" onclick="openModule('configuracion')">
-                <div class="module-icon">⚙️</div>
-                <h3>Configuración</h3>
-                <p>Conectar con Google Sheets y configurar el sistema.</p>
             </div>
         </div>
     </div>
