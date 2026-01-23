@@ -359,20 +359,16 @@ Registrar Incidencia
 
 <script>
 // ==========================================
-// CONFIGURACIÓN
+// CONFIGURACIÓN (EN MEMORIA - NO localStorage)
 // ==========================================
 
-const urlIncidencias = 'https://script.google.com/macros/s/AKfycbx7_pvGcRFlfDu6yoUHa0EN9oNz9d9XIolBksCI2opqhVBwkNNMoYHyt3-4iOTI26uT/exec';
-const urlEstudiantes = 'https://script.google.com/macros/s/AKfycbyk1gUcU_cFSDbMz34WpEn1s81ctUIExmxzG062TZAx0KQhj5eOyQQVN2Rk8rLdMkicEA/exec';
+const CONFIG = {
+urlIncidencias: 'https://script.google.com/macros/s/AKfycbx7_pvGcRFlfDu6yoUHa0EN9oNz9d9XIolBksCI2opqhVBwkNNMoYHyt3-4iOTI26uT/exec',
+urlEstudiantes: 'https://script.google.com/macros/s/AKfycbyk1gUcU_cFSDbMz34WpEn1s81ctUIExmxzG062TZAx0KQhj5eOyQQVN2Rk8rLdMkicEA/exec',
+urlAppsScript: 'https://script.google.com/macros/s/AKfycbx2Hdz1rYL8GBn9PVG64sFOHC0wBfivmKFNwM4lmSWKzN6C7iKhTHRdxKMbwiowMnNx/exec'
+};
 
-// Guardar en localStorage
-localStorage.setItem('urlIncidencias', urlIncidencias);
-localStorage.setItem('urlEstudiantes', urlEstudiantes);
-
-// URL del Apps Script (NUEVA LÍNEA)
-localStorage.setItem('urlAppsScript', 'https://script.google.com/macros/s/AKfycbx2Hdz1rYL8GBn9PVG64sFOHC0wBfivmKFNwM4lmSWKzN6C7iKhTHRdxKMbwiowMnNx/exec');
-
-// Arrays de datos
+// Array de estudiantes
 let estudiantes = [];
 
 // ==========================================
@@ -381,13 +377,8 @@ let estudiantes = [];
 
 async function cargarEstudiantes() {
 try {
-const urlEstudiantes = localStorage.getItem('urlEstudiantes');
-if (!urlEstudiantes) {
-console.warn('No hay URL de estudiantes configurada');
-return;
-}
-
-const response = await fetch(urlEstudiantes);
+console.log('🔄 Cargando estudiantes...');
+const response = await fetch(CONFIG.urlEstudiantes);
 const data = await response.json();
 
 if (data.values && data.values.length > 1) {
@@ -399,10 +390,13 @@ obj[header] = row[index] || '';
 });
 return obj;
 });
-console.log(`✅ ${estudiantes.length} estudiantes cargados`);
+console.log(`✅ ${estudiantes.length} estudiantes cargados correctamente`);
+console.log('Primer estudiante:', estudiantes[0]);
+} else {
+console.warn('⚠️ No se encontraron estudiantes en la respuesta');
 }
 } catch (error) {
-console.error('Error cargando estudiantes:', error);
+console.error('❌ Error cargando estudiantes:', error);
 }
 }
 
@@ -421,10 +415,14 @@ suggestionsDiv.style.display = 'none';
 return;
 }
 
+console.log(`🔍 Buscando: "${texto}"`);
+
 const coincidencias = estudiantes.filter(e => {
 const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
 return nombre.includes(texto);
 }).slice(0, 15);
+
+console.log(`📋 Coincidencias encontradas: ${coincidencias.length}`);
 
 if (coincidencias.length === 0) {
 suggestionsDiv.style.display = 'none';
@@ -459,6 +457,7 @@ function seleccionarEstudiante(nombre, curso) {
 inputEstudiante.value = nombre;
 document.getElementById('cursoIncidencia').value = curso;
 suggestionsDiv.style.display = 'none';
+console.log(`✅ Estudiante seleccionado: ${nombre} (${curso})`);
 }
 
 // Cerrar sugerencias al hacer clic fuera
@@ -489,39 +488,29 @@ btnSubmit.innerHTML = '<span class="loading"></span> Guardando...';
 
 try {
 // Obtener valores del formulario
-const fecha = document.getElementById('fechaIncidencia').value;
-const curso = document.getElementById('cursoIncidencia').value;
-const estudiante = document.getElementById('nombreEstudiante').value;
-const tipoFalta = document.getElementById('tipoFalta').value;
-const docente = document.getElementById('docenteReporta').value;
-const descripcion = document.getElementById('descripcion').value;
-const acciones = document.getElementById('accionesDocente').value;
-
-// Validar que haya URL configurada
-const urlIncidencias = localStorage.getItem('urlIncidencias');
-if (!urlIncidencias) {
-throw new Error('No hay URL de Google Sheets configurada. Contacte al administrador.');
-}
-
-// Preparar datos
 const datos = {
-'Fecha y Hora': fecha,
-'Curso': curso,
-'Nombre Estudiante': estudiante,
-'Tipo de falta': tipoFalta,
-'Docente que Reporta': docente,
-'Descripción': descripcion,
-'Acciones del Docente': acciones
+'Fecha y Hora': document.getElementById('fechaIncidencia').value,
+'Curso': document.getElementById('cursoIncidencia').value,
+'Nombre Estudiante': document.getElementById('nombreEstudiante').value,
+'Tipo de falta': document.getElementById('tipoFalta').value,
+'Docente que Reporta': document.getElementById('docenteReporta').value,
+'Descripción': document.getElementById('descripcion').value,
+'Acciones del Docente': document.getElementById('accionesDocente').value
 };
 
 // Enviar a Google Sheets
-await enviarAGoogleSheets(urlIncidencias, datos);
+await enviarAGoogleSheets(datos);
 
 // Mostrar éxito
 alertSuccess.style.display = 'block';
 
 // Limpiar formulario
 this.reset();
+
+// Restablecer fecha actual
+const now = new Date();
+now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+document.getElementById('fechaIncidencia').value = now.toISOString().slice(0, 16);
 
 // Scroll al inicio
 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -546,17 +535,9 @@ btnSubmit.innerHTML = 'Registrar Incidencia';
 // FUNCIÓN PARA ENVIAR A GOOGLE SHEETS
 // ==========================================
 
-async function enviarAGoogleSheets(url, datos) {
-// IMPORTANTE: Necesitas configurar un Google Apps Script
-// Para que esto funcione de verdad
-
-// Verificar si hay un Apps Script configurado
-const scriptUrl = localStorage.getItem('urlAppsScript');
-
-if (scriptUrl) {
-// Enviar usando Apps Script
+async function enviarAGoogleSheets(datos) {
 try {
-const response = await fetch(scriptUrl, {
+const response = await fetch(CONFIG.urlAppsScript, {
 method: 'POST',
 mode: 'no-cors',
 headers: {
@@ -566,26 +547,12 @@ body: JSON.stringify(datos)
 });
 
 console.log('✅ Datos enviados a Google Sheets');
+console.log('📋 INCIDENCIA REGISTRADA:');
+console.log(datos);
 return true;
 } catch (error) {
 console.error('Error enviando a Apps Script:', error);
 throw new Error('No se pudo conectar con Google Sheets');
-}
-} else {
-// Simulación temporal - MOSTRAR DATOS EN CONSOLA
-console.log('📋 INCIDENCIA REGISTRADA (TEMPORAL):');
-console.log('Fecha y Hora:', datos['Fecha y Hora']);
-console.log('Curso:', datos['Curso']);
-console.log('Estudiante:', datos['Nombre Estudiante']);
-console.log('Tipo de Falta:', datos['Tipo de falta']);
-console.log('Docente:', datos['Docente que Reporta']);
-console.log('Descripción:', datos['Descripción']);
-console.log('Acciones:', datos['Acciones del Docente']);
-console.log('\n⚠️ IMPORTANTE: Para guardar realmente en Google Sheets,');
-console.log(' configura un Google Apps Script y guarda la URL en localStorage');
-
-// Retornar true para que funcione el flujo
-return true;
 }
 }
 
@@ -593,7 +560,6 @@ return true;
 // INICIALIZACIÓN
 // ==========================================
 
-// Cargar configuración del localStorage
 window.addEventListener('DOMContentLoaded', () => {
 // Establecer fecha y hora actual
 const now = new Date();
@@ -604,9 +570,8 @@ document.getElementById('fechaIncidencia').value = now.toISOString().slice(0, 16
 cargarEstudiantes();
 
 console.log('✅ Sistema de incidencias para maestros cargado');
+console.log('📝 Configuración:', CONFIG);
 });
 </script>
 </body>
 </html>
-
-
