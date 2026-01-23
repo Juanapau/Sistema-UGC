@@ -459,6 +459,11 @@ function seleccionarEstudianteIncidencia(nombre, curso) {
 
 function registrarIncidencia(e) {
     e.preventDefault();
+    
+    // Verificar si estamos en modo edición
+    const modoEdicion = document.getElementById('formIncidencia').dataset.modoEdicion;
+    const indiceEdicion = document.getElementById('formIncidencia').dataset.indiceEdicion;
+    
     const inc = {
         'Fecha y Hora': document.getElementById('fechaIncidencia').value,
         'Nombre Estudiante': document.getElementById('nombreEstudianteInc').value,
@@ -470,12 +475,106 @@ function registrarIncidencia(e) {
         'Seguimiento UGC': document.getElementById('seguimientoUGC').value
     };
     
-    datosIncidencias.push(inc);
-    if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc);
-    mostrarAlerta('alertIncidencias', '✅ Incidencia registrada');
+    if (modoEdicion === 'true') {
+        // Actualizar incidencia existente
+        datosIncidencias[parseInt(indiceEdicion)] = inc;
+        if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc, 'actualizar', parseInt(indiceEdicion));
+        mostrarAlerta('alertIncidencias', '✅ Incidencia actualizada correctamente');
+        
+        // Salir del modo edición
+        document.getElementById('formIncidencia').dataset.modoEdicion = 'false';
+        document.getElementById('formIncidencia').dataset.indiceEdicion = '';
+        
+        // Cambiar texto del botón de vuelta
+        const btnSubmit = document.querySelector('#formIncidencia button[type="submit"]');
+        if (btnSubmit) btnSubmit.textContent = 'Registrar Incidencia';
+        
+        // Ocultar botón cancelar
+        const btnCancelar = document.getElementById('btnCancelarEdicion');
+        if (btnCancelar) btnCancelar.style.display = 'none';
+    } else {
+        // Registrar nueva incidencia
+        datosIncidencias.push(inc);
+        if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc);
+        mostrarAlerta('alertIncidencias', '✅ Incidencia registrada');
+    }
+    
     document.getElementById('formIncidencia').reset();
     cargarTablaIncidencias();
+    buscarIncidencias(); // Actualizar tabla de búsqueda también
 }
+
+function editarIncidencia(indice) {
+    const inc = datosIncidencias[indice];
+    if (!inc) return;
+    
+    // Scroll al formulario
+    document.querySelector('#formIncidencia').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Llenar el formulario con los datos
+    document.getElementById('fechaIncidencia').value = inc['Fecha y Hora'] || '';
+    document.getElementById('nombreEstudianteInc').value = inc['Nombre Estudiante'] || '';
+    document.getElementById('cursoIncidencia').value = inc['Curso'] || '';
+    document.getElementById('tipoFalta').value = inc['Tipo de falta'] || '';
+    document.getElementById('docenteReporta').value = inc['Docente'] || '';
+    document.getElementById('descripcionIncidencia').value = inc['Descripción'] || '';
+    document.getElementById('accionesDocente').value = inc['Acciones Docente'] || '';
+    document.getElementById('seguimientoUGC').value = inc['Seguimiento UGC'] || '';
+    
+    // Marcar el formulario como en modo edición
+    document.getElementById('formIncidencia').dataset.modoEdicion = 'true';
+    document.getElementById('formIncidencia').dataset.indiceEdicion = indice;
+    
+    // Cambiar texto del botón
+    const btnSubmit = document.querySelector('#formIncidencia button[type="submit"]');
+    if (btnSubmit) btnSubmit.textContent = '✅ Actualizar Incidencia';
+    
+    // Mostrar botón cancelar si no existe
+    let btnCancelar = document.getElementById('btnCancelarEdicion');
+    if (!btnCancelar) {
+        btnCancelar = document.createElement('button');
+        btnCancelar.id = 'btnCancelarEdicion';
+        btnCancelar.type = 'button';
+        btnCancelar.className = 'btn-secondary';
+        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.style.marginLeft = '10px';
+        btnCancelar.onclick = cancelarEdicionIncidencia;
+        btnSubmit.parentNode.appendChild(btnCancelar);
+    } else {
+        btnCancelar.style.display = 'inline-block';
+    }
+    
+    // Resaltar el formulario
+    const form = document.getElementById('formIncidencia');
+    form.style.background = '#fff3cd';
+    setTimeout(() => {
+        form.style.background = '';
+    }, 2000);
+    
+    // Mostrar mensaje informativo
+    mostrarAlerta('alertIncidencias', '✏️ Editando incidencia. Realiza los cambios y guarda.', 'info');
+}
+
+function cancelarEdicionIncidencia() {
+    // Limpiar formulario
+    document.getElementById('formIncidencia').reset();
+    
+    // Salir del modo edición
+    document.getElementById('formIncidencia').dataset.modoEdicion = 'false';
+    document.getElementById('formIncidencia').dataset.indiceEdicion = '';
+    
+    // Cambiar texto del botón
+    const btnSubmit = document.querySelector('#formIncidencia button[type="submit"]');
+    if (btnSubmit) btnSubmit.textContent = 'Registrar Incidencia';
+    
+    // Ocultar botón cancelar
+    const btnCancelar = document.getElementById('btnCancelarEdicion');
+    if (btnCancelar) btnCancelar.style.display = 'none';
+    
+    // Ocultar alerta
+    document.getElementById('alertIncidencias').style.display = 'none';
+}
+
 
 function cargarTablaIncidencias() {
     const tbody = document.getElementById('bodyIncidencias');
@@ -494,7 +593,7 @@ function cargarTablaIncidencias() {
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
         
         return `
-        <tr>
+        <tr onclick="editarIncidencia(${i})" style="cursor:pointer;" title="Click para editar">
             <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO') : ''}</td>
             <td><strong>${estudiante}</strong></td>
             <td>${curso}</td>
@@ -529,7 +628,7 @@ function buscarIncidencias() {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
-    tbody.innerHTML = filtrados.map(inc => {
+    tbody.innerHTML = filtrados.map((inc, index) => {
         const fecha = inc['Fecha y Hora'] || inc.fecha || '';
         const estudiante = inc['Nombre Estudiante'] || inc.estudiante || '';
         const curso = inc['Curso'] || inc.curso || '';
@@ -539,8 +638,11 @@ function buscarIncidencias() {
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
         const observaciones = inc['Observaciones'] || inc.observaciones || '';
         
+        // Encontrar el índice real en datosIncidencias
+        const indiceReal = datosIncidencias.findIndex(i => i === inc);
+        
         return `
-        <tr>
+        <tr onclick="editarIncidencia(${indiceReal})" style="cursor:pointer;" title="Click para editar">
             <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO') : ''}</td>
             <td><strong>${estudiante}</strong></td>
             <td>${curso}</td>
@@ -2467,12 +2569,13 @@ function exportarTodo() {
 // ==================
 // FUNCIONES AUXILIARES
 // ==================
-function mostrarAlerta(id, mensaje) {
+function mostrarAlerta(id, mensaje, tipo = 'success') {
     const alerta = document.getElementById(id);
     if (alerta) {
         alerta.textContent = mensaje;
+        alerta.className = tipo === 'info' ? 'alert alert-info' : 'alert alert-success';
         alerta.style.display = 'block';
-        setTimeout(() => alerta.style.display = 'none', 4000);
+        setTimeout(() => alerta.style.display = 'none', tipo === 'info' ? 8000 : 4000);
     }
 }
 
