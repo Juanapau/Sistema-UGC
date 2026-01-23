@@ -3649,6 +3649,11 @@ function autocompletarNombrePadre(nombreEstudiante) {
 
 function registrarReunion(e) {
     e.preventDefault();
+    
+    // Verificar si estamos en modo edición
+    const modoEdicion = document.getElementById('formReunion').dataset.modoEdicion;
+    const indiceEdicion = document.getElementById('formReunion').dataset.indiceEdicion;
+    
     const reunion = {
         'Fecha y Hora': document.getElementById('fechaReunion').value,
         'Nombre Estudiante': document.getElementById('estudianteReunion').value,
@@ -3664,14 +3669,113 @@ function registrarReunion(e) {
         'Observaciones': document.getElementById('observacionesReunion').value
     };
     
-    datosReuniones.push(reunion);
-    if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion);
-    mostrarAlerta('alertReuniones', '✅ Reunión registrada correctamente');
+    if (modoEdicion === 'true') {
+        // Actualizar reunión existente
+        datosReuniones[parseInt(indiceEdicion)] = reunion;
+        if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion, 'actualizar', parseInt(indiceEdicion));
+        mostrarAlerta('alertReuniones', '✅ Reunión actualizada correctamente');
+        
+        // Salir del modo edición
+        document.getElementById('formReunion').dataset.modoEdicion = 'false';
+        document.getElementById('formReunion').dataset.indiceEdicion = '';
+        
+        // Cambiar texto del botón de vuelta
+        const btnSubmit = document.querySelector('#formReunion button[type="submit"]');
+        if (btnSubmit) btnSubmit.textContent = 'Registrar Reunión';
+        
+        // Ocultar botón cancelar
+        const btnCancelar = document.getElementById('btnCancelarEdicionReunion');
+        if (btnCancelar) btnCancelar.style.display = 'none';
+    } else {
+        // Registrar nueva reunión
+        datosReuniones.push(reunion);
+        if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion);
+        mostrarAlerta('alertReuniones', '✅ Reunión registrada correctamente');
+        document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
+    }
+    
     document.getElementById('formReunion').reset();
-    document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
     cargarTablaReuniones();
     actualizarEstadisticasReuniones();
+    buscarReuniones(); // Actualizar tabla de búsqueda también
 }
+
+function editarReunion(indice) {
+    const reunion = datosReuniones[indice];
+    if (!reunion) return;
+    
+    // Scroll al formulario
+    document.querySelector('#formReunion').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Llenar el formulario con los datos
+    document.getElementById('fechaReunion').value = reunion['Fecha y Hora'] || '';
+    document.getElementById('estudianteReunion').value = reunion['Nombre Estudiante'] || '';
+    document.getElementById('cursoReunion').value = reunion['Curso'] || '';
+    document.getElementById('padrePresente').value = reunion['Padre/Madre Presente'] || '';
+    document.getElementById('nombrePadreReunion').value = reunion['Nombre Padre/Madre'] || '';
+    document.getElementById('docenteReunion').value = reunion['Personal UGC'] || '';
+    document.getElementById('motivoReunion').value = reunion['Motivo'] || '';
+    document.getElementById('situacionTratada').value = reunion['Situación Tratada'] || '';
+    document.getElementById('acuerdosEstablecidos').value = reunion['Acuerdos Establecidos'] || '';
+    document.getElementById('fechaSeguimiento').value = reunion['Fecha Seguimiento'] || '';
+    document.getElementById('estadoAcuerdo').value = reunion['Estado'] || '';
+    document.getElementById('observacionesReunion').value = reunion['Observaciones'] || '';
+    
+    // Marcar el formulario como en modo edición
+    document.getElementById('formReunion').dataset.modoEdicion = 'true';
+    document.getElementById('formReunion').dataset.indiceEdicion = indice;
+    
+    // Cambiar texto del botón
+    const btnSubmit = document.querySelector('#formReunion button[type="submit"]');
+    if (btnSubmit) btnSubmit.textContent = '✅ Actualizar Reunión';
+    
+    // Mostrar botón cancelar si no existe
+    let btnCancelar = document.getElementById('btnCancelarEdicionReunion');
+    if (!btnCancelar) {
+        btnCancelar = document.createElement('button');
+        btnCancelar.id = 'btnCancelarEdicionReunion';
+        btnCancelar.type = 'button';
+        btnCancelar.className = 'btn-secondary';
+        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.style.marginLeft = '10px';
+        btnCancelar.onclick = cancelarEdicionReunion;
+        btnSubmit.parentNode.appendChild(btnCancelar);
+    } else {
+        btnCancelar.style.display = 'inline-block';
+    }
+    
+    // Resaltar el formulario
+    const form = document.getElementById('formReunion');
+    form.style.background = '#fff3cd';
+    setTimeout(() => {
+        form.style.background = '';
+    }, 2000);
+    
+    // Mostrar mensaje informativo
+    mostrarAlerta('alertReuniones', '✏️ Editando reunión. Realiza los cambios y guarda.', 'info');
+}
+
+function cancelarEdicionReunion() {
+    // Limpiar formulario
+    document.getElementById('formReunion').reset();
+    document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
+    
+    // Salir del modo edición
+    document.getElementById('formReunion').dataset.modoEdicion = 'false';
+    document.getElementById('formReunion').dataset.indiceEdicion = '';
+    
+    // Cambiar texto del botón
+    const btnSubmit = document.querySelector('#formReunion button[type="submit"]');
+    if (btnSubmit) btnSubmit.textContent = 'Registrar Reunión';
+    
+    // Ocultar botón cancelar
+    const btnCancelar = document.getElementById('btnCancelarEdicionReunion');
+    if (btnCancelar) btnCancelar.style.display = 'none';
+    
+    // Ocultar alerta
+    document.getElementById('alertReuniones').style.display = 'none';
+}
+
 
 function cargarTablaReuniones() {
     const tbody = document.getElementById('bodyReuniones');
@@ -3723,7 +3827,7 @@ function cargarTablaReuniones() {
         }
         
         return `
-        <tr onclick="verDetalleReunion(${index})" style="cursor:pointer;">
+        <tr onclick="editarReunion(${index})" style="cursor:pointer;" title="Click para editar">
             <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric'}) : ''}<br><small>${fecha ? new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : ''}</small></td>
             <td><strong>${estudiante}</strong><br><small>${curso}</small></td>
             <td>${nombrePadre || padrePresente}<br><small>${padrePresente}</small></td>
