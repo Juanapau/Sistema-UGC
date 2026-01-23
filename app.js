@@ -717,6 +717,28 @@ function crearModalTardanzas() {
             
             <hr style="margin: 40px 0;">
             <h3>Consultar Tardanzas</h3>
+            
+            <!-- Radio buttons para filtro de tardanzas -->
+            <div style="background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:20px;">
+                <label style="font-weight:600;margin-bottom:10px;display:block;color:#333;">
+                    📊 Filtro por Cantidad de Tardanzas en un Mes:
+                </label>
+                <div style="display:flex;gap:30px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;cursor:pointer;">
+                        <input type="radio" name="filtroTardanzas" value="todas" checked onchange="aplicarFiltroTardanzas()" style="margin-right:8px;cursor:pointer;width:18px;height:18px;">
+                        <span style="font-size:1em;">Todas las tardanzas</span>
+                    </label>
+                    <label style="display:flex;align-items:center;cursor:pointer;">
+                        <input type="radio" name="filtroTardanzas" value="3" onchange="aplicarFiltroTardanzas()" style="margin-right:8px;cursor:pointer;width:18px;height:18px;">
+                        <span style="font-size:1em;">⚠️ Exactamente 3 tardanzas</span>
+                    </label>
+                    <label style="display:flex;align-items:center;cursor:pointer;">
+                        <input type="radio" name="filtroTardanzas" value="mas3" onchange="aplicarFiltroTardanzas()" style="margin-right:8px;cursor:pointer;width:18px;height:18px;">
+                        <span style="font-size:1em;">🚨 Más de 3 tardanzas</span>
+                    </label>
+                </div>
+            </div>
+            
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
                     <input type="text" id="buscarTard" data-sugerencias="sugerenciasBuscarTard" placeholder="🔍 Buscar estudiante..." style="width:100%;">
@@ -1150,14 +1172,39 @@ function buscarTardanzas() {
         agrupado[key].total++;
     });
     
-    tbody.innerHTML = Object.values(agrupado).map(g => {
+    // Aplicar filtro de cantidad de tardanzas
+    const filtroTardanzas = document.querySelector('input[name="filtroTardanzas"]:checked')?.value || 'todas';
+    const gruposFiltrados = Object.values(agrupado).filter(g => {
+        if (filtroTardanzas === '3') {
+            return g.total === 3;
+        } else if (filtroTardanzas === 'mas3') {
+            return g.total > 3;
+        }
+        return true; // 'todas'
+    });
+    
+    if (gruposFiltrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = gruposFiltrados.map(g => {
         const fechaUltima = g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-';
-        const colorFondo = g.total >= 3 ? 'style="background-color:#fff3cd;"' : '';
+        let colorFondo = '';
+        let icono = '';
+        
+        if (g.total === 3) {
+            colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
+            icono = '⚠️';
+        } else if (g.total > 3) {
+            colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
+            icono = '🚨';
+        }
         
         return `
         <tr ${colorFondo} onclick="mostrarResumenTardanzas('${g.estudiante}', '${g.curso}', '${g.mes}', '${g.año}', ${g.total})" style="cursor:pointer;">
             <td>${fechaUltima}</td>
-            <td><strong>${g.estudiante}</strong></td>
+            <td><strong>${icono} ${g.estudiante}</strong></td>
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
             <td><strong>${g.total}</strong></td>
@@ -1165,6 +1212,12 @@ function buscarTardanzas() {
     `;
     }).join('');
 }
+
+function aplicarFiltroTardanzas() {
+    // Re-ejecutar la búsqueda con el nuevo filtro
+    buscarTardanzas();
+}
+
 
 // Nueva función para mostrar resumen al hacer clic
 function mostrarResumenTardanzas(estudiante, curso, mes, año, total) {
