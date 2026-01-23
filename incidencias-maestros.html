@@ -4,225 +4,276 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registro de Incidencias - Maestros</title>
+
 <style>
-/* ===== CSS ORIGINAL SIN CAMBIOS ===== */
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    background:linear-gradient(135deg,#1e3c72,#2a5298);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
 }
-
-body {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-min-height: 100vh;
-padding: 20px;
-display: flex;
-align-items: center;
-justify-content: center;
+.container{
+    background:#fff;
+    border-radius:20px;
+    max-width:800px;
+    width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);
+    overflow:hidden;
 }
-
-.container {
-background: white;
-border-radius: 20px;
-box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-max-width: 800px;
-width: 100%;
-overflow: hidden;
+.header{
+    background:#000;
+    color:#fff;
+    padding:30px;
+    text-align:center;
 }
-
-.header {
-background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-color: white;
-padding: 30px;
-text-align: center;
+.content{padding:40px}
+label{font-weight:600;margin-bottom:6px;display:block}
+input,select,textarea{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:2px solid #e5e7eb;
+    font-size:1em;
 }
-
-.header h1 {
-font-size: 2em;
-margin-bottom: 10px;
+input:focus,select:focus,textarea:focus{
+    outline:none;
+    border-color:#2a5298;
 }
+textarea{min-height:120px}
+.form-group{margin-bottom:25px}
+.required{color:#dc2626}
 
-.header p {
-color: #4a9eff;
-font-size: 1.1em;
+.autocomplete-container{position:relative}
+.suggestions{
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    background:#fff;
+    border:2px solid #e5e7eb;
+    border-top:none;
+    max-height:250px;
+    overflow-y:auto;
+    display:none;
+    z-index:1000;
 }
-
-.content {
-padding: 40px;
+.suggestion-item{
+    padding:10px;
+    cursor:pointer;
+    border-bottom:1px solid #f3f4f6;
 }
+.suggestion-item:hover{background:#f3f4f6}
+.suggestion-name{font-weight:600}
+.suggestion-course{font-size:.85em;color:#6b7280;margin-left:6px}
 
-.alert {
-padding: 15px 20px;
-border-radius: 10px;
-margin-bottom: 25px;
-display: none;
-animation: slideIn 0.3s;
+button{
+    width:100%;
+    padding:15px;
+    background:#2a5298;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:1.1em;
+    font-weight:600;
+    cursor:pointer;
 }
-
-@keyframes slideIn {
-from { opacity: 0; transform: translateY(-10px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-.alert-success {
-background: #d1fae5;
-color: #065f46;
-border-left: 4px solid #10b981;
-}
-
-.alert-error {
-background: #fee2e2;
-color: #991b1b;
-border-left: 4px solid #ef4444;
-}
-
-.form-group { margin-bottom: 25px; }
-
-label {
-display: block;
-margin-bottom: 8px;
-color: #1f2937;
-font-weight: 600;
-font-size: 0.95em;
-}
-
-input, select, textarea {
-width: 100%;
-padding: 12px 15px;
-border: 2px solid #e5e7eb;
-border-radius: 10px;
-font-size: 1em;
-transition: all 0.3s;
-font-family: inherit;
-}
-
-textarea { min-height: 120px; resize: vertical; }
-
-.autocomplete-container { position: relative; }
-
-.suggestions {
-position: absolute;
-top: 100%;
-left: 0;
-right: 0;
-background: white;
-border: 2px solid #e5e7eb;
-border-top: none;
-border-radius: 0 0 10px 10px;
-max-height: 250px;
-overflow-y: auto;
-display: none;
-z-index: 1000;
-}
-
-.suggestion-item {
-padding: 12px 15px;
-cursor: pointer;
-border-bottom: 1px solid #f3f4f6;
-}
-
-.suggestion-item:hover { background: #f3f4f6; }
-
-.btn {
-width: 100%;
-padding: 15px;
-background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-color: white;
-border: none;
-border-radius: 10px;
-font-size: 1.1em;
-font-weight: 600;
-cursor: pointer;
-}
-
-.loading {
-display: inline-block;
-width: 20px;
-height: 20px;
-border: 3px solid rgba(255,255,255,.3);
-border-radius: 50%;
-border-top-color: white;
-animation: spin 1s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.info-box {
-background: #eff6ff;
-border-left: 4px solid #3b82f6;
-padding: 15px;
-border-radius: 8px;
-margin-bottom: 25px;
-font-size: 0.9em;
-color: #1e40af;
-}
+button:disabled{background:#9ca3af}
+.alert{display:none;margin-bottom:20px;padding:12px;border-radius:8px}
+.alert-success{background:#d1fae5;color:#065f46}
+.alert-error{background:#fee2e2;color:#991b1b}
 </style>
 </head>
 
 <body>
 <div class="container">
-<div class="header">
-<h1>📋 Registro de Incidencias</h1>
-<p>Sistema de Gestión de Convivencia - CENSA</p>
-</div>
+    <div class="header">
+        <h1>📋 Registro de Incidencias</h1>
+        <p>Sistema de Gestión de Convivencia - CENSA</p>
+    </div>
 
 <div class="content">
-<div class="info-box">
-💡 <strong>Instrucciones:</strong> Complete todos los campos obligatorios (*) y haga clic en "Registrar Incidencia".
-</div>
 
-<div class="alert alert-success" id="alertSuccess">
-✅ <strong>¡Incidencia registrada exitosamente!</strong>
-</div>
-
-<div class="alert alert-error" id="alertError">
-❌ <strong>Error:</strong> <span id="errorMessage"></span>
-</div>
+<div class="alert alert-success" id="alertSuccess">✅ Incidencia registrada correctamente</div>
+<div class="alert alert-error" id="alertError"><span id="errorMessage"></span></div>
 
 <form id="formIncidencia">
-<!-- FORMULARIO ORIGINAL SIN CAMBIOS -->
+
+<div class="form-group">
+<label>Fecha y Hora <span class="required">*</span></label>
+<input type="datetime-local" id="fechaIncidencia" required>
+</div>
+
+<div class="form-group autocomplete-container">
+<label>Nombre del Estudiante <span class="required">*</span></label>
+<input type="text" id="nombreEstudiante" autocomplete="off" placeholder="Escriba el nombre..." required>
+<div class="suggestions" id="suggestions"></div>
+</div>
+
+<div class="form-group">
+<label>Curso <span class="required">*</span></label>
+<select id="cursoIncidencia" required>
+<option value="">Seleccione</option>
+<option>1roA</option><option>1roB</option><option>1roC</option>
+<option>2doA</option><option>2doB</option><option>2doC</option>
+<option>3roA</option><option>3roB</option><option>3roC</option>
+<option>4toA</option><option>4toB</option><option>4toC</option>
+<option>5toA</option><option>5toB</option><option>5toC</option>
+<option>6toA</option><option>6toB</option><option>6toC</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Tipo de Falta <span class="required">*</span></label>
+<select id="tipoFalta" required>
+<option value="">Seleccione</option>
+<option>Leve</option>
+<option>Grave</option>
+<option>Muy Grave</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Docente que Reporta <span class="required">*</span></label>
+<input type="text" id="docenteReporta" required>
+</div>
+
+<div class="form-group">
+<label>Descripción <span class="required">*</span></label>
+<textarea id="descripcion" required></textarea>
+</div>
+
+<div class="form-group">
+<label>Acciones Tomadas</label>
+<textarea id="accionesDocente"></textarea>
+</div>
+
+<button type="submit" id="btnSubmit">Registrar Incidencia</button>
+
 </form>
 </div>
 </div>
 
 <script>
-/* ==============================
-   URLs ORIGINALES (LAS 3)
-   ============================== */
+// ================= URLS ORIGINALES =================
 const URL_INCIDENCIAS = 'https://script.google.com/macros/s/AKfycbx7_pvGcRFlfDu6yoUHa0EN9oNz9d9XIolBksCI2opqhVBwkNNMoYHyt3-4iOTI26uT/exec';
 const URL_ESTUDIANTES = 'https://script.google.com/macros/s/AKfycbyk1gUcU_cFSDbMz34WpEn1s81ctUIExmxzG062TZAx0KQhj5eOyQQVN2Rk8rLdMkicEA/exec';
 const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbx2Hdz1rYL8GBn9PVG64sFOHC0wBfivmKFNwM4lmSWKzN6C7iKhTHRdxKMbwiowMnNx/exec';
 
-/* Guardar configuración */
-localStorage.setItem('urlIncidencias', URL_INCIDENCIAS);
-localStorage.setItem('urlEstudiantes', URL_ESTUDIANTES);
-localStorage.setItem('urlAppsScript', URL_APPS_SCRIPT);
-
 let estudiantes = [];
 
-/* ==============================
-   CARGA DE ESTUDIANTES
-   ============================== */
-async function cargarEstudiantes() {
-const res = await fetch(URL_ESTUDIANTES);
-estudiantes = await res.json();
+// ================= CARGA DE ESTUDIANTES =================
+async function cargarEstudiantes(){
+    try{
+        const res = await fetch(URL_ESTUDIANTES);
+        const data = await res.json();
+
+        if(Array.isArray(data)){
+            estudiantes = data;
+            console.log(`✅ ${estudiantes.length} estudiantes cargados`);
+            return;
+        }
+
+        if(data.values){
+            const headers = data.values[0];
+            estudiantes = data.values.slice(1).map(row=>{
+                let obj={};
+                headers.forEach((h,i)=>obj[h]=row[i]||'');
+                return obj;
+            });
+            console.log(`✅ ${estudiantes.length} estudiantes cargados`);
+        }
+    }catch(e){
+        console.error('❌ Error cargando estudiantes',e);
+    }
 }
 
-/* ==============================
-   INICIALIZACIÓN
-   ============================== */
-window.addEventListener('DOMContentLoaded', () => {
-document.getElementById('alertSuccess').style.display = 'none';
-document.getElementById('alertError').style.display = 'none';
+// ================= AUTOCOMPLETE =================
+const input = document.getElementById('nombreEstudiante');
+const sug = document.getElementById('suggestions');
 
-const now = new Date();
-now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-document.getElementById('fechaIncidencia').value = now.toISOString().slice(0,16);
+input.addEventListener('input',()=>{
+    const txt = input.value.toLowerCase().trim();
+    if(txt.length<2){sug.style.display='none';return;}
 
-cargarEstudiantes();
-console.log('✅ Sistema listo y funcionando');
+    const matches = estudiantes.filter(e=>{
+        const nombre = (
+            e['Nombre Completo']||
+            e['Nombre']||
+            e['Estudiante']||
+            e.nombre||
+            ''
+        ).toLowerCase();
+        return nombre.includes(txt);
+    }).slice(0,15);
+
+    if(!matches.length){sug.style.display='none';return;}
+
+    sug.innerHTML = matches.map((e,i)=>{
+        const n = e['Nombre Completo']||e['Nombre']||e['Estudiante']||e.nombre||'';
+        const c = e['Curso']||e.curso||'';
+        return `
+        <div class="suggestion-item" data-i="${i}">
+            <span class="suggestion-name">${n}</span>
+            <span class="suggestion-course">(${c})</span>
+        </div>`;
+    }).join('');
+
+    document.querySelectorAll('.suggestion-item').forEach(item=>{
+        item.onclick=()=>{
+            const e = matches[item.dataset.i];
+            input.value = e['Nombre Completo']||e['Nombre']||e['Estudiante']||e.nombre||'';
+            document.getElementById('cursoIncidencia').value = e['Curso']||e.curso||'';
+            sug.style.display='none';
+        };
+    });
+
+    sug.style.display='block';
 });
+
+document.addEventListener('click',e=>{
+    if(!e.target.closest('.autocomplete-container')){
+        sug.style.display='none';
+    }
+});
+
+// ================= ENVÍO =================
+document.getElementById('formIncidencia').onsubmit=async e=>{
+    e.preventDefault();
+    try{
+        await fetch(URL_APPS_SCRIPT,{
+            method:'POST',
+            mode:'no-cors',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                fecha:fechaIncidencia.value,
+                curso:cursoIncidencia.value,
+                estudiante:nombreEstudiante.value,
+                falta:tipoFalta.value,
+                docente:docenteReporta.value,
+                descripcion:descripcion.value,
+                acciones:accionesDocente.value
+            })
+        });
+        alertSuccess.style.display='block';
+        e.target.reset();
+    }catch(err){
+        errorMessage.textContent='Error al guardar la incidencia';
+        alertError.style.display='block';
+    }
+};
+
+// ================= INIT =================
+window.onload=()=>{
+    const d=new Date();
+    d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    fechaIncidencia.value=d.toISOString().slice(0,16);
+    cargarEstudiantes();
+};
 </script>
+
 </body>
 </html>
