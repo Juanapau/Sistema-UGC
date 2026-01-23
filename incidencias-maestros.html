@@ -381,7 +381,11 @@ console.log('🔄 Cargando estudiantes...');
 const response = await fetch(CONFIG.urlEstudiantes);
 const data = await response.json();
 
+console.log('📦 Respuesta completa:', data);
+
+// Verificar diferentes formatos de respuesta
 if (data.values && data.values.length > 1) {
+// Formato: {values: [[header], [row1], [row2]...]}
 const headers = data.values[0];
 estudiantes = data.values.slice(1).map(row => {
 const obj = {};
@@ -390,8 +394,23 @@ obj[header] = row[index] || '';
 });
 return obj;
 });
-console.log(`✅ ${estudiantes.length} estudiantes cargados correctamente`);
-console.log('Primer estudiante:', estudiantes[0]);
+console.log(`✅ ${estudiantes.length} estudiantes cargados (formato values)`);
+} else if (Array.isArray(data) && data.length > 0) {
+// Formato: [{nombre: "...", curso: "..."}, ...]
+estudiantes = data;
+console.log(`✅ ${estudiantes.length} estudiantes cargados (formato array)`);
+} else if (data.data && Array.isArray(data.data)) {
+// Formato: {data: [{...}, {...}]}
+estudiantes = data.data;
+console.log(`✅ ${estudiantes.length} estudiantes cargados (formato data)`);
+} else {
+console.warn('⚠️ Formato de respuesta no reconocido');
+console.log('Estructura recibida:', Object.keys(data));
+}
+
+if (estudiantes.length > 0) {
+console.log('👤 Primer estudiante:', estudiantes[0]);
+console.log('🔑 Campos disponibles:', Object.keys(estudiantes[0]));
 } else {
 console.warn('⚠️ No se encontraron estudiantes en la respuesta');
 }
@@ -418,7 +437,16 @@ return;
 console.log(`🔍 Buscando: "${texto}"`);
 
 const coincidencias = estudiantes.filter(e => {
-const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+// Intentar diferentes posibles nombres de campos
+const nombre = (
+e['Nombre Completo'] || 
+e['nombre'] || 
+e['Nombre'] || 
+e['NOMBRE'] ||
+e['nombre_completo'] ||
+e['NombreCompleto'] ||
+''
+).toLowerCase();
 return nombre.includes(texto);
 }).slice(0, 15);
 
@@ -430,8 +458,8 @@ return;
 }
 
 suggestionsDiv.innerHTML = coincidencias.map((e, index) => {
-const nombre = e['Nombre Completo'] || e.nombre || '';
-const curso = e['Curso'] || e.curso || '';
+const nombre = e['Nombre Completo'] || e['nombre'] || e['Nombre'] || e['NOMBRE'] || e['nombre_completo'] || e['NombreCompleto'] || '';
+const curso = e['Curso'] || e['curso'] || e['CURSO'] || '';
 return `
 <div class="suggestion-item" data-index="${index}">
 <span class="suggestion-name">${nombre}</span>
@@ -444,8 +472,8 @@ return `
 document.querySelectorAll('.suggestion-item').forEach((item, index) => {
 item.addEventListener('click', function() {
 const estudiante = coincidencias[index];
-const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
-const curso = estudiante['Curso'] || estudiante.curso || '';
+const nombre = estudiante['Nombre Completo'] || estudiante['nombre'] || estudiante['Nombre'] || estudiante['NOMBRE'] || estudiante['nombre_completo'] || estudiante['NombreCompleto'] || '';
+const curso = estudiante['Curso'] || estudiante['curso'] || estudiante['CURSO'] || '';
 seleccionarEstudiante(nombre, curso);
 });
 });
