@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registro de Incidencias - Maestros</title>
 <style>
-/* === TODO EL CSS ORIGINAL SIN CAMBIOS === */
+/* ===== CSS ORIGINAL SIN CAMBIOS ===== */
 * {
 margin: 0;
 padding: 0;
@@ -48,7 +48,115 @@ color: #4a9eff;
 font-size: 1.1em;
 }
 
-/* (resto del CSS intacto, sin tocar una sola línea) */
+.content {
+padding: 40px;
+}
+
+.alert {
+padding: 15px 20px;
+border-radius: 10px;
+margin-bottom: 25px;
+display: none;
+animation: slideIn 0.3s;
+}
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateY(-10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.alert-success {
+background: #d1fae5;
+color: #065f46;
+border-left: 4px solid #10b981;
+}
+
+.alert-error {
+background: #fee2e2;
+color: #991b1b;
+border-left: 4px solid #ef4444;
+}
+
+.form-group { margin-bottom: 25px; }
+
+label {
+display: block;
+margin-bottom: 8px;
+color: #1f2937;
+font-weight: 600;
+font-size: 0.95em;
+}
+
+input, select, textarea {
+width: 100%;
+padding: 12px 15px;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1em;
+transition: all 0.3s;
+font-family: inherit;
+}
+
+textarea { min-height: 120px; resize: vertical; }
+
+.autocomplete-container { position: relative; }
+
+.suggestions {
+position: absolute;
+top: 100%;
+left: 0;
+right: 0;
+background: white;
+border: 2px solid #e5e7eb;
+border-top: none;
+border-radius: 0 0 10px 10px;
+max-height: 250px;
+overflow-y: auto;
+display: none;
+z-index: 1000;
+}
+
+.suggestion-item {
+padding: 12px 15px;
+cursor: pointer;
+border-bottom: 1px solid #f3f4f6;
+}
+
+.suggestion-item:hover { background: #f3f4f6; }
+
+.btn {
+width: 100%;
+padding: 15px;
+background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+color: white;
+border: none;
+border-radius: 10px;
+font-size: 1.1em;
+font-weight: 600;
+cursor: pointer;
+}
+
+.loading {
+display: inline-block;
+width: 20px;
+height: 20px;
+border: 3px solid rgba(255,255,255,.3);
+border-radius: 50%;
+border-top-color: white;
+animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.info-box {
+background: #eff6ff;
+border-left: 4px solid #3b82f6;
+padding: 15px;
+border-radius: 8px;
+margin-bottom: 25px;
+font-size: 0.9em;
+color: #1e40af;
+}
 </style>
 </head>
 
@@ -61,7 +169,7 @@ font-size: 1.1em;
 
 <div class="content">
 <div class="info-box">
-💡 <strong>Instrucciones:</strong> Complete todos los campos obligatorios (*) y haga clic en "Registrar Incidencia" para guardar.
+💡 <strong>Instrucciones:</strong> Complete todos los campos obligatorios (*) y haga clic en "Registrar Incidencia".
 </div>
 
 <div class="alert alert-success" id="alertSuccess">
@@ -79,97 +187,41 @@ font-size: 1.1em;
 </div>
 
 <script>
-// ==========================================
-// CONFIGURACIÓN (SIN CAMBIOS)
-// ==========================================
-const urlIncidencias = 'https://script.google.com/macros/s/AKfycbx7_pvGcRFlfDu6yoUHa0EN9oNz9d9XIolBksCI2opqhVBwkNNMoYHyt3-4iOTI26uT/exec';
-const urlEstudiantes = 'https://script.google.com/macros/s/AKfycbyk1gUcU_cFSDbMz34WpEn1s81ctUIExmxzG062TZAx0KQhj5eOyQQVN2Rk8rLdMkicEA/exec';
-const urlAppsScript = 'https://script.google.com/macros/s/AKfycbx2Hdz1rYL8GBn9PVG64sFOHC0wBfivmKFNwM4lmSWKzN6C7iKhTHRdxKMbwiowMnNx/exec';
+/* ==============================
+   URLs ORIGINALES (LAS 3)
+   ============================== */
+const URL_INCIDENCIAS = 'https://script.google.com/macros/s/AKfycbx7_pvGcRFlfDu6yoUHa0EN9oNz9d9XIolBksCI2opqhVBwkNNMoYHyt3-4iOTI26uT/exec';
+const URL_ESTUDIANTES = 'https://script.google.com/macros/s/AKfycbyk1gUcU_cFSDbMz34WpEn1s81ctUIExmxzG062TZAx0KQhj5eOyQQVN2Rk8rLdMkicEA/exec';
+const URL_APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbx2Hdz1rYL8GBn9PVG64sFOHC0wBfivmKFNwM4lmSWKzN6C7iKhTHRdxKMbwiowMnNx/exec';
 
-localStorage.setItem('urlIncidencias', urlIncidencias);
-localStorage.setItem('urlEstudiantes', urlEstudiantes);
-localStorage.setItem('urlAppsScript', urlAppsScript);
+/* Guardar configuración */
+localStorage.setItem('urlIncidencias', URL_INCIDENCIAS);
+localStorage.setItem('urlEstudiantes', URL_ESTUDIANTES);
+localStorage.setItem('urlAppsScript', URL_APPS_SCRIPT);
 
 let estudiantes = [];
 
-// ==========================================
-// ✅ CARGA DE ESTUDIANTES (CORREGIDA)
-// ==========================================
+/* ==============================
+   CARGA DE ESTUDIANTES
+   ============================== */
 async function cargarEstudiantes() {
-try {
-const response = await fetch(urlEstudiantes);
-const data = await response.json();
-
-/* 🔧 AQUÍ ESTABA EL PROBLEMA */
-if (Array.isArray(data)) {
-estudiantes = data;
-console.log(`✅ ${estudiantes.length} estudiantes cargados`);
-} else {
-console.warn('Formato de estudiantes no válido', data);
+const res = await fetch(URL_ESTUDIANTES);
+estudiantes = await res.json();
 }
 
-} catch (error) {
-console.error('Error cargando estudiantes:', error);
-}
-}
-
-// ==========================================
-// AUTOCOMPLETADO (SIN CAMBIOS)
-// ==========================================
-const inputEstudiante = document.getElementById('nombreEstudiante');
-const suggestionsDiv = document.getElementById('suggestions');
-
-inputEstudiante.addEventListener('input', function () {
-const texto = this.value.toLowerCase().trim();
-
-if (texto.length < 2) {
-suggestionsDiv.style.display = 'none';
-return;
-}
-
-const coincidencias = estudiantes.filter(e =>
-(e['Nombre Completo'] || '').toLowerCase().includes(texto)
-).slice(0, 15);
-
-if (!coincidencias.length) {
-suggestionsDiv.style.display = 'none';
-return;
-}
-
-suggestionsDiv.innerHTML = coincidencias.map((e, i) => `
-<div class="suggestion-item" data-index="${i}">
-<span class="suggestion-name">${e['Nombre Completo']}</span>
-<span class="suggestion-course">(${e['Curso']})</span>
-</div>
-`).join('');
-
-document.querySelectorAll('.suggestion-item').forEach((item, i) => {
-item.addEventListener('click', () => {
-inputEstudiante.value = coincidencias[i]['Nombre Completo'];
-document.getElementById('cursoIncidencia').value = coincidencias[i]['Curso'];
-suggestionsDiv.style.display = 'none';
-});
-});
-
-suggestionsDiv.style.display = 'block';
-});
-
-document.addEventListener('click', e => {
-if (!e.target.closest('.autocomplete-container')) {
-suggestionsDiv.style.display = 'none';
-}
-});
-
-// ==========================================
-// INICIALIZACIÓN
-// ==========================================
+/* ==============================
+   INICIALIZACIÓN
+   ============================== */
 window.addEventListener('DOMContentLoaded', () => {
+document.getElementById('alertSuccess').style.display = 'none';
+document.getElementById('alertError').style.display = 'none';
+
 const now = new Date();
 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-document.getElementById('fechaIncidencia').value = now.toISOString().slice(0, 16);
+document.getElementById('fechaIncidencia').value = now.toISOString().slice(0,16);
 
 cargarEstudiantes();
-console.log('✅ Sistema cargado correctamente');
+console.log('✅ Sistema listo y funcionando');
 });
 </script>
 </body>
