@@ -1,15 +1,11 @@
 // ========================================
 // SISTEMA DE NOTAS RÁPIDAS - CENSA
-// Con sincronización GitHub
+// Con Google Sheets (como los demás módulos)
 // ========================================
 
-// CONFIGURACIÓN
-const GITHUB_CONFIG = {
-    owner: 'Juanapau',  // Tu usuario de GitHub
-    repo: 'Sistema-UGC',  // Tu repositorio
-    branch: 'main',  // Rama principal
-    path: 'notas.json'  // Archivo de notas
-};
+// Configuración de Google Sheets
+let urlNotasRapidas = ''; // Se configura desde el módulo de configuración
+let datosNotas = [];
 
 // ========================================
 // SISTEMA DE NOTIFICACIONES
@@ -41,11 +37,8 @@ class SistemaNotificaciones {
         `;
 
         this.container.appendChild(notif);
-
-        // Mostrar con animación
         setTimeout(() => notif.classList.add('show'), 10);
 
-        // Auto-cerrar
         if (duracion > 0) {
             setTimeout(() => {
                 notif.classList.remove('show');
@@ -76,89 +69,118 @@ class SistemaNotificaciones {
 const notificaciones = new SistemaNotificaciones();
 
 // ========================================
-// CLASE PARA MANEJAR GITHUB
+// FUNCIONES DE GOOGLE SHEETS
 // ========================================
 
-class GitHubStorage {
-    constructor(config) {
-        this.config = config;
-        this.baseUrl = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${config.path}`;
+async function cargarNotasDesdeGoogleSheets() {
+    if (!urlNotasRapidas) {
+        console.log('No hay URL de notas configurada');
+        return [];
     }
-
-    async cargarNotas() {
-        try {
-            // Agregar timestamp para evitar caché
-            const url = `${this.baseUrl}?t=${Date.now()}`;
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                // Si el archivo no existe, retornar array vacío
-                if (response.status === 404) {
-                    console.log('📝 Archivo de notas no encontrado, creando nuevo...');
-                    return [];
-                }
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
+    
+    try {
+        const response = await fetch(urlNotasRapidas, {
+            method: 'GET',
+            redirect: 'follow',
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache'
             }
-
+        });
+        
+        if (response.ok) {
             const data = await response.json();
-            return data.notas || [];
-        } catch (error) {
-            console.error('Error cargando notas desde GitHub:', error);
-            
-            // Si hay error de red, intentar cargar desde localStorage como respaldo
-            const notasLocal = localStorage.getItem('notasRapidas_respaldo');
-            if (notasLocal) {
-                console.log('📦 Cargando notas desde respaldo local...');
-                return JSON.parse(notasLocal);
-            }
-            
+            console.log('✅ Notas cargadas desde Google Sheets:', data.length, 'registros');
+            return data;
+        } else {
+            console.error('Error al cargar notas:', response.status);
             return [];
         }
+    } catch (error) {
+        console.error('Error al cargar notas desde Google Sheets:', error);
+        notificaciones.error('Error de conexión', 'No se pudieron cargar las notas');
+        return [];
+    }
+}
+
+async function guardarNotaEnGoogleSheets(nota) {
+    if (!urlNotasRapidas) {
+        notificaciones.error('Error de configuración', 'No hay URL de Google Sheets configurada');
+        return false;
     }
 
-    async guardarNotas(notas) {
-        try {
-            // Guardar también en localStorage como respaldo
-            localStorage.setItem('notasRapidas_respaldo', JSON.stringify(notas));
-            
-            // Generar archivo JSON actualizado
-            const contenido = {
-                notas: notas,
-                ultima_actualizacion: new Date().toISOString(),
-                version: "1.0"
-            };
+    try {
+        const response = await fetch(urlNotasRapidas, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(nota)
+        });
 
-            // Crear y descargar archivo
-            this.descargarJSON(contenido);
-            
-            // Mostrar info de que se descargó el archivo
-            notificaciones.info(
-                'Archivo descargado',
-                'Sube notas.json a GitHub para sincronizar en todos tus dispositivos',
-                6000
-            );
+        console.log('✅ Nota guardada en Google Sheets');
+        return true;
+    } catch (error) {
+        console.error('Error al guardar nota:', error);
+        notificaciones.error('Error al guardar', 'No se pudo guardar la nota');
+        return false;
+    }
+}
 
-            return true;
-        } catch (error) {
-            console.error('Error guardando notas:', error);
-            notificaciones.error(
-                'Error al guardar',
-                'No se pudieron guardar las notas. Intenta de nuevo.'
-            );
-            return false;
-        }
+async function actualizarNotaEnGoogleSheets(nota) {
+    if (!urlNotasRapidas) {
+        notificaciones.error('Error de configuración', 'No hay URL de Google Sheets configurada');
+        return false;
     }
 
-    descargarJSON(contenido) {
-        const blob = new Blob([JSON.stringify(contenido, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'notas.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+    try {
+        const response = await fetch(urlNotasRapidas, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ...nota,
+                accion: 'actualizar'
+            })
+        });
+
+        console.log('✅ Nota actualizada en Google Sheets');
+        return true;
+    } catch (error) {
+        console.error('Error al actualizar nota:', error);
+        notificaciones.error('Error al actualizar', 'No se pudo actualizar la nota');
+        return false;
+    }
+}
+
+async function eliminarNotaDeGoogleSheets(id) {
+    if (!urlNotasRapidas) {
+        notificaciones.error('Error de configuración', 'No hay URL de Google Sheets configurada');
+        return false;
+    }
+
+    try {
+        const response = await fetch(urlNotasRapidas, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: id,
+                accion: 'eliminar'
+            })
+        });
+
+        console.log('✅ Nota eliminada de Google Sheets');
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar nota:', error);
+        notificaciones.error('Error al eliminar', 'No se pudo eliminar la nota');
+        return false;
     }
 }
 
@@ -168,11 +190,9 @@ class GitHubStorage {
 
 class NotasRapidas {
     constructor() {
-        this.storage = new GitHubStorage(GITHUB_CONFIG);
         this.notas = [];
         this.notaEditando = null;
         this.cargando = false;
-        this.inicializar();
     }
 
     async inicializar() {
@@ -200,52 +220,54 @@ class NotasRapidas {
         this.cargando = false;
     }
 
-    // ========== GESTIÓN DE ALMACENAMIENTO ==========
-    
     async cargarNotas() {
         try {
-            this.notas = await this.storage.cargarNotas();
-            console.log(`✅ ${this.notas.length} notas cargadas desde GitHub`);
+            this.notas = await cargarNotasDesdeGoogleSheets();
+            datosNotas = this.notas; // Guardar en variable global
+            console.log(`✅ ${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`);
         } catch (error) {
             console.error('Error cargando notas:', error);
-            notificaciones.error(
-                'Error de conexión',
-                'No se pudieron cargar las notas. Verifica tu conexión.'
-            );
             this.notas = [];
         }
     }
 
-    async guardarEnStorage() {
-        await this.storage.guardarNotas(this.notas);
-    }
-
-    // ========== OPERACIONES CRUD ==========
-    
     async agregarNota(estudiante, tipo, prioridad, texto) {
         const nuevaNota = {
-            id: Date.now(),
+            id: Date.now().toString(),
             estudiante: estudiante,
             tipo: tipo,
             prioridad: prioridad,
             texto: texto,
             fecha: new Date().toISOString(),
-            fechaLegible: this.formatearFecha(new Date()),
-            dispositivo: this.obtenerDispositivo()
+            dispositivo: this.obtenerDispositivo(),
+            timestamp: new Date().toLocaleString('es-DO')
         };
 
-        this.notas.unshift(nuevaNota);
-        await this.guardarEnStorage();
-        this.actualizarVista();
-        this.actualizarContador();
+        // Guardar en Google Sheets
+        const guardado = await guardarNotaEnGoogleSheets(nuevaNota);
         
-        return nuevaNota;
+        if (guardado) {
+            // Agregar localmente
+            this.notas.unshift(nuevaNota);
+            datosNotas = this.notas;
+            this.actualizarVista();
+            this.actualizarContador();
+            
+            notificaciones.exito(
+                'Nota guardada',
+                'Disponible automáticamente en todos tus dispositivos'
+            );
+            
+            return nuevaNota;
+        } else {
+            return null;
+        }
     }
 
     async editarNota(id, estudiante, tipo, prioridad, texto) {
         const index = this.notas.findIndex(n => n.id === id);
         if (index !== -1) {
-            this.notas[index] = {
+            const notaActualizada = {
                 ...this.notas[index],
                 estudiante: estudiante,
                 tipo: tipo,
@@ -253,23 +275,57 @@ class NotasRapidas {
                 texto: texto,
                 editado: new Date().toISOString()
             };
-            await this.guardarEnStorage();
-            this.actualizarVista();
+
+            // Actualizar en Google Sheets
+            const actualizado = await actualizarNotaEnGoogleSheets(notaActualizada);
+            
+            if (actualizado) {
+                this.notas[index] = notaActualizada;
+                datosNotas = this.notas;
+                this.actualizarVista();
+                
+                notificaciones.exito(
+                    'Nota actualizada',
+                    'Cambios sincronizados en todos tus dispositivos'
+                );
+            }
         }
     }
 
     async eliminarNota(id) {
-        this.notas = this.notas.filter(n => n.id !== id);
-        await this.guardarEnStorage();
-        this.actualizarVista();
-        this.actualizarContador();
+        // Eliminar de Google Sheets
+        const eliminado = await eliminarNotaDeGoogleSheets(id);
+        
+        if (eliminado) {
+            // Eliminar localmente
+            this.notas = this.notas.filter(n => n.id !== id);
+            datosNotas = this.notas;
+            this.actualizarVista();
+            this.actualizarContador();
+            
+            notificaciones.exito(
+                'Nota eliminada',
+                'Eliminada de todos tus dispositivos'
+            );
+        }
     }
 
     obtenerNota(id) {
         return this.notas.find(n => n.id === id);
     }
 
-    // ========== UTILIDADES ==========
+    async recargarNotas() {
+        this.mostrarCargando();
+        await this.cargarNotas();
+        this.ocultarCargando();
+        this.actualizarVista();
+        this.actualizarContador();
+        
+        notificaciones.exito(
+            'Sincronizado',
+            `${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`
+        );
+    }
 
     obtenerDispositivo() {
         const width = window.innerWidth;
@@ -306,8 +362,6 @@ class NotasRapidas {
         }
     }
 
-    // ========== RENDERIZADO ==========
-    
     actualizarVista() {
         if (this.cargando) return;
 
@@ -354,13 +408,13 @@ class NotasRapidas {
             <div class="nota-texto">${nota.texto}</div>
             <div class="nota-fecha">🕐 ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
             <div class="nota-acciones">
-                <button class="nota-btn nota-btn-registrar" onclick="sistemaNotas.registrarIncidencia(${nota.id})">
+                <button class="nota-btn nota-btn-registrar" onclick="sistemaNotas.registrarIncidencia('${nota.id}')">
                     📋 Registrar
                 </button>
-                <button class="nota-btn nota-btn-editar" onclick="sistemaNotas.iniciarEdicion(${nota.id})">
+                <button class="nota-btn nota-btn-editar" onclick="sistemaNotas.iniciarEdicion('${nota.id}')">
                     ✏️ Editar
                 </button>
-                <button class="nota-btn nota-btn-borrar" onclick="sistemaNotas.confirmarEliminar(${nota.id})">
+                <button class="nota-btn nota-btn-borrar" onclick="sistemaNotas.confirmarEliminar('${nota.id}')">
                     🗑️ Borrar
                 </button>
             </div>
@@ -373,7 +427,9 @@ class NotasRapidas {
             tardanza: '📚',
             incidencia: '⚠️',
             llamada: '📞',
-            recordatorio: '🔔'
+            reunion: '👥',
+            recordatorio: '🔔',
+            otros: '📝'
         };
         return iconos[tipo] || '📝';
     }
@@ -383,7 +439,9 @@ class NotasRapidas {
             tardanza: 'Tardanza',
             incidencia: 'Incidencia',
             llamada: 'Llamada Pendiente',
-            recordatorio: 'Recordatorio'
+            reunion: 'Reunión',
+            recordatorio: 'Recordatorio',
+            otros: 'Otros'
         };
         return nombres[tipo] || tipo;
     }
@@ -397,8 +455,6 @@ class NotasRapidas {
         return iconos[prioridad] || '⚪';
     }
 
-    // ========== ACCIONES ==========
-    
     registrarIncidencia(id) {
         const nota = this.obtenerNota(id);
         if (!nota) return;
@@ -420,7 +476,9 @@ class NotasRapidas {
                         'tardanza': 'Leve',
                         'incidencia': 'Grave',
                         'llamada': 'Leve',
-                        'recordatorio': 'Leve'
+                        'reunion': 'Leve',
+                        'recordatorio': 'Leve',
+                        'otros': 'Leve'
                     };
                     tipoSelect.value = mapeoTipos[nota.tipo] || 'Leve';
                 }
@@ -434,7 +492,7 @@ class NotasRapidas {
 
                 notificaciones.info(
                     'Datos cargados',
-                    'Completa los campos restantes y guarda la incidencia. Luego borra la nota.',
+                    'Completa los campos, guarda la incidencia y luego borra esta nota',
                     6000
                 );
             }, 300);
@@ -468,11 +526,10 @@ class NotasRapidas {
             0
         );
 
-        // Agregar botones de confirmación
         const botonesDiv = document.createElement('div');
         botonesDiv.style.cssText = 'display: flex; gap: 8px; margin-top: 10px;';
         botonesDiv.innerHTML = `
-            <button onclick="sistemaNotas.eliminarNotaConfirmada(${id}); this.closest('.notificacion').remove();" 
+            <button onclick="sistemaNotas.eliminarNotaConfirmada('${id}'); this.closest('.notificacion').remove();" 
                     style="flex: 1; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                 Sí, eliminar
             </button>
@@ -486,15 +543,6 @@ class NotasRapidas {
 
     async eliminarNotaConfirmada(id) {
         await this.eliminarNota(id);
-        notificaciones.exito('Nota eliminada', 'La nota se eliminó correctamente');
-    }
-
-    async recargarNotas() {
-        this.mostrarCargando();
-        await this.cargarNotas();
-        this.ocultarCargando();
-        this.actualizarVista();
-        this.actualizarContador();
     }
 }
 
@@ -504,9 +552,13 @@ class NotasRapidas {
 
 let sistemaNotas = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-    sistemaNotas = new NotasRapidas();
-});
+// Inicializar cuando se configure la URL
+function inicializarSistemaNotas() {
+    if (!sistemaNotas) {
+        sistemaNotas = new NotasRapidas();
+    }
+    sistemaNotas.inicializar();
+}
 
 function toggleNotasPanel() {
     const overlay = document.getElementById('notasOverlay');
@@ -519,8 +571,11 @@ function toggleNotasPanel() {
         cancelarNuevaNota();
     }
 
-    // Recargar notas al abrir el panel
-    if (panel.classList.contains('active') && sistemaNotas) {
+    // Recargar al abrir
+    if (panel.classList.contains('active')) {
+        if (!sistemaNotas) {
+            sistemaNotas = new NotasRapidas();
+        }
         sistemaNotas.recargarNotas();
     }
 }
@@ -579,7 +634,14 @@ async function guardarNota() {
         return;
     }
 
-    // Mostrar botón cargando
+    if (!urlNotasRapidas) {
+        notificaciones.error(
+            'Configuración pendiente',
+            'Ve al módulo de Configuración y agrega la URL de Google Sheets para Notas'
+        );
+        return;
+    }
+
     const btnGuardar = document.querySelector('.btn-guardar-nota');
     const textoOriginal = btnGuardar.textContent;
     btnGuardar.classList.add('btn-cargando');
@@ -588,10 +650,8 @@ async function guardarNota() {
     try {
         if (sistemaNotas.notaEditando) {
             await sistemaNotas.editarNota(sistemaNotas.notaEditando, estudiante, tipo, prioridad, texto);
-            notificaciones.exito('Nota actualizada', 'Los cambios se guardaron correctamente');
         } else {
             await sistemaNotas.agregarNota(estudiante, tipo, prioridad, texto);
-            notificaciones.exito('Nota guardada', 'La nota se guardó correctamente');
         }
 
         cancelarNuevaNota();
@@ -624,4 +684,4 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-console.log('✅ Sistema de Notas Rápidas (GitHub) cargado correctamente');
+console.log('✅ Sistema de Notas Rápidas (Google Sheets) cargado correctamente');
