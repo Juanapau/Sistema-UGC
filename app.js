@@ -8,7 +8,8 @@ let CONFIG = {
     urlTardanzas: '',
     urlContactos: '',
     urlEstudiantes: '',
-    urlReuniones: ''
+    urlReuniones: '',
+    urlNotasRapidas: ''
 };
 
 // Almacenamiento de datos local
@@ -2320,6 +2321,10 @@ function doGet(e) {
                         <label>URL Reuniones</label>
                         <input type="url" id="urlReun" value="${CONFIG.urlReuniones}">
                     </div>
+                    <div class="form-group">
+                        <label>URL Notas Rápidas</label>
+                        <input type="url" id="urlNotas" value="${CONFIG.urlNotasRapidas}">
+                    </div>
                     <button type="submit" class="btn btn-success">💾 Guardar</button>
                 </form>
             </div>
@@ -2336,8 +2341,18 @@ function guardarConfig(e) {
     CONFIG.urlContactos = document.getElementById('urlCont').value;
     CONFIG.urlEstudiantes = document.getElementById('urlEst').value;
     CONFIG.urlReuniones = document.getElementById('urlReun').value;
+    CONFIG.urlNotasRapidas = document.getElementById('urlNotas').value;
+    
+    // Actualizar también la variable global de notas
+    urlNotasRapidas = CONFIG.urlNotasRapidas;
+    
     localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
     mostrarAlerta('alertConfig', '✅ Configuración guardada');
+    
+    // Inicializar sistema de notas si se configuró la URL
+    if (CONFIG.urlNotasRapidas && typeof inicializarSistemaNotas === 'function') {
+        inicializarSistemaNotas();
+    }
 }
 
 // ==================
@@ -4807,6 +4822,25 @@ async function cargarTodosDatosAlInicio() {
         );
     }
     
+    // Cargar Notas Rápidas
+    if (config.urlNotasRapidas) {
+        console.log('📥 Cargando notas rápidas...');
+        urlNotasRapidas = config.urlNotasRapidas;
+        CONFIG.urlNotasRapidas = config.urlNotasRapidas;
+        
+        // Inicializar sistema de notas
+        if (typeof inicializarSistemaNotas === 'function') {
+            promesas.push(
+                new Promise((resolve) => {
+                    setTimeout(() => {
+                        inicializarSistemaNotas();
+                        resolve();
+                    }, 500);
+                })
+            );
+        }
+    }
+    
     await Promise.all(promesas);
     
     console.log('✅ CARGA COMPLETA. Datos disponibles:', {
@@ -4814,7 +4848,8 @@ async function cargarTodosDatosAlInicio() {
         incidencias: datosIncidencias.length,
         tardanzas: datosTardanzas.length,
         contactos: datosContactos.length,
-        reuniones: datosReuniones.length
+        reuniones: datosReuniones.length,
+        notas: datosNotas.length
     });
     
     // Actualizar alertas después de cargar datos
