@@ -280,6 +280,9 @@ function crearModalIncidencias() {
                 <div class="form-group">
                     <label>Seguimiento UGC</label>
                     <textarea id="seguimientoUGC"></textarea>
+                    <button type="button" class="btn-regimen" onclick="toggleRegimenPanel()">
+                        📚 Consultar Régimen Disciplinario
+                    </button>
                 </div>
                 <button type="submit" class="btn btn-primary">💾 Registrar</button>
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('formIncidencia').reset()">🔄 Limpiar</button>
@@ -4816,6 +4819,28 @@ async function cargarTodosDatosAlInicio() {
     
     // Actualizar alertas después de cargar datos
     actualizarAlertas();
+}
+
+// Función para abrir/cerrar el panel del régimen disciplinario
+function toggleRegimenPanel() {
+    const panel = document.getElementById('regimenPanel');
+    const overlay = document.getElementById('regimenOverlay');
+    
+    if (panel.classList.contains('active')) {
+        panel.classList.remove('active');
+        overlay.classList.remove('active');
+    } else {
+        panel.classList.add('active');
+        overlay.classList.add('active');
+    }
+}
+
+// Cerrar panel al hacer click en el overlay
+function closeRegimenPanel() {
+    const panel = document.getElementById('regimenPanel');
+    const overlay = document.getElementById('regimenOverlay');
+    panel.classList.remove('active');
+    overlay.classList.remove('active');
 }
 
 // Ejecutar carga automática cuando la página se carga
