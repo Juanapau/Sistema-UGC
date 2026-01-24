@@ -1,34 +1,228 @@
 // ========================================
 // SISTEMA DE NOTAS RÁPIDAS - CENSA
+// Con sincronización GitHub
 // ========================================
 
-// Clase para manejar las notas
+// CONFIGURACIÓN
+const GITHUB_CONFIG = {
+    owner: 'Juanapau',  // Tu usuario de GitHub
+    repo: 'Sistema-UGC',  // Tu repositorio
+    branch: 'main',  // Rama principal
+    path: 'notas.json'  // Archivo de notas
+};
+
+// ========================================
+// SISTEMA DE NOTIFICACIONES
+// ========================================
+
+class SistemaNotificaciones {
+    constructor() {
+        this.container = document.getElementById('notificacionContainer');
+    }
+
+    mostrar(tipo, titulo, mensaje, duracion = 3000) {
+        const notif = document.createElement('div');
+        notif.className = `notificacion ${tipo}`;
+        
+        const iconos = {
+            exito: '✅',
+            info: 'ℹ️',
+            advertencia: '⚠️',
+            error: '❌'
+        };
+
+        notif.innerHTML = `
+            <div class="notificacion-icono">${iconos[tipo] || 'ℹ️'}</div>
+            <div class="notificacion-contenido">
+                <div class="notificacion-titulo">${titulo}</div>
+                ${mensaje ? `<div class="notificacion-mensaje">${mensaje}</div>` : ''}
+            </div>
+            <button class="notificacion-cerrar" onclick="this.parentElement.remove()">✕</button>
+        `;
+
+        this.container.appendChild(notif);
+
+        // Mostrar con animación
+        setTimeout(() => notif.classList.add('show'), 10);
+
+        // Auto-cerrar
+        if (duracion > 0) {
+            setTimeout(() => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 300);
+            }, duracion);
+        }
+
+        return notif;
+    }
+
+    exito(titulo, mensaje, duracion) {
+        return this.mostrar('exito', titulo, mensaje, duracion);
+    }
+
+    info(titulo, mensaje, duracion) {
+        return this.mostrar('info', titulo, mensaje, duracion);
+    }
+
+    advertencia(titulo, mensaje, duracion) {
+        return this.mostrar('advertencia', titulo, mensaje, duracion);
+    }
+
+    error(titulo, mensaje, duracion = 5000) {
+        return this.mostrar('error', titulo, mensaje, duracion);
+    }
+}
+
+const notificaciones = new SistemaNotificaciones();
+
+// ========================================
+// CLASE PARA MANEJAR GITHUB
+// ========================================
+
+class GitHubStorage {
+    constructor(config) {
+        this.config = config;
+        this.baseUrl = `https://raw.githubusercontent.com/${config.owner}/${config.repo}/${config.branch}/${config.path}`;
+    }
+
+    async cargarNotas() {
+        try {
+            // Agregar timestamp para evitar caché
+            const url = `${this.baseUrl}?t=${Date.now()}`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                // Si el archivo no existe, retornar array vacío
+                if (response.status === 404) {
+                    console.log('📝 Archivo de notas no encontrado, creando nuevo...');
+                    return [];
+                }
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.notas || [];
+        } catch (error) {
+            console.error('Error cargando notas desde GitHub:', error);
+            
+            // Si hay error de red, intentar cargar desde localStorage como respaldo
+            const notasLocal = localStorage.getItem('notasRapidas_respaldo');
+            if (notasLocal) {
+                console.log('📦 Cargando notas desde respaldo local...');
+                return JSON.parse(notasLocal);
+            }
+            
+            return [];
+        }
+    }
+
+    async guardarNotas(notas) {
+        try {
+            // Guardar también en localStorage como respaldo
+            localStorage.setItem('notasRapidas_respaldo', JSON.stringify(notas));
+            
+            // Generar archivo JSON actualizado
+            const contenido = {
+                notas: notas,
+                ultima_actualizacion: new Date().toISOString(),
+                version: "1.0"
+            };
+
+            // Crear y descargar archivo
+            this.descargarJSON(contenido);
+            
+            // Mostrar info de que se descargó el archivo
+            notificaciones.info(
+                'Archivo descargado',
+                'Sube notas.json a GitHub para sincronizar en todos tus dispositivos',
+                6000
+            );
+
+            return true;
+        } catch (error) {
+            console.error('Error guardando notas:', error);
+            notificaciones.error(
+                'Error al guardar',
+                'No se pudieron guardar las notas. Intenta de nuevo.'
+            );
+            return false;
+        }
+    }
+
+    descargarJSON(contenido) {
+        const blob = new Blob([JSON.stringify(contenido, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'notas.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+}
+
+// ========================================
+// CLASE PARA MANEJAR LAS NOTAS
+// ========================================
+
 class NotasRapidas {
     constructor() {
-        this.notas = this.cargarNotas();
+        this.storage = new GitHubStorage(GITHUB_CONFIG);
+        this.notas = [];
         this.notaEditando = null;
+        this.cargando = false;
         this.inicializar();
     }
 
-    inicializar() {
+    async inicializar() {
+        this.mostrarCargando();
+        await this.cargarNotas();
+        this.ocultarCargando();
         this.actualizarVista();
         this.actualizarContador();
     }
 
-    // ========== GESTIÓN DE ALMACENAMIENTO ==========
-    
-    cargarNotas() {
-        const notasGuardadas = localStorage.getItem('notasRapidas');
-        return notasGuardadas ? JSON.parse(notasGuardadas) : [];
+    mostrarCargando() {
+        this.cargando = true;
+        const content = document.getElementById('notasContent');
+        if (content) {
+            content.innerHTML = `
+                <div class="notas-vacio">
+                    <div style="font-size: 3em;">⏳</div>
+                    <p>Cargando notas...</p>
+                </div>
+            `;
+        }
     }
 
-    guardarEnStorage() {
-        localStorage.setItem('notasRapidas', JSON.stringify(this.notas));
+    ocultarCargando() {
+        this.cargando = false;
+    }
+
+    // ========== GESTIÓN DE ALMACENAMIENTO ==========
+    
+    async cargarNotas() {
+        try {
+            this.notas = await this.storage.cargarNotas();
+            console.log(`✅ ${this.notas.length} notas cargadas desde GitHub`);
+        } catch (error) {
+            console.error('Error cargando notas:', error);
+            notificaciones.error(
+                'Error de conexión',
+                'No se pudieron cargar las notas. Verifica tu conexión.'
+            );
+            this.notas = [];
+        }
+    }
+
+    async guardarEnStorage() {
+        await this.storage.guardarNotas(this.notas);
     }
 
     // ========== OPERACIONES CRUD ==========
     
-    agregarNota(estudiante, tipo, prioridad, texto) {
+    async agregarNota(estudiante, tipo, prioridad, texto) {
         const nuevaNota = {
             id: Date.now(),
             estudiante: estudiante,
@@ -36,18 +230,19 @@ class NotasRapidas {
             prioridad: prioridad,
             texto: texto,
             fecha: new Date().toISOString(),
-            fechaLegible: this.formatearFecha(new Date())
+            fechaLegible: this.formatearFecha(new Date()),
+            dispositivo: this.obtenerDispositivo()
         };
 
-        this.notas.unshift(nuevaNota); // Agregar al inicio
-        this.guardarEnStorage();
+        this.notas.unshift(nuevaNota);
+        await this.guardarEnStorage();
         this.actualizarVista();
         this.actualizarContador();
         
         return nuevaNota;
     }
 
-    editarNota(id, estudiante, tipo, prioridad, texto) {
+    async editarNota(id, estudiante, tipo, prioridad, texto) {
         const index = this.notas.findIndex(n => n.id === id);
         if (index !== -1) {
             this.notas[index] = {
@@ -55,16 +250,17 @@ class NotasRapidas {
                 estudiante: estudiante,
                 tipo: tipo,
                 prioridad: prioridad,
-                texto: texto
+                texto: texto,
+                editado: new Date().toISOString()
             };
-            this.guardarEnStorage();
+            await this.guardarEnStorage();
             this.actualizarVista();
         }
     }
 
-    eliminarNota(id) {
+    async eliminarNota(id) {
         this.notas = this.notas.filter(n => n.id !== id);
-        this.guardarEnStorage();
+        await this.guardarEnStorage();
         this.actualizarVista();
         this.actualizarContador();
     }
@@ -74,6 +270,13 @@ class NotasRapidas {
     }
 
     // ========== UTILIDADES ==========
+
+    obtenerDispositivo() {
+        const width = window.innerWidth;
+        if (width < 768) return 'Móvil';
+        if (width < 1024) return 'Tablet';
+        return 'PC';
+    }
     
     formatearFecha(fecha) {
         const ahora = new Date();
@@ -83,14 +286,13 @@ class NotasRapidas {
         const dias = Math.floor(diff / 86400000);
 
         if (minutos < 1) return 'Hace un momento';
-        if (minutos < 60) return `Hace ${minutos} minuto${minutos > 1 ? 's' : ''}`;
-        if (horas < 24) return `Hace ${horas} hora${horas > 1 ? 's' : ''}`;
-        if (dias < 7) return `Hace ${dias} día${dias > 1 ? 's' : ''}`;
+        if (minutos < 60) return `Hace ${minutos} min`;
+        if (horas < 24) return `Hace ${horas}h`;
+        if (dias < 7) return `Hace ${dias}d`;
         
         return fecha.toLocaleDateString('es-DO', { 
             day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric',
+            month: '2-digit',
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -107,17 +309,19 @@ class NotasRapidas {
     // ========== RENDERIZADO ==========
     
     actualizarVista() {
+        if (this.cargando) return;
+
         const container = document.getElementById('notasContent');
         const vacio = document.getElementById('notasVacio');
         
         if (this.notas.length === 0) {
-            vacio.style.display = 'block';
+            if (vacio) vacio.style.display = 'block';
             container.innerHTML = '';
-            container.appendChild(vacio);
+            if (vacio) container.appendChild(vacio);
             return;
         }
 
-        vacio.style.display = 'none';
+        if (vacio) vacio.style.display = 'none';
         container.innerHTML = '';
 
         // Ordenar por prioridad y fecha
@@ -138,6 +342,9 @@ class NotasRapidas {
     crearElementoNota(nota) {
         const div = document.createElement('div');
         div.className = `nota-item prioridad-${nota.prioridad}`;
+        
+        const dispositivo = nota.dispositivo ? `<span style="font-size: 0.85em; color: #9ca3af;">📱 ${nota.dispositivo}</span>` : '';
+        
         div.innerHTML = `
             <div class="nota-header-item">
                 <span class="nota-tipo ${nota.tipo}">${this.obtenerIconoTipo(nota.tipo)} ${this.obtenerNombreTipo(nota.tipo)}</span>
@@ -145,7 +352,7 @@ class NotasRapidas {
             </div>
             <div class="nota-estudiante">👤 ${nota.estudiante}</div>
             <div class="nota-texto">${nota.texto}</div>
-            <div class="nota-fecha">🕐 ${this.formatearFecha(new Date(nota.fecha))}</div>
+            <div class="nota-fecha">🕐 ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
             <div class="nota-acciones">
                 <button class="nota-btn nota-btn-registrar" onclick="sistemaNotas.registrarIncidencia(${nota.id})">
                     📋 Registrar
@@ -196,49 +403,40 @@ class NotasRapidas {
         const nota = this.obtenerNota(id);
         if (!nota) return;
 
-        // Cerrar panel de notas
         closeNotasPanel();
 
-        // Esperar un momento para que se cierre el panel
         setTimeout(() => {
-            // Abrir módulo de incidencias
             openModule('incidencias');
 
-            // Esperar a que el módulo se cargue
             setTimeout(() => {
-                // Pre-llenar el formulario
                 const estudianteInput = document.querySelector('#incidencias input[placeholder*="estudiante"]');
                 const tipoSelect = document.querySelector('#incidencias select');
                 const detallesTextarea = document.querySelector('#incidencias textarea');
 
-                if (estudianteInput) {
-                    estudianteInput.value = nota.estudiante;
-                }
+                if (estudianteInput) estudianteInput.value = nota.estudiante;
 
                 if (tipoSelect) {
-                    // Mapear tipos de nota a tipos de incidencia
                     const mapeoTipos = {
                         'tardanza': 'Leve',
                         'incidencia': 'Grave',
                         'llamada': 'Leve',
                         'recordatorio': 'Leve'
                     };
-                    const tipoIncidencia = mapeoTipos[nota.tipo] || 'Leve';
-                    tipoSelect.value = tipoIncidencia;
+                    tipoSelect.value = mapeoTipos[nota.tipo] || 'Leve';
                 }
 
-                if (detallesTextarea) {
-                    detallesTextarea.value = nota.texto;
-                }
+                if (detallesTextarea) detallesTextarea.value = nota.texto;
 
-                // Scroll al formulario
                 const formulario = document.querySelector('#incidencias form');
                 if (formulario) {
                     formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
 
-                // Mostrar mensaje
-                alert('✅ Datos cargados en el formulario de incidencias.\n\nRecuerda:\n• Completar los campos restantes\n• Guardar la incidencia\n• Borrar la nota cuando termines');
+                notificaciones.info(
+                    'Datos cargados',
+                    'Completa los campos restantes y guarda la incidencia. Luego borra la nota.',
+                    6000
+                );
             }, 300);
         }, 300);
     }
@@ -249,16 +447,13 @@ class NotasRapidas {
 
         this.notaEditando = id;
         
-        // Llenar formulario con datos de la nota
         document.getElementById('notaEstudiante').value = nota.estudiante;
         document.getElementById('notaTipo').value = nota.tipo;
         document.getElementById('notaPrioridad').value = nota.prioridad;
         document.getElementById('notaTexto').value = nota.texto;
 
-        // Mostrar formulario
         mostrarFormNuevaNota();
 
-        // Cambiar texto del botón
         const btnGuardar = document.querySelector('.btn-guardar-nota');
         btnGuardar.textContent = '💾 Actualizar';
     }
@@ -267,10 +462,39 @@ class NotasRapidas {
         const nota = this.obtenerNota(id);
         if (!nota) return;
 
-        if (confirm(`¿Estás segura de eliminar esta nota?\n\n👤 ${nota.estudiante}\n📝 ${nota.texto.substring(0, 50)}...`)) {
-            this.eliminarNota(id);
-            alert('✅ Nota eliminada correctamente');
-        }
+        const notifConfirm = notificaciones.advertencia(
+            '¿Eliminar nota?',
+            `${nota.estudiante} - ${nota.texto.substring(0, 40)}...`,
+            0
+        );
+
+        // Agregar botones de confirmación
+        const botonesDiv = document.createElement('div');
+        botonesDiv.style.cssText = 'display: flex; gap: 8px; margin-top: 10px;';
+        botonesDiv.innerHTML = `
+            <button onclick="sistemaNotas.eliminarNotaConfirmada(${id}); this.closest('.notificacion').remove();" 
+                    style="flex: 1; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                Sí, eliminar
+            </button>
+            <button onclick="this.closest('.notificacion').remove();" 
+                    style="flex: 1; padding: 8px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                Cancelar
+            </button>
+        `;
+        notifConfirm.querySelector('.notificacion-contenido').appendChild(botonesDiv);
+    }
+
+    async eliminarNotaConfirmada(id) {
+        await this.eliminarNota(id);
+        notificaciones.exito('Nota eliminada', 'La nota se eliminó correctamente');
+    }
+
+    async recargarNotas() {
+        this.mostrarCargando();
+        await this.cargarNotas();
+        this.ocultarCargando();
+        this.actualizarVista();
+        this.actualizarContador();
     }
 }
 
@@ -280,12 +504,10 @@ class NotasRapidas {
 
 let sistemaNotas = null;
 
-// Inicializar sistema al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
     sistemaNotas = new NotasRapidas();
 });
 
-// Abrir/cerrar panel
 function toggleNotasPanel() {
     const overlay = document.getElementById('notasOverlay');
     const panel = document.getElementById('notasPanel');
@@ -293,9 +515,13 @@ function toggleNotasPanel() {
     overlay.classList.toggle('active');
     panel.classList.toggle('active');
 
-    // Cerrar formulario si está abierto
     if (!panel.classList.contains('active')) {
         cancelarNuevaNota();
+    }
+
+    // Recargar notas al abrir el panel
+    if (panel.classList.contains('active') && sistemaNotas) {
+        sistemaNotas.recargarNotas();
     }
 }
 
@@ -305,90 +531,81 @@ function closeNotasPanel() {
     
     overlay.classList.remove('active');
     panel.classList.remove('active');
-    
-    // Cerrar formulario si está abierto
     cancelarNuevaNota();
 }
 
-// Mostrar formulario de nueva nota
 function mostrarFormNuevaNota() {
     const form = document.getElementById('formNuevaNota');
     form.classList.remove('oculto');
-    
-    // Hacer scroll al formulario
     setTimeout(() => {
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
 }
 
-// Cancelar nueva nota
 function cancelarNuevaNota() {
     const form = document.getElementById('formNuevaNota');
     form.classList.add('oculto');
     
-    // Limpiar formulario
     document.getElementById('notaEstudiante').value = '';
     document.getElementById('notaTipo').value = 'tardanza';
     document.getElementById('notaPrioridad').value = 'media';
     document.getElementById('notaTexto').value = '';
     
-    // Resetear modo edición
     if (sistemaNotas) {
         sistemaNotas.notaEditando = null;
     }
     
-    // Restaurar texto del botón
     const btnGuardar = document.querySelector('.btn-guardar-nota');
     if (btnGuardar) {
         btnGuardar.textContent = '💾 Guardar';
     }
 }
 
-// Guardar nota
-function guardarNota() {
+async function guardarNota() {
     const estudiante = document.getElementById('notaEstudiante').value.trim();
     const tipo = document.getElementById('notaTipo').value;
     const prioridad = document.getElementById('notaPrioridad').value;
     const texto = document.getElementById('notaTexto').value.trim();
 
-    // Validaciones
     if (!estudiante) {
-        alert('⚠️ Por favor ingresa el nombre del estudiante');
+        notificaciones.advertencia('Campo requerido', 'Por favor ingresa el nombre del estudiante');
         document.getElementById('notaEstudiante').focus();
         return;
     }
 
     if (!texto) {
-        alert('⚠️ Por favor escribe una nota');
+        notificaciones.advertencia('Campo requerido', 'Por favor escribe una nota');
         document.getElementById('notaTexto').focus();
         return;
     }
 
-    // Guardar o editar
-    if (sistemaNotas.notaEditando) {
-        sistemaNotas.editarNota(sistemaNotas.notaEditando, estudiante, tipo, prioridad, texto);
-        alert('✅ Nota actualizada correctamente');
-    } else {
-        sistemaNotas.agregarNota(estudiante, tipo, prioridad, texto);
-        alert('✅ Nota guardada correctamente');
-    }
+    // Mostrar botón cargando
+    const btnGuardar = document.querySelector('.btn-guardar-nota');
+    const textoOriginal = btnGuardar.textContent;
+    btnGuardar.classList.add('btn-cargando');
+    btnGuardar.textContent = 'Guardando...';
 
-    // Limpiar y cerrar formulario
-    cancelarNuevaNota();
+    try {
+        if (sistemaNotas.notaEditando) {
+            await sistemaNotas.editarNota(sistemaNotas.notaEditando, estudiante, tipo, prioridad, texto);
+            notificaciones.exito('Nota actualizada', 'Los cambios se guardaron correctamente');
+        } else {
+            await sistemaNotas.agregarNota(estudiante, tipo, prioridad, texto);
+            notificaciones.exito('Nota guardada', 'La nota se guardó correctamente');
+        }
 
-    // Hacer scroll arriba
-    const content = document.getElementById('notasContent');
-    if (content) {
-        content.scrollTop = 0;
+        cancelarNuevaNota();
+
+        const content = document.getElementById('notasContent');
+        if (content) content.scrollTop = 0;
+    } finally {
+        btnGuardar.classList.remove('btn-cargando');
+        btnGuardar.textContent = textoOriginal;
     }
 }
 
-// ========================================
-// ATAJOS DE TECLADO
-// ========================================
-
+// Atajos de teclado
 document.addEventListener('keydown', function(e) {
-    // Ctrl/Cmd + N = Nueva nota (solo si el panel está abierto)
     if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
         const panel = document.getElementById('notasPanel');
         if (panel && panel.classList.contains('active')) {
@@ -397,7 +614,6 @@ document.addEventListener('keydown', function(e) {
         }
     }
 
-    // Escape = Cerrar panel o formulario
     if (e.key === 'Escape') {
         const form = document.getElementById('formNuevaNota');
         if (form && !form.classList.contains('oculto')) {
@@ -408,4 +624,4 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-console.log('✅ Sistema de Notas Rápidas cargado correctamente');
+console.log('✅ Sistema de Notas Rápidas (GitHub) cargado correctamente');
