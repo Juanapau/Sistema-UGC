@@ -1060,6 +1060,399 @@
             display: none !important;
         }
 
+        /* ========================================
+           SISTEMA DE NOTAS RÁPIDAS
+           ======================================== */
+        
+        /* Botón flotante */
+        .btn-notas-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.8em;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+            transition: all 0.3s;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-notas-flotante:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.6);
+        }
+
+        .btn-notas-flotante .badge-contador {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5em;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+
+        /* Overlay del panel de notas */
+        .notas-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .notas-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Panel lateral de notas */
+        .notas-panel {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            height: 100vh;
+            background: white;
+            z-index: 1001;
+            transition: right 0.3s;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+        }
+
+        .notas-panel.active {
+            right: 0;
+        }
+
+        /* Header del panel */
+        .notas-header {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notas-header h2 {
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notas-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .notas-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* Botón nueva nota */
+        .btn-nueva-nota {
+            margin: 15px;
+            padding: 12px;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-nueva-nota:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        /* Contenedor de notas */
+        .notas-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .notas-vacio {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+        }
+
+        .notas-vacio p {
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        /* Tarjeta de nota individual */
+        .nota-item {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+
+        .nota-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(-3px);
+        }
+
+        .nota-item.prioridad-alta {
+            border-left: 5px solid #dc2626;
+        }
+
+        .nota-item.prioridad-media {
+            border-left: 5px solid #f59e0b;
+        }
+
+        .nota-item.prioridad-baja {
+            border-left: 5px solid #10b981;
+        }
+
+        .nota-header-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .nota-tipo {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .nota-tipo.tardanza {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .nota-tipo.incidencia {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .nota-tipo.llamada {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .nota-tipo.recordatorio {
+            background: #e0e7ff;
+            color: #6366f1;
+        }
+
+        .nota-prioridad {
+            font-size: 0.85em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .nota-prioridad.alta {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .nota-prioridad.media {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
+        .nota-prioridad.baja {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .nota-estudiante {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 1.05em;
+            margin-bottom: 8px;
+        }
+
+        .nota-texto {
+            color: #4b5563;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        .nota-fecha {
+            font-size: 0.85em;
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+
+        .nota-acciones {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nota-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nota-btn-registrar {
+            background: #059669;
+            color: white;
+        }
+
+        .nota-btn-registrar:hover {
+            background: #047857;
+        }
+
+        .nota-btn-editar {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .nota-btn-editar:hover {
+            background: #2563eb;
+        }
+
+        .nota-btn-borrar {
+            background: #dc2626;
+            color: white;
+        }
+
+        .nota-btn-borrar:hover {
+            background: #b91c1c;
+        }
+
+        /* Formulario de nueva nota */
+        .form-nueva-nota {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px;
+        }
+
+        .form-nueva-nota h3 {
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .form-group-nota {
+            margin-bottom: 15px;
+        }
+
+        .form-group-nota label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+
+        .form-group-nota input,
+        .form-group-nota select,
+        .form-group-nota textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95em;
+            transition: border-color 0.2s;
+        }
+
+        .form-group-nota input:focus,
+        .form-group-nota select:focus,
+        .form-group-nota textarea:focus {
+            outline: none;
+            border-color: #059669;
+        }
+
+        .form-group-nota textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-btns-nota {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .form-btns-nota button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-guardar-nota {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-guardar-nota:hover {
+            background: #047857;
+        }
+
+        .btn-cancelar-nota {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-cancelar-nota:hover {
+            background: #4b5563;
+        }
+
         /* Responsive para tablets y móviles */
         @media (max-width: 768px) {
             .regimen-panel {
@@ -1089,6 +1482,23 @@
                 bottom: 5px;
                 top: auto;
             }
+
+            .notas-panel {
+                width: 100%;
+                right: -100%;
+            }
+
+            .btn-notas-flotante {
+                bottom: 20px;
+                right: 20px;
+                width: 55px;
+                height: 55px;
+            }
+
+            .form-nueva-nota {
+                margin: 10px;
+                padding: 15px;
+            }
         }
     </style>
 </head>
@@ -1099,7 +1509,7 @@
             <div class="config-icon" onclick="openModule('configuracion')" title="Configuración">
                 ⚙️
             </div>
-            <h1>Sistema de Gestión de Convivencia</h1>
+            <h1>🏫 Sistema de Gestión de Convivencia</h1>
             <p>Centro Educativo Nuestra Señora de la Altagracia (CENSA)</p>
         </header>
 
@@ -1329,5 +1739,70 @@
             }, 1500);
         }
     </script>
+
+    <!-- Botón Flotante de Notas Rápidas -->
+    <button class="btn-notas-flotante" onclick="toggleNotasPanel()" title="Notas Rápidas">
+        📝
+        <span class="badge-contador" id="contadorNotas">0</span>
+    </button>
+
+    <!-- Panel Lateral de Notas -->
+    <div class="notas-overlay" id="notasOverlay" onclick="closeNotasPanel()"></div>
+    <div class="notas-panel" id="notasPanel">
+        <div class="notas-header">
+            <h2>📝 Notas Rápidas</h2>
+            <button class="notas-close" onclick="closeNotasPanel()">✕</button>
+        </div>
+
+        <button class="btn-nueva-nota" onclick="mostrarFormNuevaNota()">
+            ➕ Nueva Nota
+        </button>
+
+        <!-- Formulario Nueva Nota (inicialmente oculto) -->
+        <div class="form-nueva-nota oculto" id="formNuevaNota">
+            <h3>✨ Nueva Nota Rápida</h3>
+            <div class="form-group-nota">
+                <label>👤 Estudiante:</label>
+                <input type="text" id="notaEstudiante" placeholder="Nombre del estudiante">
+            </div>
+            <div class="form-group-nota">
+                <label>📂 Tipo:</label>
+                <select id="notaTipo">
+                    <option value="tardanza">📚 Tardanza</option>
+                    <option value="incidencia">⚠️ Incidencia</option>
+                    <option value="llamada">📞 Llamada Pendiente</option>
+                    <option value="recordatorio">🔔 Recordatorio</option>
+                </select>
+            </div>
+            <div class="form-group-nota">
+                <label>🎯 Prioridad:</label>
+                <select id="notaPrioridad">
+                    <option value="media">🟡 Media</option>
+                    <option value="alta">🔴 Alta</option>
+                    <option value="baja">🟢 Baja</option>
+                </select>
+            </div>
+            <div class="form-group-nota">
+                <label>📝 Nota:</label>
+                <textarea id="notaTexto" placeholder="Escribe los detalles aquí..."></textarea>
+            </div>
+            <div class="form-btns-nota">
+                <button class="btn-guardar-nota" onclick="guardarNota()">💾 Guardar</button>
+                <button class="btn-cancelar-nota" onclick="cancelarNuevaNota()">✖ Cancelar</button>
+            </div>
+        </div>
+
+        <!-- Contenedor de Notas -->
+        <div class="notas-content" id="notasContent">
+            <div class="notas-vacio" id="notasVacio">
+                <div style="font-size: 3em;">📭</div>
+                <p>No hay notas pendientes</p>
+                <p style="font-size: 0.9em; margin-top: 5px;">Crea una nota para empezar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script del Sistema de Notas -->
+    <script src="notas-rapidas.js"></script>
 </body>
 </html>
