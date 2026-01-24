@@ -304,22 +304,6 @@ const regimenData = {
         muyGraves: "Art. 47: Además de las anteriores, serán faltas gravísimas otras situaciones que surjan, perjudicando a la Comunidad Educativa y que sean evaluadas como tales por el equipo de disciplina del Centro Educativo.\n\nArt. 49: Ante cualquier falta MUY GRAVE, el Centro procederá a la cancelación de la matrícula al estudiante. El equipo de disciplina del Centro Educativo se reserva el derecho de determinar el momento de la cancelación de matrícula, después de analizar la severidad del caso."
     }
 };
-        "Excusa pública del estudiante o grupo si la falta lo amerita.",
-        "Resarcir la falta (reponer, devolver, arreglar)."
-    ],
-    
-    sancionesMuyGraves: [
-        "Suspensión de asistencia por un período escolar o mitad del mismo. Realizar tareas con presentación cada 15 días y evaluación final.",
-        "Retiro definitivo del Centro cuando la severidad lo amerite.",
-        "Procedimientos de intervención judicial según Ley 136-03 y normativas nacionales."
-    ],
-    
-    notasImportantes: {
-        leves: "Cuando las faltas leves son reiterativas (más de 2 veces) se convierten en FALTAS GRAVES. Si un estudiante acumula más de dos faltas leves se convocará a los padres y se tomarán medidas preventivas.",
-        graves: "Las faltas graves son plausibles de sanción y constarán en el expediente desde la primera vez. La reincidencia o incumplimiento de sanciones será motivo para inscripción condicional. Las faltas graves pueden considerarse MUY GRAVES cuando son reiterativas o con intención de hacer daño.",
-        muyGraves: "Ante cualquier falta MUY GRAVE, el Centro procederá a la cancelación de matrícula. El equipo de disciplina determinará el momento de cancelación según severidad del caso."
-    }
-};
 
 // Función para cargar el contenido en el panel
 function cargarContenidoRegimen() {
