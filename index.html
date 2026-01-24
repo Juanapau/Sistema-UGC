@@ -880,13 +880,184 @@
         .regimen-content {
             flex: 1;
             overflow-y: auto;
-            padding: 0;
+            padding: 20px;
         }
 
-        .regimen-pdf-viewer {
+        /* Controles del panel */
+        .regimen-controls {
+            padding: 15px;
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .regimen-search {
+            margin-bottom: 12px;
+        }
+
+        .regimen-search input {
             width: 100%;
-            height: 100%;
+            padding: 12px 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: border-color 0.2s;
+        }
+
+        .regimen-search input:focus {
+            outline: none;
+            border-color: #059669;
+        }
+
+        .regimen-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px 12px;
+            border: 2px solid #d1d5db;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .filter-btn.active {
+            background: #059669;
+            color: white;
+            border-color: #059669;
+        }
+
+        /* Secciones de faltas */
+        .falta-seccion {
+            margin-bottom: 30px;
+        }
+
+        .seccion-title {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .seccion-title.leves {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .seccion-title.graves {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+        }
+
+        .seccion-title.muy-graves {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+        }
+
+        .seccion-intro {
+            font-size: 0.95em;
+            color: #6b7280;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9fafb;
+            border-left: 4px solid #059669;
+            border-radius: 4px;
+        }
+
+        .falta-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .falta-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateX(2px);
+        }
+
+        .falta-nombre {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .falta-medida {
+            color: #4b5563;
+            line-height: 1.6;
+            font-size: 0.95em;
+            position: relative;
+            padding-right: 50px;
+        }
+
+        .btn-copy {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: #059669;
+            color: white;
             border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: #047857;
+            transform: scale(1.1);
+        }
+
+        .falta-nota {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.95em;
+        }
+
+        .sancion-lista {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .sancion-lista h4 {
+            margin: 0 0 10px 0;
+            color: #1f2937;
+        }
+
+        .sancion-lista ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .sancion-lista li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .oculto {
+            display: none !important;
         }
 
         /* Responsive para tablets y móviles */
@@ -899,6 +1070,24 @@
             .btn-regimen {
                 font-size: 0.9em;
                 padding: 8px 16px;
+            }
+
+            .regimen-filters {
+                flex-direction: column;
+            }
+            
+            .filter-btn {
+                min-width: 100%;
+            }
+            
+            .falta-medida {
+                padding-right: 0;
+                padding-bottom: 50px;
+            }
+            
+            .btn-copy {
+                bottom: 5px;
+                top: auto;
             }
         }
     </style>
@@ -1041,16 +1230,104 @@
     <div class="regimen-overlay" id="regimenOverlay" onclick="closeRegimenPanel()"></div>
     <div class="regimen-panel" id="regimenPanel">
         <div class="regimen-header">
-            <h2>📚 Régimen Disciplinario</h2>
+            <h2>📚 Régimen Disciplinario CENSA</h2>
             <button class="regimen-close" onclick="closeRegimenPanel()">✕</button>
         </div>
-        <div class="regimen-content">
-            <iframe 
-                src="regimen-disciplinario.pdf#page=2" 
-                class="regimen-pdf-viewer"
-                title="Régimen Disciplinario CENSA - Capítulo 6">
-            </iframe>
+        
+        <!-- Controles de Filtro y Búsqueda -->
+        <div class="regimen-controls">
+            <div class="regimen-search">
+                <input type="text" id="regimenSearch" placeholder="🔍 Buscar en el régimen..." onkeyup="filtrarRegimen()">
+            </div>
+            <div class="regimen-filters">
+                <button class="filter-btn active" data-filter="todas" onclick="cambiarFiltro(this, 'todas')">
+                    Todas
+                </button>
+                <button class="filter-btn" data-filter="leves" onclick="cambiarFiltro(this, 'leves')">
+                    Leves
+                </button>
+                <button class="filter-btn" data-filter="graves" onclick="cambiarFiltro(this, 'graves')">
+                    Graves
+                </button>
+                <button class="filter-btn" data-filter="muy-graves" onclick="cambiarFiltro(this, 'muy-graves')">
+                    Muy Graves
+                </button>
+            </div>
+        </div>
+        
+        <div class="regimen-content" id="regimenContent">
+            <!-- El contenido se carga dinámicamente desde regimen-content.js -->
+            <div style="text-align: center; padding: 40px; color: #6b7280;">
+                <p>⏳ Cargando régimen disciplinario...</p>
+            </div>
         </div>
     </div>
+
+    <!-- Scripts para el panel del régimen -->
+    <script src="regimen-content.js"></script>
+    <script>
+        // Filtrar régimen por tipo
+        function cambiarFiltro(btn, tipo) {
+            // Actualizar botones activos
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Mostrar/ocultar secciones
+            const secciones = document.querySelectorAll('.falta-seccion');
+            secciones.forEach(seccion => {
+                if (tipo === 'todas' || seccion.dataset.tipo === tipo) {
+                    seccion.classList.remove('oculto');
+                } else {
+                    seccion.classList.add('oculto');
+                }
+            });
+            
+            // Limpiar búsqueda
+            document.getElementById('regimenSearch').value = '';
+        }
+
+        // Buscar en el régimen
+        function filtrarRegimen() {
+            const busqueda = document.getElementById('regimenSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.falta-item');
+            
+            items.forEach(item => {
+                const texto = item.textContent.toLowerCase();
+                if (texto.includes(busqueda)) {
+                    item.classList.remove('oculto');
+                } else {
+                    item.classList.add('oculto');
+                }
+            });
+            
+            // Si hay búsqueda activa, mostrar todas las secciones
+            if (busqueda) {
+                document.querySelectorAll('.falta-seccion').forEach(s => s.classList.remove('oculto'));
+            }
+        }
+
+        // Copiar texto de la sanción
+        function copiarTexto(btn) {
+            const medidaDiv = btn.closest('.falta-medida');
+            const texto = medidaDiv.textContent.replace('📋', '').trim();
+            
+            // Crear elemento temporal para copiar
+            const temp = document.createElement('textarea');
+            temp.value = texto;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            
+            // Feedback visual
+            const originalText = btn.textContent;
+            btn.textContent = '✅';
+            btn.style.background = '#10b981';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '#059669';
+            }, 1500);
+        }
+    </script>
 </body>
 </html>
