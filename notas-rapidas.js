@@ -84,31 +84,15 @@ async function cargarNotasDesdeGoogleSheets() {
     
     console.log('📥 Cargando notas desde:', urlNotasRapidas);
     
+    // Usar la función global que ya funciona con los otros módulos
     try {
-        const response = await fetch(urlNotasRapidas, {
-            method: 'GET',
-            redirect: 'follow',
-            cache: 'no-cache',
-            headers: {
-                'Cache-Control': 'no-cache'
-            }
-        });
-        
-        console.log('📡 Response status:', response.status);
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ Notas cargadas desde Google Sheets:', data.length, 'registros');
-            console.log('📋 Datos recibidos:', data);
-            return data;
-        } else {
-            console.error('❌ Error al cargar notas - Status:', response.status);
-            notificaciones.error('Error al cargar', `Error del servidor: ${response.status}`);
-            return [];
-        }
+        const data = await cargarDatosDesdeGoogleSheets(urlNotasRapidas);
+        console.log('✅ Notas cargadas desde Google Sheets:', data.length, 'registros');
+        console.log('📋 Datos recibidos:', data);
+        return data;
     } catch (error) {
-        console.error('❌ Error al cargar notas desde Google Sheets:', error);
-        notificaciones.error('Error de conexión', 'Verifica tu conexión a internet');
+        console.error('❌ Error al cargar notas:', error);
+        notificaciones.error('Error de conexión', 'No se pudieron cargar las notas. Verifica tu configuración.');
         return [];
     }
 }
