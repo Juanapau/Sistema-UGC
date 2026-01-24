@@ -470,40 +470,91 @@ class NotasRapidas {
         const nota = this.obtenerNota(id);
         if (!nota) return;
 
+        // Determinar a qué módulo redirigir según el tipo
+        let moduloDestino = null;
+        let nombreModulo = '';
+        
+        switch(nota.tipo) {
+            case 'tardanza':
+                moduloDestino = 'tardanzas';
+                nombreModulo = 'Tardanzas';
+                break;
+            case 'incidencia':
+                moduloDestino = 'incidencias';
+                nombreModulo = 'Incidencias';
+                break;
+            case 'reunion':
+                moduloDestino = 'reuniones';
+                nombreModulo = 'Reuniones';
+                break;
+            default:
+                // Si es otro tipo (llamada, recordatorio, otros), no hacer nada
+                notificaciones.info(
+                    'Tipo de nota',
+                    'Este tipo de nota no se puede registrar directamente en un módulo'
+                );
+                return;
+        }
+
         closeNotasPanel();
 
         setTimeout(() => {
-            openModule('incidencias');
+            openModule(moduloDestino);
 
             setTimeout(() => {
-                const estudianteInput = document.querySelector('#incidencias input[placeholder*="estudiante"]');
-                const tipoSelect = document.querySelector('#incidencias select');
-                const detallesTextarea = document.querySelector('#incidencias textarea');
+                // Pre-llenar según el módulo
+                if (moduloDestino === 'tardanzas') {
+                    // Formulario de tardanzas
+                    const estudianteInput = document.querySelector('#tardanzas input[placeholder*="estudiante"]');
+                    const fechaInput = document.querySelector('#tardanzas input[type="date"]');
+                    const horaInput = document.querySelector('#tardanzas input[type="time"]');
+                    const motivoTextarea = document.querySelector('#tardanzas textarea');
 
-                if (estudianteInput) estudianteInput.value = nota.estudiante;
+                    if (estudianteInput) estudianteInput.value = nota.estudiante;
+                    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+                    if (horaInput) horaInput.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    if (motivoTextarea) motivoTextarea.value = nota.texto;
 
-                if (tipoSelect) {
-                    const mapeoTipos = {
-                        'tardanza': 'Leve',
-                        'incidencia': 'Grave',
-                        'llamada': 'Leve',
-                        'reunion': 'Leve',
-                        'recordatorio': 'Leve',
-                        'otros': 'Leve'
-                    };
-                    tipoSelect.value = mapeoTipos[nota.tipo] || 'Leve';
+                } else if (moduloDestino === 'incidencias') {
+                    // Formulario de incidencias
+                    const estudianteInput = document.querySelector('#incidencias input[placeholder*="estudiante"]');
+                    const tipoSelect = document.querySelector('#incidencias select');
+                    const detallesTextarea = document.querySelector('#incidencias textarea');
+
+                    if (estudianteInput) estudianteInput.value = nota.estudiante;
+                    if (tipoSelect) {
+                        // Mapear prioridad a tipo de incidencia
+                        const mapeoTipos = {
+                            'alta': 'Grave',
+                            'media': 'Leve',
+                            'baja': 'Leve'
+                        };
+                        tipoSelect.value = mapeoTipos[nota.prioridad] || 'Leve';
+                    }
+                    if (detallesTextarea) detallesTextarea.value = nota.texto;
+
+                } else if (moduloDestino === 'reuniones') {
+                    // Formulario de reuniones
+                    const estudianteInput = document.querySelector('#reuniones input[placeholder*="estudiante"]');
+                    const fechaInput = document.querySelector('#reuniones input[type="date"]');
+                    const horaInput = document.querySelector('#reuniones input[type="time"]');
+                    const motivoTextarea = document.querySelector('#reuniones textarea[placeholder*="motivo"]');
+
+                    if (estudianteInput) estudianteInput.value = nota.estudiante;
+                    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+                    if (horaInput) horaInput.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    if (motivoTextarea) motivoTextarea.value = nota.texto;
                 }
 
-                if (detallesTextarea) detallesTextarea.value = nota.texto;
-
-                const formulario = document.querySelector('#incidencias form');
+                // Scroll al formulario
+                const formulario = document.querySelector(`#${moduloDestino} form`);
                 if (formulario) {
                     formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
 
                 notificaciones.info(
                     'Datos cargados',
-                    'Completa los campos, guarda la incidencia y luego borra esta nota',
+                    `Completa los campos restantes en ${nombreModulo}, guarda el registro y luego borra esta nota`,
                     6000
                 );
             }, 300);
