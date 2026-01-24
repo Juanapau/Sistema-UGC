@@ -46,6 +46,56 @@
         header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
+            padding-left: 0;
+        }
+
+        header p {
+            padding-left: 0;
+        }
+
+        /* Responsive para tablets y móviles */
+        @media (max-width: 768px) {
+            .logo-header {
+                position: relative;
+                left: 0;
+                top: 0;
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 15px auto;
+                display: block;
+            }
+
+            header {
+                text-align: center;
+                padding: 20px 15px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+                padding-left: 0;
+            }
+
+            header p {
+                font-size: 0.95em;
+                padding-left: 0;
+            }
+        }
+
+        /* Responsive para móviles pequeños */
+        @media (max-width: 480px) {
+            .logo-header {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 10px;
+            }
+
+            header h1 {
+                font-size: 1.4em;
+            }
+
+            header p {
+                font-size: 0.85em;
+            }
         }
 
         header p {
@@ -733,11 +783,11 @@
 <body>
     <div class="container">
         <header>
-            <img src="logo.png" alt="Logo CENSA" class="logo-header" onerror="this.style.display='none'">
+            <img src="./logo.png" alt="Logo CENSA" class="logo-header" id="logoHeader">
             <div class="config-icon" onclick="openModule('configuracion')" title="Configuración">
                 ⚙️
             </div>
-            <h1>Sistema de Gestión de Convivencia</h1>
+            <h1>🏫 Sistema de Gestión de Convivencia</h1>
             <p>Centro Educativo Nuestra Señora de la Altagracia (CENSA)</p>
         </header>
 
@@ -826,6 +876,42 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <script>
+        // Script para diagnosticar y corregir el logo
+        window.addEventListener('load', function() {
+            const logo = document.getElementById('logoHeader');
+            if (logo) {
+                // Intentar múltiples rutas posibles
+                const rutas = [
+                    './logo.png',
+                    'logo.png',
+                    '/logo.png',
+                    '../logo.png'
+                ];
+                
+                let intentoActual = 0;
+                
+                logo.onerror = function() {
+                    console.log('❌ No se pudo cargar:', rutas[intentoActual]);
+                    intentoActual++;
+                    if (intentoActual < rutas.length) {
+                        console.log('🔄 Intentando con:', rutas[intentoActual]);
+                        logo.src = rutas[intentoActual];
+                    } else {
+                        console.log('⚠️ Logo no encontrado en ninguna ruta');
+                        logo.style.display = 'none';
+                    }
+                };
+                
+                logo.onload = function() {
+                    console.log('✅ Logo cargado exitosamente desde:', logo.src);
+                    logo.style.display = 'block';
+                };
+            }
+        });
+    </script>
+    
     <script src="app.js"></script>
 </body>
 </html>
