@@ -4,290 +4,306 @@
 const regimenData = {
     leves: [
         {
-            nombre: "Tardanzas (3 en un mes)",
-            medida: "Permanecer en recepción hasta culminar acto cívico. Realizar acto cívico en espacio designado. Ingresar en segunda hora. Al acumular tres tardanzas: citación a padres, acuerdos y compromisos por escrito."
+            nombre: "Los estudiantes que acumulen tres tardanzas en un mes",
+            medida: "Cuando el estudiante llegue después de las 7:45 deberá permanecer en la recepción hasta que culmine el acto cívico, luego se dirigen a un espacio donde se registre la tardanza y se realiza el acto cívico, se canta el himno nacional, se realiza la oración y reciben las orientaciones del día, después se dirigen al aula en la segunda hora de clases, quedando ausente en la primera hora. Cuando acumule tres tardanzas en un mes, se citará a los padres, haciendo acuerdos y compromisos, puntualizando que la reincidencia de la tardanza se evaluará al final del año escolar para tomar las medidas necesarias y considerar la reinscripción del estudiante en el siguiente año. NOTA: Todo este proceso deberá ser escrito y firmado por ambas partes para tener todas las evidencias registradas."
         },
         {
-            nombre: "Actividades no permitidas en áreas administrativas (jugar, comer, gritar, corretear)",
-            medida: "Registro de disciplina. Dirigirse a lugares de recreo permitidos."
+            nombre: "Realizar actividades no permitidas en áreas administrativas (jugar, comer, hablar a gritos, corretear, etc…)",
+            medida: "Se anotarán el nombre del estudiante en el Registro de disciplina, con su consecuente falta. Deberá dirigirse a lugares de recreo y esparcimientos permitidos."
         },
         {
-            nombre: "Fuera del aula durante registro de asistencia",
-            medida: "Quedará ausente. Pérdida del derecho de entregar trabajos y participación en esa asignatura."
+            nombre: "En alguna ocasión estar fuera del aula cuando se esté registrando la asistencia del día",
+            medida: "El estudiante quedará ausente en la asignatura correspondiente, y perderá el derecho de entregar trabajos, revisión de tareas y participación en esa asignatura."
         },
         {
-            nombre: "Esconderse para no ingresar al aula",
-            medida: "Reporte de disciplina. Permanecer fuera del aula realizando trabajos de ornato y limpieza supervisados por mayordomía."
+            nombre: "Esconderse en algún lugar de la escuela para no ingresar al aula de clases",
+            medida: "Se hará al estudiante un reporte de disciplina con la falta cometida y deberá permanecer fuera del aula realizando trabajos de ornato y limpieza, asignados por la Unidad de Gestión de la Convivencia. Será supervisado por el personal de mayordomía."
         },
         {
-            nombre: "Ausentarse primera semana después de vacaciones sin excusa",
-            medida: "Quedará ausente en registro. Labor social en el plantel supervisada por mayordomía."
+            nombre: "El ausentarse durante la primera semana de clases, después de cada período de vacaciones, sin la debida excusa",
+            medida: "Quedará ausente en el registro de grado, absteniéndose a las consecuencias de la inasistencia a clases al final del período. Se anotará la falta en el registro de disciplina y deberá realizar una labor social en el plantel, supervisada por la mayordomía."
         },
         {
-            nombre: "Salir del aula en ausencia del maestro o en cambios de clase",
-            medida: "Retiro de carnet. Registro de disciplina. Quedará ausente si corresponde."
+            nombre: "Salir del aula en ausencia del maestro, o aprovechando los cambios de clase",
+            medida: "Se le retirará el carnet de identificación, se anotará su nombre y la falta cometida en el registro de disciplina. Si corresponde tomar la asistencia, quedará ausente en esta hora de clases."
         },
         {
-            nombre: "Alteraciones al uniforme institucional",
-            medida: "Aviso a padres para procurar uniforme aprobado. Permanecer fuera del aula hasta portar uniforme correctamente."
+            nombre: "Llevar con respeto y dignidad el uniforme institucional, evitando hacerle alteraciones",
+            medida: "Conversar con el interesado … en caso de no ser aceptables sus excusas; se avisará de inmediato a sus padres para que procure al estudiante el uniforme aprobado por el centro educativo. Deberá permanecer fuera del aula de clases hasta tanto pueda portar el uniforme correctamente."
         },
         {
-            nombre: "Prendas o accesorios no aprobados (collares, joyas, gorras, cachuchas, pañoletas, gafas no médicas, suéteres, mallas, fajas)",
-            medida: "Retiro de objetos por un período escolar, entrega solo a padres. Registro de disciplina."
+            nombre: "Ingresar al Centro Educativo con prendas o accesorios no aprobados: adornos, collares, joyas, pucas, pulseras, aretes largos o argollas, gorras, cachuchas, pañoletas, gafas, suéteres, mallas, fajas encima del uniforme",
+            medida: "Al estudiante se le retirarán las prendas o accesorios no aprobados y se mantendrán en la Unidad de Gestión de la Convivencia por un período escolar, no pudiendo ser entregadas antes de ese tiempo. Se anotará al estudiante en el registro de disciplina, así como también la falta cometida."
         },
         {
-            nombre: "Calzado inadecuado (chancletas, crocs, zapatillas, balerinas, tacones)",
-            medida: "Informar a padres para traer calzado correcto antes de ingresar. Registro de disciplina."
+            nombre: "Utilizar, o presentarse al centro educativo con chancletas, crocs, zapatillas, balerinas, tacones, etc.",
+            medida: "Se informará a los padres y se les solicitará traer el calzado correspondiente antes de ingresar al aula. Se anotará la falta y el nombre del estudiante en el registro de disciplina."
         },
         {
-            nombre: "Suéter por fuera del pantalón o correas inadecuadas",
-            medida: "Usar uniforme correctamente. Retiro de correa. Registro de disciplina."
+            nombre: "Usar el suéter por fuera del pantalón y utilizar correas llamativas o que constituyan un peligro para el propio estudiante o sus compañeros",
+            medida: "Se solicitará al estudiante usar el uniforme correctamente y se le retirará la correa. Se anotará su nombre y la falta en el registro de disciplina."
         },
         {
-            nombre: "Pelo desarreglado, sin peinar, peinados elaborados (hembras) o cortes inadecuados, barba desarreglada (varones)",
-            medida: "Arreglarse y recogerse el pelo. Registro y acompañamiento del departamento de psicología."
+            nombre: "Traer el pelo desarreglado, o sin peinar, o peinados elaborados (las hembras). Traer cortes inadecuados, barba desarreglada o exagerada, pelo despeinado, (Los varones)",
+            medida: "Se solicitará a las/los estudiantes arreglarse y recogerse o peinarse el pelo y se anotará el nombre del o la estudiante y la falta en la Unidad de Gestión de Convivencia, y recibirá acompañamiento del departamento de psicología."
         },
         {
-            nombre: "Mechones de colores, tintes o combinados de pelo",
-            medida: "Informar a padres para retirar tinte. No ingresa hasta normalizar. Registro de disciplina."
+            nombre: "Hacerse mechones de colores tintes o combinados de pelo. (Hembras y Varones)",
+            medida: "Se informará de inmediato a los padres y se solicitará retirarle el tinte para poder ingresar al aula de clases. Tanto la falta, como el nombre del estudiante serán registrados en el anecdotario de disciplina."
         },
         {
-            nombre: "Uñas largas, pintadas, postizas o con diseños",
-            medida: "Recortarse uñas y retirar color. Llamar a padres para uñas postizas. Registro de disciplina."
+            nombre: "Traer las uñas largas, pintadas, postizas y con diseños",
+            medida: "Se solicitará a la estudiante recortarse las uñas y retirarse el color. En el caso de uñas postizas se llamará a los padres para que gestionen la normalización en este aspecto. Se anotará el nombre de la estudiante en el registro de disciplina, así como la falta cometida."
         },
         {
-            nombre: "Sobrenombres, apodos o bromas de mal gusto a compañeros",
-            medida: "Diálogo sobre conducta. Disculpa con compañero y curso. Registro. Acompañamiento de Orientación y Psicología."
+            nombre: "Poner sobrenombres, apodos, o hacerles bromas de mal gusto a los compañeros",
+            medida: "Se llamará al estudiante y se dialogará sobre su conducta; deberá disculparse con el compañero y con el curso. Su comportamiento será registrado en el anecdotario de conducta, así como también su nombre y se acompañará por la Unidad de Orientación y Psicología."
         },
         {
-            nombre: "Expresiones vulgares, ordinarias o de doble sentido",
-            medida: "Diálogo sobre conducta. Disculpa con compañeros. Trabajo reflexivo según el caso. Registro."
+            nombre: "Utilizar expresiones vulgares, ordinarias o de doble sentido",
+            medida: "Se llamará al estudiante y se dialogará sobre su conducta; deberá disculparse con los compañeros del curso. Según el caso deberá realizar un trabajo reflexivo y su comportamiento se asentará en el registro del departamento de gestión de la convivencia, así como también su nombre."
         },
         {
-            nombre: "Celulares, iPod, aparatos electrónicos, software sin autorización",
-            medida: "Retención hasta finalizar jornada. Si es reincidente: retención por un período escolar, entrega solo a padres. Registro."
+            nombre: "Traer celulares, IPod o similares, aparatos electrónicos de sonido o video, software y demás materiales sin la debida autorización",
+            medida: "Se retendrán los objetos distractores (celulares, tabletas electrónicas, otros) hasta que finalice la actividad o jornada escolar. Las computadoras, celulares, tabletas y otros dispositivos electrónicos podrán utilizarse para actividades académicas dentro del aula, solo cuando el profesor o profesora lo autorice y se deberán entregar a gestión de la Convivencia debidamente identificados. Estas medidas, también aplican para las actividades dentro y fuera del centro educativo, tales como: excursiones, convivencias y otras actividades cocurriculares. Si un estudiante es sorprendido utilizando estos aparatos sin el debido permiso se le retirará y se mantendrán en el Departamento de gestión de la convivencia, por un período escolar, no pudiendo ser entregadas antes de tiempo. Se anotará al estudiante en el registro de Gestión de Convivencia, así como también la falta cometida. NOTA: tomando en consideración la circunstancia en la que fue retirado y solo se entregará a los padres."
         },
         {
-            nombre: "Provocar chistes en clase en perjuicio de compañeros",
-            medida: "Corrección pública. Separación del aula si amerita con labores a favor del centro mientras reflexiona. Registro."
+            nombre: "Provocar chistes en medio de una clase, a costa y en perjuicio de los demás compañeros",
+            medida: "El estudiante será corregido en público, y si el caso lo amerita podría ser separado del aula de clases por un determinado tiempo a realizar labores a favor del centro educativo al mismo tiempo que reflexiona sobre su conducta. La falta será registrada en el anecdotario de disciplina."
         },
         {
-            nombre: "Escribir, rayar o hacer ejercicios sobre mesa o mobiliario",
-            medida: "Reparar el daño. Si necesita reparación, comunicar a padres para restauración. Registro."
+            nombre: "Escribir, rayar, hacer ejercicios sobre la mesa o cualquier mobiliario que haya en el aula, utilizando tinta, corrector u otro material",
+            medida: "Se solicitará al estudiante reparar el daño y si éste necesita reparación, será comunicado a los padres para su restauración. Se anotará la falta en el registro de disciplina."
         },
         {
-            nombre: "Desprender, rayar, romper o llevarse informaciones de murales o mobiliario",
-            medida: "Reponer lo dañado. Disculpa con compañeros y maestro guía. Registro."
+            nombre: "Desprender, rayar, romper llevarse informaciones colocadas en el mural del aula, pasillos o mobiliarios de la escuela",
+            medida: "El estudiante deberá reponer lo rayado, desprendido o violentado, debiéndose disculparse con sus compañeros de curso y con su maestro guía. La falta será anotada en el registro de disciplina."
         },
         {
-            nombre: "Celebraciones en aula afectando proceso de aprendizaje",
-            medida: "Suspensión de actividad. Sanción disciplinaria al curso completo."
+            nombre: "Realizar celebraciones en las aulas de clase, en perjuicio de los demás compañeros y afectando su proceso de aprendizaje",
+            medida: "La Unidad de Gestión de la Convivencia suspenderá cualquier actividad dentro del aula que interrumpa la labor docente. Se establecerá una sanción disciplinaria al curso completo."
         },
         {
-            nombre: "Sabotear clases o propiciar situaciones que afectan la organización",
-            medida: "Corrección pública. Separación del aula si amerita. Registro."
+            nombre: "Sabotear las clases o propiciar situaciones que afectan la organización de las mismas",
+            medida: "El estudiante será corregido en público, y si el caso lo amerita podría ser separado del aula de clases. La falta será registrada en el anecdotario de disciplina."
         },
         {
-            nombre: "Salir en clases antes/después de descanso sin autorización",
-            medida: "Reporte de disciplina. Trabajos de ornato y limpieza supervisados por Gestión de Convivencia."
+            nombre: "Salir en las clases siguientes o anteriores a descansos, sin la autorización del maestro encargado de la hora de clase",
+            medida: "Se hará al estudiante un reporte de disciplina con la falta cometida y deberá permanecer fuera del aula realizando trabajos de ornato y limpieza asignados por la Unidad de Gestión de la Convivencia."
         }
     ],
     
     graves: [
         {
-            nombre: "Desinterés y negligencia en formación o proceso de aprendizaje",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Mostrar desinterés y negligencia en su propia formación o proceso de aprendizaje",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Usar uniforme en lugares de dudosa moralidad",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Usar el uniforme de la Institución en lugares de dudosa moralidad",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Fotos o exhibición provocativa e inadecuada con uniforme",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Tomarse fotos o exhibirse de forma provocativa e inadecuada, vistiendo el uniforme de la Institución",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Colgar fotos en redes sociales con uniforme sin autorización",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Colgar fotos en internet (redes sociales, correos, chat, etc.…) con el uniforme del Centro Educativo, sin la debida autorización",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Comentarios irrespetuosos sobre el Centro en redes sociales o medios virtuales",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Utilizar el espacio virtual (redes sociales, correo electrónico, blogs) para hacer comentarios irrespetuosos sobre el Centro Educativo, el personal o los compañeros",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Participar en guiones, anuncios, portadas con uniforme sin autorización",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Participar en guiones, anuncios, portadas, invitaciones, llevando el uniforme de la Institución sin la debida autorización",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Rebeldía, rechazo o displicencia ante políticas y filosofía institucional",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Mostrar rebeldía, rechazo, displicencia ante las políticas y filosofía de la Institución",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Desprecio e irrespeto a símbolos institucionales (bandera, escudo, uniforme)",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Mostrar desprecio e irrespeto a los símbolos de la Institución: bandera, escudo, uniforme",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Conducta irrespetuosa frente a directivos, docentes, administrativos o personal (oral, escrito, telefónico, virtual)",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Mostrar conducta irrespetuosa frente a cualquier directivo, docente, administrativo o personal de apoyo del Centro, ya sea a su persona o a sus pertenencias, dentro o fuera del plantel escolar y a través de cualquier medio (oral, escrito, telefónico, virtual, entre otros)",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Comentarios inapropiados e injustos que afecten nombre de la Institución o su personal",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Afectar, con comentarios inapropiados e injustos, el nombre de la Institución y de su personal",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Rayar, arrancar o alterar informaciones en carteleras, murales o pizarrones",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Rayar, arrancar, alterar informaciones, pinturas, fotos colocadas en carteleras, murales o pizarrones, tanto de aulas como de pasillos u otras dependencias del Centro Educativo",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Ingresar a oficinas directivas, administrativas o archivo sin autorización",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Ingresar a oficinas directivas, administrativas o de archivo de documentos sin la debida autorización",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Ausencias reiteradas sin excusa (más del 5% mensual)",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Las ausencias reiteradas a clase, sin la excusa pertinente, en más de un 5% del calendario mensual",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Ausencia en actividades formativas sin autorización (reforzamiento, talleres, oraciones, retiros, convivencias, excursiones)",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "La ausencia en actividades de aprendizaje o formativas que organice el Centro Educativo, sin la debida autorización. Estas actividades pueden ser, secciones de reforzamiento académico, talleres del área técnica, oraciones, retiros, convivencias, excursiones que tengan que ver con contenidos de aprendizaje, competencias modulares o acciones formativas",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Conducta descontrolada, altanera y burlona frente a compañeros",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Exhibir una conducta descontrolada, altanera y burlona frente a compañeros",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Crítica negativa, chismes o comentarios inapropiados de compañeros o personal",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Realizar crítica negativa de los compañeros, incurrir en chismes o comentarios inapropiados de los demás miembros de la comunidad educativa",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Ingresar a aula ajena apoderándose u ocasionando daños a pertenencias",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Ingresar a un aula que no sea la suya, de manera particular si en ésta hay pertenencias de otros estudiantes apoderándose u ocasionando daños a las mismas",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Hacer negocios dentro del Centro (ventas, rifas, sanes)",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Hacer negocios dentro del Centro Educativo (venta de objetos o productos, rifas, sanes, etc.)",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Traer revistas o material pornográfico",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Traer revistas o material pornográfico al centro educativo",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Uso inadecuado de recursos tecnológicos con contenido inmoral",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "El uso inadecuado de los recursos tecnológicos, mensajes, videos o recursos contrarios a la moral y la filosofía institucional",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Modificar claves de red o configuraciones vulnerando seguridad",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Ingresar a la red de internet de la institución para modificar claves u otras configuraciones vulnerando la seguridad del Centro Educativo",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Muestras de afecto inapropiadas (abrazos, besos, tomarse las manos, sentarse en piernas, juegos de manos)",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Dar abrazos y besos, tomarse la manos, sentarse en la piernas de los/las compañeros/as y realizar juegos de manos entre otras acciones",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Fraude en exámenes",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Hacer fraude de cualquier tipo en los exámenes",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Burlarse o humillar al compañero que comete error o se le dificulta comprender",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Burlarse o humillar al compañero que comete un error o a quien se le dificulta comprender un tema",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Negligencia en el estudio de manera sistemática",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Mostrar negligencia en el estudio, de manera sistemática",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Posponer estudio (dormir, TV, chatear, internet) en detrimento del aprendizaje",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Posponer el estudio a otra acción (dormir, ver TV, chatear, usar el internet) en detrimento de su proceso de aprendizaje",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Desaprovechar tiempo de estudio en actividades no favorables",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Desaprovechar el tiempo de estudio, invirtiéndolo en otras actividades no favorables al aprendizaje",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Copiar tareas, presentar trabajos ajenos como propios",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Copiar las tareas de otros compañeros, presentar trabajos, cuadernos o carpetas ajenas haciéndolas pasar por suyas",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Dañar material, muebles, pupitres, paredes, puertas, juegos, equipos del plantel",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Dañar el material, muebles, pupitres, paredes, puertas, juegos, equipos o los elementos ubicados en las diferentes dependencias del plantel",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Rayar, agregar o suprimir palabras en carteleras o comunicaciones",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Dañar, rayar, agregar o suprimir palabras en las carteleras o comunicaciones ubicadas en los diferentes lugares asignados para publicar información",
+            medida: "Se aplicarán las sanciones del Art. 43"
         },
         {
-            nombre: "Agregar o suprimir palabras en circulares",
-            medida: "Aplicar sanciones del Art. 43"
+            nombre: "Agregar o suprimir palabras en las circulares",
+            medida: "Se aplicarán las sanciones del Art. 43"
         }
     ],
     
     muyGraves: [
         {
-            nombre: "Acoso y agresión de cualquier tipo dentro o fuera de la Institución",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Acoso y agresión de cualquier tipo, entre compañeros o a miembros de la comunidad educativa, dentro o fuera de la Institución",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Desafío o agresión a autoridades del Centro",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Desafío o agresión a las autoridades del Centro (personal directivo, docente, administrativo o de apoyo)",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Agredir física, verbal o sexualmente a compañero o miembro de la comunidad",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Agredir física, verbalmente o sexualmente a cualquier compañero o miembro de la comunidad educativa",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Sitios web, videos pornográficos u ofensivos; fotos inapropiadas; correos insultantes; uso de redes sociales para atacar, ridiculizar, acosar o difamar",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Diseñar sitios Web y videos con contenido pornográfico y/u ofensivo; subir fotos inapropiadas, enviar correos electrónicos insultantes de sí mismo o de compañeros, utilizar las redes sociales para atacar, ridiculizar, acosar, difamar a otros",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Falsificar firma de padres o hacerse pasar por ellos (teléfono, virtual)",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Falsificar la firma de los padres o hacer sus veces a través de las vías telefónicas o virtuales",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Ingresar con licores, cigarrillos, drogas, sustancias psicoactivas, objetos cortopunzantes, armas",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Ingresar al Centro Educativo y/o en actividades desarrolladas fuera del plantel licores, cigarrillos, tabacos, drogas o sustancias psicoactivas u objetos cortopunzantes y cualquier tipo de armas",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Incumplimiento de leyes o hallado culpable en procesos penales o civiles",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Incumplimiento de las leyes o ser hallado culpable en procesos penales o investigaciones de carácter civil o penal, incluso en primera instancia",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Fumar, consumir alcohol, bebidas energéticas o sustancias controladas en el Centro o actividades",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Fumar, consumir alcohol, bebidas energéticas o sustancias controladas en el Centro Educativo y/o en actividades que éste promueve",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Participar en bandas, pandillas o grupos cuyo objetivo sea hacer daño",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Participar en bandas, pandillas o en cualquier grupo cuyo objetivo sea hacer daño a terceros",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Salir del Centro sin permiso o usando engaño",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Salir del Centro Educativo sin el debido permiso o utilizando el engaño",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Engaño, fraude y trampa en cualquier modalidad",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "El engaño, el fraude y la trampa, cualquiera que sea su modalidad",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Imitar firmas de directivos o docentes, o usar su nombre para permisos o autorizaciones",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Imitar firmas de cualquiera de los Directivos o Docentes de la Institución, o utilizar su nombre para lograr permisos, autorizaciones u otro tipo de concesiones",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Plagiar sello físico o digital de la Institución sin autorización",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Plagiar el sello físico o digital de la Institución, o utilizarlo sin autorización, para fines personales o grupales",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Sustraer sin autorización material, evaluaciones, planillas, registros institucionales",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "El sustraer sin autorización material de la Institución, evaluaciones, planillas de notas, registros u otros",
+            medida: "Se aplicarán las sanciones del Art. 48"
         },
         {
-            nombre: "Robo de identidad (real, virtual); hackeos de claves, correos; violación de privacidad",
-            medida: "Aplicar sanciones del Art. 48"
+            nombre: "Incurrir en robo de identidad (real, virtual); intentar o hacer hackeos de claves, correos, u otras acciones que correspondan a violación de la privacidad, tanto de la propiedad del Centro Educativo, como de sus directivos, profesores o administrativos",
+            medida: "Se aplicarán las sanciones del Art. 48"
         }
     ],
     
     sancionesGraves: [
-        "Enviar al estudiante a espacio supervisado por máximo 2 días con tareas específicas. Padres revisan y firman avances diarios.",
-        "Matrícula condicional hasta superar la falta bajo evaluación del equipo disciplinario.",
-        "Labores de ayuda y servicio a la comunidad educativa fuera del horario escolar (con consentimiento firmado de padres).",
-        "Trabajos extras: investigaciones, carteleras, exposiciones sobre el valor faltado.",
+        "Enviar al estudiante a un espacio donde este supervisado, acordado previamente con el Equipo de Gestión, con un máximo de tiempo de dos (2) días para trabajar su situación. El o la estudiantes tendrán tareas específicas y se compromete a rendir los avances cada día bajo la supervisión del maestro y la familia. Los padres, madres o tutores deberán revisar y firmar las tareas asignadas a los estudiantes.",
+        "Matrícula condicional, hasta superar la falta bajo evaluación del equipo disciplinario, al final del período.",
+        "Asignación de labores de ayuda y servicio a la comunidad educativa, en la forma y momento indicado por la Dirección del Centro Educativo, fuera del horario escolar, siempre y cuando se presente el consentimiento informado y firmado por los padres.",
+        "Asignación de trabajos extras: investigaciones, elaboración de cartelera, exposición de un tema relacionado con el valor al cual se faltó.",
+        "Excusa pública del estudiante, o grupo de estudiantes, si la falta lo amerita.",
+        "Resarcir la falta (reponer, devolver, arreglar, entre otros)."
+    ],
+    
+    sancionesMuyGraves: [
+        "Suspensión de asistencia a clases por un período escolar, o la mitad del mismo, debiendo realizar las tareas indicadas por los docentes, con el compromiso de rendir avance y presentarse a evaluaciones cada quince (15) días, y al final del período.",
+        "Retiro definitivo del Centro Educativo cuando la severidad de la falta cometida así lo amerite.",
+        "Puesta en marcha de procedimientos de intervención judicial o legales, de acuerdo con las transgresiones de menores estipuladas en la ley 136-03 y otras normativas nacionales."
+    ],
+    
+    notasImportantes: {
+        leves: "Art. 39: Cuando las faltas leves son reiterativas se convierten en faltas graves porque una falta cometida de manera sistemática afecta el clima escolar, el ambiente de aprendizaje y la disciplina general del centro. Si un estudiante no logra adaptarse a la disciplina general, violando reiteradamente el Manual de Convivencia con faltas leves podría tener consecuencias en el logro de los aprendizajes y en su permanencia en el Centro Educativo.\n\nArt. 40: Si un estudiante acumula más de dos faltas leves el Departamento de disciplina convocará a los padres del mismo y se tomarán las medidas de lugar, a fin de que las mismas no se conviertan en faltas graves. Se seguirá el siguiente procedimiento:\n• Se convocara a los padres o tutores del estudiante.\n• Se sostendrá un dialogo reflexivo con el estudiante y sus padres o representantes.\n• Se tomaran acuerdos y compromisos de mejora. (Entre ellos labores en el centro).\n• Se firmara la asistencia de ambos y los acuerdos correspondientes.",
+        graves: "Art. 42: Las FALTAS GRAVES son plausibles de sanción, lo cual implica una privación temporal de alguno de los beneficios que tiene el estudiante como miembro de la comunidad educativa de los Centros Educativos de las Hijas de María Auxiliadora, Salesianas.\n\nPárrafo: La sanción aplicada a un estudiante constará en su expediente académico personal desde la primera vez en que incurra en falta grave.\n\nArt. 44: Las faltas graves la reincidencia en ellas, así como también el incumplimiento de sanciones, serán motivos para inscripción condicional en el Centro Educativo. El estudiante y su familia deberán solicitar nuevamente y por escrito la inscripción, si se le concede será bajo acuerdos y compromisos que deberán ser evaluados al final de cada periodo.\n\nArt. 45: Las FALTAS GRAVES pueden considerarse faltas MUY GRAVES cuando estas sean cometidas de forma reiterativa y/o con intenciones de hacer daño.",
+        muyGraves: "Art. 47: Además de las anteriores, serán faltas gravísimas otras situaciones que surjan, perjudicando a la Comunidad Educativa y que sean evaluadas como tales por el equipo de disciplina del Centro Educativo.\n\nArt. 49: Ante cualquier falta MUY GRAVE, el Centro procederá a la cancelación de la matrícula al estudiante. El equipo de disciplina del Centro Educativo se reserva el derecho de determinar el momento de la cancelación de matrícula, después de analizar la severidad del caso."
+    }
+};
         "Excusa pública del estudiante o grupo si la falta lo amerita.",
         "Resarcir la falta (reponer, devolver, arreglar)."
     ],
