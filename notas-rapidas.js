@@ -74,9 +74,15 @@ const notificaciones = new SistemaNotificaciones();
 
 async function cargarNotasDesdeGoogleSheets() {
     if (!urlNotasRapidas) {
-        console.log('No hay URL de notas configurada');
+        console.log('⚠️ No hay URL de notas configurada');
+        notificaciones.advertencia(
+            'Configuración pendiente',
+            'Ve a Configuración y agrega la URL de Google Sheets para Notas'
+        );
         return [];
     }
+    
+    console.log('📥 Cargando notas desde:', urlNotasRapidas);
     
     try {
         const response = await fetch(urlNotasRapidas, {
@@ -88,17 +94,21 @@ async function cargarNotasDesdeGoogleSheets() {
             }
         });
         
+        console.log('📡 Response status:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
             console.log('✅ Notas cargadas desde Google Sheets:', data.length, 'registros');
+            console.log('📋 Datos recibidos:', data);
             return data;
         } else {
-            console.error('Error al cargar notas:', response.status);
+            console.error('❌ Error al cargar notas - Status:', response.status);
+            notificaciones.error('Error al cargar', `Error del servidor: ${response.status}`);
             return [];
         }
     } catch (error) {
-        console.error('Error al cargar notas desde Google Sheets:', error);
-        notificaciones.error('Error de conexión', 'No se pudieron cargar las notas');
+        console.error('❌ Error al cargar notas desde Google Sheets:', error);
+        notificaciones.error('Error de conexión', 'Verifica tu conexión a internet');
         return [];
     }
 }
@@ -222,12 +232,20 @@ class NotasRapidas {
 
     async cargarNotas() {
         try {
-            this.notas = await cargarNotasDesdeGoogleSheets();
-            datosNotas = this.notas; // Guardar en variable global
-            console.log(`✅ ${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`);
+            const notasCargadas = await cargarNotasDesdeGoogleSheets();
+            
+            if (notasCargadas && notasCargadas.length >= 0) {
+                this.notas = notasCargadas;
+                datosNotas = this.notas;
+                console.log(`✅ ${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`);
+            } else {
+                this.notas = [];
+                datosNotas = [];
+            }
         } catch (error) {
             console.error('Error cargando notas:', error);
             this.notas = [];
+            datosNotas = [];
         }
     }
 
@@ -315,16 +333,25 @@ class NotasRapidas {
     }
 
     async recargarNotas() {
+        console.log('🔄 Recargando notas...');
         this.mostrarCargando();
         await this.cargarNotas();
         this.ocultarCargando();
         this.actualizarVista();
         this.actualizarContador();
         
-        notificaciones.exito(
-            'Sincronizado',
-            `${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`
-        );
+        console.log(`📊 Total de notas cargadas: ${this.notas.length}`);
+        
+        // Mostrar notificación según el resultado
+        if (this.notas.length > 0) {
+            notificaciones.exito(
+                'Sincronizado',
+                `${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`
+            );
+        } else {
+            // No mostrar nada si no hay notas (es normal)
+            console.log('ℹ️ No hay notas pendientes');
+        }
     }
 
     obtenerDispositivo() {
@@ -576,6 +603,16 @@ function toggleNotasPanel() {
         if (!sistemaNotas) {
             sistemaNotas = new NotasRapidas();
         }
+        
+        // Verificar que la URL esté configurada
+        if (!urlNotasRapidas) {
+            notificaciones.advertencia(
+                'Configuración pendiente',
+                'Ve a Configuración y agrega la URL de Google Sheets para Notas'
+            );
+            return;
+        }
+        
         sistemaNotas.recargarNotas();
     }
 }
