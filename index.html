@@ -34,6 +34,15 @@
             position: relative;
         }
 
+        .logo-header {
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
         header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
@@ -724,6 +733,7 @@
 <body>
     <div class="container">
         <header>
+            <img src="logo.png" alt="Logo CENSA" class="logo-header" onerror="this.style.display='none'">
             <div class="config-icon" onclick="openModule('configuracion')" title="Configuración">
                 ⚙️
             </div>
