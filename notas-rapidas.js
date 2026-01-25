@@ -899,7 +899,10 @@ function closeNotasPanel() {
 function mostrarFormNuevaNota() {
     const form = document.getElementById('formNuevaNota');
     form.classList.remove('oculto');
+    
+    // Inicializar autocompletado si no está inicializado
     setTimeout(() => {
+        inicializarAutocompletadoNotaRapida();
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 100);
 }
@@ -1151,109 +1154,107 @@ document.addEventListener('keydown', function(e) {
 
 // ========================================
 // AUTOCOMPLETADO DE ESTUDIANTES - NOTAS RÁPIDAS
+// (COPIADO DEL MÓDULO DE ESTUDIANTES QUE FUNCIONA)
 // ========================================
 
 let estudianteSeleccionadoNotaRapida = null;
 
-function filtrarEstudiantesNotaRapida() {
+function inicializarAutocompletadoNotaRapida() {
     const input = document.getElementById('notaEstudiante');
-    const sugerencias = document.getElementById('sugerenciasNotaRapida');
-    const textoBusqueda = input.value.toLowerCase().trim();
-    
-    console.log('🔍 filtrarEstudiantesNotaRapida ejecutándose. Búsqueda:', textoBusqueda);
-    
-    // Limpiar selección previa si el usuario está escribiendo
-    estudianteSeleccionadoNotaRapida = null;
+    const contenedorSugerencias = document.getElementById('sugerenciasNotaRapida');
     const cursoDiv = document.getElementById('cursoNotaRapida');
-    if (cursoDiv) cursoDiv.style.display = 'none';
     
-    if (textoBusqueda.length < 2) {
-        sugerencias.style.display = 'none';
+    if (!input || !contenedorSugerencias) {
+        console.warn('⚠️ No se encontraron elementos para autocompletado');
         return;
     }
     
-    // Intentar obtener estudiantes de múltiples fuentes
-    let estudiantes = [];
-    let fuente = 'ninguna';
+    console.log('✅ Inicializando autocompletado de notas rápidas');
     
-    // Intento 1: window.datosEstudiantes
-    if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
-        estudiantes = window.datosEstudiantes;
-        fuente = 'window.datosEstudiantes';
-    }
-    // Intento 2: variable global datosEstudiantes (sin window)
-    else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
-        estudiantes = datosEstudiantes;
-        fuente = 'datosEstudiantes (global)';
-    }
-    // Intento 3: Verificar si existe en el contexto global
-    else if (typeof globalThis !== 'undefined' && globalThis.datosEstudiantes) {
-        estudiantes = globalThis.datosEstudiantes;
-        fuente = 'globalThis.datosEstudiantes';
-    }
-    
-    console.log(`📊 Fuente: ${fuente}, Total estudiantes: ${estudiantes.length}`);
-    
-    if (estudiantes.length < 10) {
-        console.log('⚠️ Pocos estudiantes, mostrando mensaje de carga');
-        sugerencias.innerHTML = `
-            <div class="sugerencia-item" style="color:#059669;text-align:center;padding:15px;">
-                <div style="font-size:1.2em;margin-bottom:5px;">⏳</div>
-                <div>Cargando estudiantes...</div>
-                <div style="font-size:0.85em;margin-top:5px;color:#666;">
-                    ${estudiantes.length} de ~400 cargados
-                </div>
-            </div>
-        `;
-        sugerencias.style.display = 'block';
+    input.addEventListener('input', function() {
+        const texto = this.value.toLowerCase().trim();
         
-        // Reintentar después de 500ms
-        setTimeout(() => {
-            const inputActual = document.getElementById('notaEstudiante');
-            if (inputActual && inputActual.value.toLowerCase().trim() === textoBusqueda) {
-                console.log('🔄 Reintentando filtrado...');
-                filtrarEstudiantesNotaRapida();
-            }
-        }, 500);
-        return;
-    }
-    
-    // Filtrar estudiantes
-    const estudiantesFiltrados = estudiantes.filter(est => {
-        const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`.toLowerCase();
-        const curso = (est['Curso'] || '').toLowerCase();
-        return nombreCompleto.includes(textoBusqueda) || curso.includes(textoBusqueda);
+        // Limpiar curso si está escribiendo
+        if (cursoDiv) cursoDiv.style.display = 'none';
+        estudianteSeleccionadoNotaRapida = null;
+        
+        if (texto.length === 0) {
+            contenedorSugerencias.style.display = 'none';
+            return;
+        }
+        
+        // Obtener estudiantes de forma robusta
+        let estudiantes = [];
+        if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
+            estudiantes = window.datosEstudiantes;
+        } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
+            estudiantes = datosEstudiantes;
+        }
+        
+        console.log(`🔍 Buscando "${texto}" en ${estudiantes.length} estudiantes`);
+        
+        if (estudiantes.length < 10) {
+            contenedorSugerencias.innerHTML = `
+                <div style="padding:15px;text-align:center;color:#059669;">
+                    <div style="font-size:1.2em;margin-bottom:5px;">⏳</div>
+                    <div>Cargando estudiantes...</div>
+                    <div style="font-size:0.85em;margin-top:5px;color:#666;">
+                        ${estudiantes.length} de ~400 cargados
+                    </div>
+                </div>
+            `;
+            contenedorSugerencias.style.display = 'block';
+            
+            // Reintentar después de 500ms
+            setTimeout(() => {
+                if (this.value.toLowerCase().trim() === texto) {
+                    this.dispatchEvent(new Event('input'));
+                }
+            }, 500);
+            return;
+        }
+        
+        const coincidencias = estudiantes.filter(e => {
+            const nombre = (e['Nombre Completo'] || e['Nombre'] || '').toLowerCase();
+            const apellidos = (e['Apellidos'] || '').toLowerCase();
+            const nombreCompleto = `${nombre} ${apellidos}`.trim();
+            const curso = (e['Curso'] || '').toLowerCase();
+            return nombreCompleto.includes(texto) || curso.includes(texto);
+        }).slice(0, 10);
+        
+        console.log(`✅ Encontradas ${coincidencias.length} coincidencias`);
+        
+        if (coincidencias.length === 0) {
+            contenedorSugerencias.innerHTML = '<div style="padding:15px;text-align:center;color:#999;">No se encontraron estudiantes</div>';
+            contenedorSugerencias.style.display = 'block';
+            return;
+        }
+        
+        contenedorSugerencias.innerHTML = coincidencias.map(e => {
+            const nombre = e['Nombre Completo'] || `${e['Nombre'] || ''} ${e['Apellidos'] || ''}`.trim();
+            const curso = e['Curso'] || '';
+            const nombreEscapado = nombre.replace(/'/g, "\\'");
+            const cursoEscapado = curso.replace(/'/g, "\\'");
+            
+            return `
+                <div onclick="seleccionarEstudianteNotaRapida('${nombreEscapado}', '${cursoEscapado}')" 
+                     style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
+                     onmouseover="this.style.background='#f0fdf4'" 
+                     onmouseout="this.style.background='white'">
+                    <div style="font-weight:600;">${nombre}</div>
+                    <div style="font-size:0.85em;color:#666;">${curso}</div>
+                </div>
+            `;
+        }).join('');
+        
+        contenedorSugerencias.style.display = 'block';
     });
     
-    console.log(`✅ Encontrados ${estudiantesFiltrados.length} estudiantes que coinciden con "${textoBusqueda}"`);
-    
-    if (estudiantesFiltrados.length === 0) {
-        sugerencias.innerHTML = '<div class="sugerencia-item" style="color:#999;text-align:center;padding:15px;">No se encontraron estudiantes</div>';
-        sugerencias.style.display = 'block';
-        return;
-    }
-    
-    // Mostrar sugerencias
-    sugerencias.innerHTML = estudiantesFiltrados.slice(0, 10).map(est => {
-        const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
-        const curso = est['Curso'] || '';
-        return `
-            <div class="sugerencia-item" onclick="seleccionarEstudianteNotaRapida('${nombreCompleto.replace(/'/g, "\\'")}', '${curso.replace(/'/g, "\\'")}')">
-                <div style="font-weight:600;">${nombreCompleto}</div>
-                <div style="font-size:0.85em;color:#666;">${curso}</div>
-            </div>
-        `;
-    }).join('');
-    
-    console.log('📝 Mostrando sugerencias en pantalla');
-    sugerencias.style.display = 'block';
-}
-
-function mostrarSugerenciasNotaRapida() {
-    const input = document.getElementById('notaEstudiante');
-    if (input.value.length >= 2) {
-        filtrarEstudiantesNotaRapida();
-    }
+    input.addEventListener('focus', function() {
+        if (this.value.trim().length > 0) {
+            this.dispatchEvent(new Event('input'));
+        }
+    });
 }
 
 function seleccionarEstudianteNotaRapida(nombre, curso) {
@@ -1261,11 +1262,13 @@ function seleccionarEstudianteNotaRapida(nombre, curso) {
     const sugerencias = document.getElementById('sugerenciasNotaRapida');
     const cursoDiv = document.getElementById('cursoNotaRapida');
     
+    console.log(`✅ Seleccionado: ${nombre} - ${curso}`);
+    
     input.value = nombre;
     estudianteSeleccionadoNotaRapida = { nombre, curso };
     
     // Mostrar el curso debajo del input
-    if (curso) {
+    if (curso && cursoDiv) {
         cursoDiv.textContent = `📚 ${curso}`;
         cursoDiv.style.display = 'block';
     }
