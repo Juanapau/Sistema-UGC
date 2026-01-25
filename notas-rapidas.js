@@ -1161,11 +1161,25 @@ function filtrarEstudiantesNotaRapida() {
         return;
     }
     
-    // Verificar que datosEstudiantes exista y tenga datos
-    if (typeof datosEstudiantes === 'undefined' || !datosEstudiantes || datosEstudiantes.length === 0) {
-        console.warn('datosEstudiantes no está disponible todavía');
-        sugerencias.innerHTML = '<div class="sugerencia-item" style="color:#999;text-align:center;">Cargando estudiantes...</div>';
+    // Verificar que datosEstudiantes exista y tenga datos suficientes (>10 es señal de que ya cargó)
+    if (typeof datosEstudiantes === 'undefined' || !datosEstudiantes || datosEstudiantes.length < 10) {
+        sugerencias.innerHTML = `
+            <div class="sugerencia-item" style="color:#059669;text-align:center;padding:15px;">
+                <div style="font-size:1.2em;margin-bottom:5px;">⏳</div>
+                <div>Cargando estudiantes...</div>
+                <div style="font-size:0.85em;margin-top:5px;color:#666;">
+                    (${datosEstudiantes ? datosEstudiantes.length : 0} de ~400 cargados)
+                </div>
+            </div>
+        `;
         sugerencias.style.display = 'block';
+        
+        // Reintentar después de 1 segundo
+        setTimeout(() => {
+            if (document.getElementById('notaEstudiante').value.toLowerCase().trim() === textoBusqueda) {
+                filtrarEstudiantesNotaRapida();
+            }
+        }, 1000);
         return;
     }
     
@@ -1177,7 +1191,7 @@ function filtrarEstudiantesNotaRapida() {
     });
     
     if (estudiantesFiltrados.length === 0) {
-        sugerencias.innerHTML = '<div class="sugerencia-item" style="color:#999;text-align:center;">No se encontraron estudiantes</div>';
+        sugerencias.innerHTML = '<div class="sugerencia-item" style="color:#999;text-align:center;padding:15px;">No se encontraron estudiantes</div>';
         sugerencias.style.display = 'block';
         return;
     }
@@ -1241,9 +1255,27 @@ setTimeout(() => {
     console.log('  Input estudiante:', input ? '✅ OK' : '❌ NO ENCONTRADO');
     console.log('  Div sugerencias:', sugerencias ? '✅ OK' : '❌ NO ENCONTRADO');
     console.log('  Div curso:', curso ? '✅ OK' : '❌ NO ENCONTRADO');
-    console.log('  datosEstudiantes:', typeof datosEstudiantes !== 'undefined' ? 
-        `✅ ${datosEstudiantes.length} estudiantes cargados` : 
-        '❌ NO DISPONIBLE');
+    
+    if (typeof datosEstudiantes !== 'undefined' && datosEstudiantes) {
+        const total = datosEstudiantes.length;
+        if (total < 10) {
+            console.log(`  datosEstudiantes: ⚠️ Solo ${total} estudiantes (esperando más...)`);
+        } else if (total < 100) {
+            console.log(`  datosEstudiantes: ⏳ ${total} estudiantes cargados (cargando más...)`);
+        } else {
+            console.log(`  datosEstudiantes: ✅ ${total} estudiantes cargados`);
+        }
+    } else {
+        console.log('  datosEstudiantes: ❌ NO DISPONIBLE');
+    }
+    
+    // Verificar de nuevo después de 3 segundos si aún no hay suficientes datos
+    if (typeof datosEstudiantes !== 'undefined' && datosEstudiantes && datosEstudiantes.length < 100) {
+        setTimeout(() => {
+            const totalFinal = datosEstudiantes ? datosEstudiantes.length : 0;
+            console.log(`📊 Actualización: ${totalFinal} estudiantes ahora disponibles`);
+        }, 3000);
+    }
 }, 2000);
 
 console.log('✅ Sistema de Notas Rápidas (Google Sheets) cargado correctamente');
