@@ -2060,6 +2060,14 @@ function crearModalReuniones() {
                         <label>Fecha y Hora *</label>
                         <input type="datetime-local" id="fechaReunion" required>
                     </div>
+                    <div class="form-group">
+                        <label>Tipo de Reunión *</label>
+                        <select id="tipoReunion" required>
+                            <option value="">Seleccione</option>
+                            <option value="Presencial">🏫 Presencial</option>
+                            <option value="Llamada telefónica">📞 Llamada telefónica</option>
+                        </select>
+                    </div>
                     <div class="form-group" style="position:relative;">
                         <label>Estudiante *</label>
                         <input type="text" 
@@ -2071,6 +2079,8 @@ function crearModalReuniones() {
                                placeholder="Escribe el nombre del estudiante...">
                         <div id="sugerenciasReunion" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Curso *</label>
                         <select id="cursoReunion" required>
@@ -2078,8 +2088,6 @@ function crearModalReuniones() {
                             ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                         </select>
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label>Padre/Madre Presente *</label>
                         <select id="padrePresente" required>
@@ -2171,6 +2179,7 @@ function crearModalReuniones() {
                     <thead>
                         <tr>
                             <th>Fecha</th>
+                            <th>Tipo</th>
                             <th>Estudiante</th>
                             <th>Padre/Madre</th>
                             <th>Reuniones</th>
@@ -2212,7 +2221,7 @@ function crearModalReuniones() {
     
     // Mostrar mensaje de carga
     const tbody = document.getElementById('bodyReuniones');
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#666;">📥 Cargando reuniones...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#666;">📥 Cargando reuniones...</td></tr>';
     
     // Cargar datos desde Google Sheets
     if (CONFIG.urlReuniones) {
@@ -3674,6 +3683,7 @@ function registrarReunion(e) {
     
     const reunion = {
         'Fecha y Hora': document.getElementById('fechaReunion').value,
+        'Tipo': document.getElementById('tipoReunion').value,
         'Nombre Estudiante': document.getElementById('estudianteReunion').value,
         'Curso': document.getElementById('cursoReunion').value,
         'Padre/Madre Presente': document.getElementById('padrePresente').value,
@@ -3727,6 +3737,7 @@ function editarReunion(indice) {
     
     // Llenar el formulario con los datos
     document.getElementById('fechaReunion').value = reunion['Fecha y Hora'] || '';
+    document.getElementById('tipoReunion').value = reunion['Tipo'] || 'Presencial';
     document.getElementById('estudianteReunion').value = reunion['Nombre Estudiante'] || '';
     document.getElementById('cursoReunion').value = reunion['Curso'] || '';
     document.getElementById('padrePresente').value = reunion['Padre/Madre Presente'] || '';
@@ -3798,12 +3809,13 @@ function cancelarEdicionReunion() {
 function cargarTablaReuniones() {
     const tbody = document.getElementById('bodyReuniones');
     if (datosReuniones.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No hay reuniones registradas</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#999;">No hay reuniones registradas</td></tr>';
         return;
     }
     
     tbody.innerHTML = datosReuniones.map((r, index) => {
         const fecha = r['Fecha y Hora'] || r.fecha || '';
+        const tipo = r['Tipo'] || r.tipo || 'Presencial';
         const estudiante = r['Nombre Estudiante'] || r.estudiante || '';
         const curso = r['Curso'] || r.curso || '';
         const padrePresente = r['Padre/Madre Presente'] || r.padrePresente || '';
@@ -3811,6 +3823,9 @@ function cargarTablaReuniones() {
         const motivo = r['Motivo'] || r.motivo || '';
         const estado = r['Estado'] || r.estado || '';
         const fechaSeguimiento = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
+        
+        // Icono según tipo
+        const iconoTipo = tipo === 'Llamada telefónica' ? '📞' : '🏫';
         
         // Calcular número de reunión en orden cronológico
         const reunionesEstudiante = datosReuniones
@@ -3847,6 +3862,7 @@ function cargarTablaReuniones() {
         return `
         <tr onclick="editarReunion(${index})" style="cursor:pointer;" title="Click para editar">
             <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric'}) : ''}<br><small>${fecha ? new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : ''}</small></td>
+            <td style="text-align:center;">${iconoTipo}<br><small>${tipo}</small></td>
             <td><strong>${estudiante}</strong><br><small>${curso}</small></td>
             <td>${nombrePadre || padrePresente}<br><small>${padrePresente}</small></td>
             <td style="text-align:center;"><span class="status-badge ${badgeReuniones}">${numeroReunion}ª vez</span></td>
@@ -4053,6 +4069,7 @@ function generarActaPDF(reunion) {
     doc.setFont('helvetica', 'normal');
     
     const fecha = reunion['Fecha y Hora'] || reunion.fecha || '';
+    const tipo = reunion['Tipo'] || reunion.tipo || 'Presencial';
     const curso = reunion['Curso'] || reunion.curso || '';
     const padrePresente = reunion['Padre/Madre Presente'] || reunion.padrePresente || '';
     const nombrePadre = reunion['Nombre Padre/Madre'] || reunion.nombrePadre || '';
@@ -4060,6 +4077,8 @@ function generarActaPDF(reunion) {
     const motivo = reunion['Motivo'] || reunion.motivo || '';
     
     doc.text(`Fecha: ${fecha ? new Date(fecha).toLocaleString('es-DO') : '-'}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Tipo de reunión: ${tipo}`, 14, yPos);
     yPos += 6;
     doc.text(`Estudiante: ${estudiante}`, 14, yPos);
     yPos += 6;
