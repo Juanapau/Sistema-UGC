@@ -764,20 +764,24 @@ class NotasRapidas {
         document.getElementById('notaPrioridad').value = nota.prioridad;
         document.getElementById('notaTexto').value = nota.texto;
         
-        // Buscar el curso del estudiante
-        const estudiante = datosEstudiantes.find(est => {
-            const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
-            return nombreCompleto.toLowerCase() === nota.estudiante.toLowerCase();
-        });
-        
-        if (estudiante && estudiante['Curso']) {
-            const cursoDiv = document.getElementById('cursoNotaRapida');
-            cursoDiv.textContent = `📚 ${estudiante['Curso']}`;
-            cursoDiv.style.display = 'block';
-            estudianteSeleccionadoNotaRapida = { 
-                nombre: nota.estudiante, 
-                curso: estudiante['Curso'] 
-            };
+        // Buscar el curso del estudiante (solo si datosEstudiantes está disponible)
+        if (typeof datosEstudiantes !== 'undefined' && datosEstudiantes && datosEstudiantes.length > 0) {
+            const estudiante = datosEstudiantes.find(est => {
+                const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
+                return nombreCompleto.toLowerCase() === nota.estudiante.toLowerCase();
+            });
+            
+            if (estudiante && estudiante['Curso']) {
+                const cursoDiv = document.getElementById('cursoNotaRapida');
+                if (cursoDiv) {
+                    cursoDiv.textContent = `📚 ${estudiante['Curso']}`;
+                    cursoDiv.style.display = 'block';
+                    estudianteSeleccionadoNotaRapida = { 
+                        nombre: nota.estudiante, 
+                        curso: estudiante['Curso'] 
+                    };
+                }
+            }
         }
         
         // Cargar fecha de acción si existe
@@ -1149,10 +1153,19 @@ function filtrarEstudiantesNotaRapida() {
     
     // Limpiar selección previa si el usuario está escribiendo
     estudianteSeleccionadoNotaRapida = null;
-    document.getElementById('cursoNotaRapida').style.display = 'none';
+    const cursoDiv = document.getElementById('cursoNotaRapida');
+    if (cursoDiv) cursoDiv.style.display = 'none';
     
     if (textoBusqueda.length < 2) {
         sugerencias.style.display = 'none';
+        return;
+    }
+    
+    // Verificar que datosEstudiantes exista y tenga datos
+    if (typeof datosEstudiantes === 'undefined' || !datosEstudiantes || datosEstudiantes.length === 0) {
+        console.warn('datosEstudiantes no está disponible todavía');
+        sugerencias.innerHTML = '<div class="sugerencia-item" style="color:#999;text-align:center;">Cargando estudiantes...</div>';
+        sugerencias.style.display = 'block';
         return;
     }
     
@@ -1164,7 +1177,8 @@ function filtrarEstudiantesNotaRapida() {
     });
     
     if (estudiantesFiltrados.length === 0) {
-        sugerencias.style.display = 'none';
+        sugerencias.innerHTML = '<div class="sugerencia-item" style="color:#999;text-align:center;">No se encontraron estudiantes</div>';
+        sugerencias.style.display = 'block';
         return;
     }
     
@@ -1173,7 +1187,7 @@ function filtrarEstudiantesNotaRapida() {
         const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
         const curso = est['Curso'] || '';
         return `
-            <div class="sugerencia-item" onclick="seleccionarEstudianteNotaRapida('${nombreCompleto.replace(/'/g, "\\'")}', '${curso}')">
+            <div class="sugerencia-item" onclick="seleccionarEstudianteNotaRapida('${nombreCompleto.replace(/'/g, "\\'")}', '${curso.replace(/'/g, "\\'")}')">
                 <div style="font-weight:600;">${nombreCompleto}</div>
                 <div style="font-size:0.85em;color:#666;">${curso}</div>
             </div>
@@ -1216,5 +1230,20 @@ document.addEventListener('click', function(e) {
         sugerencias.style.display = 'none';
     }
 });
+
+// Diagnóstico de autocompletado
+setTimeout(() => {
+    const input = document.getElementById('notaEstudiante');
+    const sugerencias = document.getElementById('sugerenciasNotaRapida');
+    const curso = document.getElementById('cursoNotaRapida');
+    
+    console.log('🔍 Diagnóstico Autocompletado Notas Rápidas:');
+    console.log('  Input estudiante:', input ? '✅ OK' : '❌ NO ENCONTRADO');
+    console.log('  Div sugerencias:', sugerencias ? '✅ OK' : '❌ NO ENCONTRADO');
+    console.log('  Div curso:', curso ? '✅ OK' : '❌ NO ENCONTRADO');
+    console.log('  datosEstudiantes:', typeof datosEstudiantes !== 'undefined' ? 
+        `✅ ${datosEstudiantes.length} estudiantes cargados` : 
+        '❌ NO DISPONIBLE');
+}, 2000);
 
 console.log('✅ Sistema de Notas Rápidas (Google Sheets) cargado correctamente');
