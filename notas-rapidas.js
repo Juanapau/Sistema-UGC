@@ -764,8 +764,15 @@ class NotasRapidas {
         document.getElementById('notaPrioridad').value = nota.prioridad;
         document.getElementById('notaTexto').value = nota.texto;
         
-        // Buscar el curso del estudiante usando window.datosEstudiantes
-        const estudiantes = window.datosEstudiantes || [];
+        // Intentar obtener estudiantes de múltiples fuentes
+        let estudiantes = [];
+        if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
+            estudiantes = window.datosEstudiantes;
+        } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
+            estudiantes = datosEstudiantes;
+        } else if (typeof globalThis !== 'undefined' && globalThis.datosEstudiantes) {
+            estudiantes = globalThis.datosEstudiantes;
+        }
         
         if (estudiantes.length > 0) {
             const estudiante = estudiantes.find(est => {
@@ -1163,8 +1170,21 @@ function filtrarEstudiantesNotaRapida() {
         return;
     }
     
-    // VERIFICACIÓN DINÁMICA: Obtener datosEstudiantes en tiempo real
-    const estudiantes = window.datosEstudiantes || [];
+    // Intentar obtener estudiantes de múltiples fuentes
+    let estudiantes = [];
+    
+    // Intento 1: window.datosEstudiantes
+    if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
+        estudiantes = window.datosEstudiantes;
+    }
+    // Intento 2: variable global datosEstudiantes (sin window)
+    else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
+        estudiantes = datosEstudiantes;
+    }
+    // Intento 3: Verificar si existe en el contexto global
+    else if (typeof globalThis !== 'undefined' && globalThis.datosEstudiantes) {
+        estudiantes = globalThis.datosEstudiantes;
+    }
     
     if (estudiantes.length < 10) {
         sugerencias.innerHTML = `
@@ -1255,12 +1275,27 @@ setTimeout(() => {
     const input = document.getElementById('notaEstudiante');
     const sugerencias = document.getElementById('sugerenciasNotaRapida');
     const curso = document.getElementById('cursoNotaRapida');
-    const estudiantes = window.datosEstudiantes || [];
+    
+    // Intentar obtener estudiantes de múltiples fuentes
+    let estudiantes = [];
+    let fuente = 'ninguna';
+    
+    if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes) && window.datosEstudiantes.length > 0) {
+        estudiantes = window.datosEstudiantes;
+        fuente = 'window.datosEstudiantes';
+    } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes) && datosEstudiantes.length > 0) {
+        estudiantes = datosEstudiantes;
+        fuente = 'datosEstudiantes (global)';
+    } else if (typeof globalThis !== 'undefined' && globalThis.datosEstudiantes) {
+        estudiantes = globalThis.datosEstudiantes;
+        fuente = 'globalThis.datosEstudiantes';
+    }
     
     console.log('🔍 Diagnóstico Autocompletado Notas Rápidas:');
     console.log('  Input estudiante:', input ? '✅ OK' : '❌ NO ENCONTRADO');
     console.log('  Div sugerencias:', sugerencias ? '✅ OK' : '❌ NO ENCONTRADO');
     console.log('  Div curso:', curso ? '✅ OK' : '❌ NO ENCONTRADO');
+    console.log('  Fuente de datos:', fuente);
     
     const total = estudiantes.length;
     if (total === 0) {
@@ -1273,10 +1308,16 @@ setTimeout(() => {
         console.log(`  datosEstudiantes: ✅ ${total} estudiantes cargados - LISTO PARA USAR`);
     }
     
-    // Verificar de nuevo después de 3 segundos si aún no hay suficientes datos
+    // Verificar de nuevo después de 3 segundos
     if (total < 100) {
         setTimeout(() => {
-            const estudiantesFinal = window.datosEstudiantes || [];
+            let estudiantesFinal = [];
+            if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
+                estudiantesFinal = window.datosEstudiantes;
+            } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
+                estudiantesFinal = datosEstudiantes;
+            }
+            
             const totalFinal = estudiantesFinal.length;
             console.log(`📊 Actualización: ${totalFinal} estudiantes ahora disponibles`);
             if (totalFinal >= 100) {
