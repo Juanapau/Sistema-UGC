@@ -473,10 +473,9 @@ function registrarIncidencia(e) {
         'Nombre Estudiante': document.getElementById('nombreEstudianteInc').value,
         'Curso': document.getElementById('cursoIncidencia').value,
         'Tipo de falta': document.getElementById('tipoFalta').value,
-        'Docente': document.getElementById('docenteReporta').value,
+        'Docente que Reporta': document.getElementById('docenteReporta').value,
         'Descripción': document.getElementById('descripcionIncidencia').value,
-        'Acciones Docente': document.getElementById('accionesDocente').value,
-        'Seguimiento UGC': document.getElementById('seguimientoUGC').value
+        'Acciones del Docente': document.getElementById('accionesDocente').value
     };
     
     if (modoEdicion === 'true') {
@@ -2767,17 +2766,14 @@ async function enviarGoogleSheets(url, datos) {
     }
     
     try {
-        // Crear FormData para enviar
-        const formData = new FormData();
-        Object.keys(datos).forEach(key => {
-            formData.append(key, datos[key]);
-        });
-        
-        // Enviar con fetch - Google Apps Script acepta FormData
+        // Enviar como JSON (método correcto para Apps Script)
         const response = await fetch(url, {
             method: 'POST',
-            body: formData,
-            redirect: 'follow'
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datos)
         });
         
         console.log('Datos enviados a Google Sheets:', datos);
