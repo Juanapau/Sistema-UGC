@@ -187,6 +187,8 @@ class NotasRapidas {
         this.notas = [];
         this.notaEditando = null;
         this.cargando = false;
+        this.tabActiva = 'hoy'; // Pestaña por defecto
+        this.notificacionMostrada = false; // Para mostrar notificación solo una vez
     }
 
     async inicializar() {
@@ -233,16 +235,18 @@ class NotasRapidas {
         }
     }
 
-    async agregarNota(estudiante, tipo, prioridad, texto) {
+    async agregarNota(estudiante, tipo, prioridad, texto, fechaAccion = null) {
         const nuevaNota = {
             id: Date.now().toString(),
             estudiante: estudiante,
             tipo: tipo,
             prioridad: prioridad,
             texto: texto,
-            fecha: new Date().toISOString(),
+            fechaAccion: fechaAccion || '', // Nueva fecha de acción
+            fecha: new Date().toISOString(), // Fecha de creación
             dispositivo: this.obtenerDispositivo(),
-            timestamp: new Date().toLocaleString('es-DO')
+            timestamp: new Date().toLocaleString('es-DO'),
+            editado: ''
         };
 
         // Guardar en Google Sheets
@@ -266,7 +270,7 @@ class NotasRapidas {
         }
     }
 
-    async editarNota(id, estudiante, tipo, prioridad, texto) {
+    async editarNota(id, estudiante, tipo, prioridad, texto, fechaAccion = null) {
         const index = this.notas.findIndex(n => n.id === id);
         if (index !== -1) {
             const notaActualizada = {
@@ -275,6 +279,7 @@ class NotasRapidas {
                 tipo: tipo,
                 prioridad: prioridad,
                 texto: texto,
+                fechaAccion: fechaAccion || '',
                 editado: new Date().toISOString()
             };
 
@@ -368,8 +373,41 @@ class NotasRapidas {
     actualizarContador() {
         const contador = document.getElementById('contadorNotas');
         if (contador) {
-            contador.textContent = this.notas.length;
-            contador.style.display = this.notas.length > 0 ? 'flex' : 'none';
+            // Contar notas para hoy
+            const ahora = new Date();
+            ahora.setHours(0, 0, 0, 0);
+            const finHoy = new Date(ahora);
+            finHoy.setHours(23, 59, 59, 999);
+            
+            const notasHoy = this.notas.filter(nota => {
+                if (!nota.fechaAccion) return true; // Sin fecha también cuenta como "hoy"
+                const fechaNota = new Date(nota.fechaAccion);
+                return fechaNota <= finHoy; // Incluye vencidas y de hoy
+            });
+            
+            // Actualizar badge
+            const total = this.notas.length;
+            const hoy = notasHoy.length;
+            
+            if (hoy > 0) {
+                // Mostrar cantidad para hoy con fuego
+                contador.innerHTML = `${hoy} 🔥`;
+                contador.style.background = '#ea580c';
+            } else if (total > 0) {
+                // Solo mostrar total
+                contador.textContent = total;
+                contador.style.background = '#059669';
+            }
+            
+            contador.style.display = total > 0 ? 'flex' : 'none';
+            
+            // Mostrar notificación al abrir el sistema (solo una vez)
+            if (!this.notificacionMostrada && hoy > 0) {
+                setTimeout(() => {
+                    mostrarNotificacionNotasHoy();
+                }, 1000);
+                this.notificacionMostrada = true;
+            }
         }
     }
 
@@ -379,36 +417,163 @@ class NotasRapidas {
         const container = document.getElementById('notasContent');
         const vacio = document.getElementById('notasVacio');
         
-        if (this.notas.length === 0) {
-            if (vacio) vacio.style.display = 'block';
-            container.innerHTML = '';
-            if (vacio) container.appendChild(vacio);
+        // Actualizar contadores de pestañas
+        actualizarContadoresPestanas();
+        
+        // Filtrar notas según pestaña activa
+        let notasFiltradas = this.filtrarNotasPorTab();
+        
+        if (notasFiltradas.length === 0) {
+            const mensajesVacio = {
+                'hoy': {
+                    icono: '✨',
+                    titulo: 'No hay tareas para hoy',
+                    subtitulo: 'Disfruta tu día libre de pendientes'
+                },
+                'proximas': {
+                    icono: '📅',
+                    titulo: 'No hay tareas programadas',
+                    subtitulo: 'Agrega notas con fecha para planificar'
+                },
+                'todas': {
+                    icono: '📭',
+                    titulo: 'No hay notas pendientes',
+                    subtitulo: 'Crea una nota para empezar'
+                }
+            };
+            
+            const mensaje = mensajesVacio[this.tabActiva] || mensajesVacio.todas;
+            
+            container.innerHTML = `
+                <div class="notas-vacio">
+                    <div style="font-size: 3em;">${mensaje.icono}</div>
+                    <p>${mensaje.titulo}</p>
+                    <p style="font-size: 0.9em; margin-top: 5px;">${mensaje.subtitulo}</p>
+                </div>
+            `;
             return;
         }
 
         if (vacio) vacio.style.display = 'none';
         container.innerHTML = '';
 
-        // Ordenar por prioridad y fecha
-        const notasOrdenadas = [...this.notas].sort((a, b) => {
-            const prioridadOrden = { alta: 1, media: 2, baja: 3 };
-            if (prioridadOrden[a.prioridad] !== prioridadOrden[b.prioridad]) {
-                return prioridadOrden[a.prioridad] - prioridadOrden[b.prioridad];
-            }
-            return new Date(b.fecha) - new Date(a.fecha);
-        });
+        // Ordenar notas según la pestaña
+        const notasOrdenadas = this.ordenarNotas(notasFiltradas);
 
         notasOrdenadas.forEach(nota => {
             const notaElement = this.crearElementoNota(nota);
             container.appendChild(notaElement);
         });
     }
+    
+    filtrarNotasPorTab() {
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0); // Inicio del día
+        const finHoy = new Date(ahora);
+        finHoy.setHours(23, 59, 59, 999); // Fin del día
+        
+        switch(this.tabActiva) {
+            case 'hoy':
+                // Notas para hoy o vencidas
+                return this.notas.filter(nota => {
+                    if (!nota.fechaAccion) {
+                        // Notas sin fecha también se muestran en "hoy"
+                        return true;
+                    }
+                    const fechaNota = new Date(nota.fechaAccion);
+                    // Incluir vencidas y de hoy
+                    return fechaNota <= finHoy;
+                });
+                
+            case 'proximas':
+                // Solo notas futuras (después de hoy)
+                return this.notas.filter(nota => {
+                    if (!nota.fechaAccion) return false;
+                    const fechaNota = new Date(nota.fechaAccion);
+                    return fechaNota > finHoy;
+                });
+                
+            case 'todas':
+            default:
+                return this.notas;
+        }
+    }
+    
+    ordenarNotas(notas) {
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0);
+        const finHoy = new Date(ahora);
+        finHoy.setHours(23, 59, 59, 999);
+        
+        return [...notas].sort((a, b) => {
+            const prioridadOrden = { alta: 1, media: 2, baja: 3 };
+            
+            // Si ambas tienen fecha de acción
+            if (a.fechaAccion && b.fechaAccion) {
+                const fechaA = new Date(a.fechaAccion);
+                const fechaB = new Date(b.fechaAccion);
+                
+                // Vencidas primero (en rojo)
+                const aVencida = fechaA < ahora;
+                const bVencida = fechaB < ahora;
+                if (aVencida && !bVencida) return -1;
+                if (!aVencida && bVencida) return 1;
+                
+                // Luego por fecha
+                if (fechaA.getTime() !== fechaB.getTime()) {
+                    return fechaA - fechaB;
+                }
+            }
+            
+            // Si solo una tiene fecha, esa va primero
+            if (a.fechaAccion && !b.fechaAccion) return -1;
+            if (!a.fechaAccion && b.fechaAccion) return 1;
+            
+            // Si ninguna tiene fecha o empate, ordenar por prioridad
+            if (prioridadOrden[a.prioridad] !== prioridadOrden[b.prioridad]) {
+                return prioridadOrden[a.prioridad] - prioridadOrden[b.prioridad];
+            }
+            
+            // Por último, por fecha de creación (más recientes primero)
+            return new Date(b.fecha) - new Date(a.fecha);
+        });
+    }
 
     crearElementoNota(nota) {
         const div = document.createElement('div');
-        div.className = `nota-item prioridad-${nota.prioridad}`;
+        
+        // Determinar si está vencida
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0);
+        const esVencida = nota.fechaAccion && new Date(nota.fechaAccion) < ahora;
+        
+        div.className = `nota-item prioridad-${nota.prioridad}${esVencida ? ' nota-vencida' : ''}`;
         
         const dispositivo = nota.dispositivo ? `<span style="font-size: 0.85em; color: #9ca3af;">📱 ${nota.dispositivo}</span>` : '';
+        
+        // Formatear fecha de acción si existe
+        let fechaAccionHTML = '';
+        if (nota.fechaAccion) {
+            const fechaAccion = new Date(nota.fechaAccion);
+            const esHoy = this.esFechaHoy(fechaAccion);
+            const esMañana = this.esFechaMañana(fechaAccion);
+            
+            let textoFecha = '';
+            if (esVencida) {
+                textoFecha = `⚠️ VENCIDA - ${this.formatearFechaAccion(fechaAccion)}`;
+            } else if (esHoy) {
+                const hora = fechaAccion.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+                textoFecha = `🔥 HOY ${hora}`;
+            } else if (esMañana) {
+                const hora = fechaAccion.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+                textoFecha = `📅 MAÑANA ${hora}`;
+            } else {
+                textoFecha = `📅 ${this.formatearFechaAccion(fechaAccion)}`;
+            }
+            
+            const colorFecha = esVencida ? '#dc2626' : esHoy ? '#ea580c' : '#059669';
+            fechaAccionHTML = `<div style="font-weight:600;color:${colorFecha};margin-top:6px;font-size:0.9em;">${textoFecha}</div>`;
+        }
         
         div.innerHTML = `
             <div class="nota-header-item">
@@ -417,7 +582,8 @@ class NotasRapidas {
             </div>
             <div class="nota-estudiante">👤 ${nota.estudiante}</div>
             <div class="nota-texto">${nota.texto}</div>
-            <div class="nota-fecha">🕐 ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
+            ${fechaAccionHTML}
+            <div class="nota-fecha">🕐 Creada ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
             <div class="nota-acciones">
                 <button class="nota-btn nota-btn-registrar" onclick="sistemaNotas.registrarIncidencia('${nota.id}')">
                     📋 Registrar
@@ -431,6 +597,32 @@ class NotasRapidas {
             </div>
         `;
         return div;
+    }
+    
+    esFechaHoy(fecha) {
+        const hoy = new Date();
+        return fecha.getDate() === hoy.getDate() &&
+               fecha.getMonth() === hoy.getMonth() &&
+               fecha.getFullYear() === hoy.getFullYear();
+    }
+    
+    esFechaMañana(fecha) {
+        const mañana = new Date();
+        mañana.setDate(mañana.getDate() + 1);
+        return fecha.getDate() === mañana.getDate() &&
+               fecha.getMonth() === mañana.getMonth() &&
+               fecha.getFullYear() === mañana.getFullYear();
+    }
+    
+    formatearFechaAccion(fecha) {
+        const opciones = { 
+            weekday: 'short', 
+            day: '2-digit', 
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        return fecha.toLocaleDateString('es-DO', opciones);
     }
 
     obtenerIconoTipo(tipo) {
@@ -571,6 +763,20 @@ class NotasRapidas {
         document.getElementById('notaTipo').value = nota.tipo;
         document.getElementById('notaPrioridad').value = nota.prioridad;
         document.getElementById('notaTexto').value = nota.texto;
+        
+        // Cargar fecha de acción si existe
+        if (nota.fechaAccion) {
+            // Convertir a formato datetime-local (YYYY-MM-DDTHH:MM)
+            const fecha = new Date(nota.fechaAccion);
+            const year = fecha.getFullYear();
+            const month = String(fecha.getMonth() + 1).padStart(2, '0');
+            const day = String(fecha.getDate()).padStart(2, '0');
+            const hours = String(fecha.getHours()).padStart(2, '0');
+            const minutes = String(fecha.getMinutes()).padStart(2, '0');
+            document.getElementById('notaFecha').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        } else {
+            document.getElementById('notaFecha').value = '';
+        }
 
         mostrarFormNuevaNota();
 
@@ -677,6 +883,7 @@ function cancelarNuevaNota() {
     document.getElementById('notaTipo').value = 'tardanza';
     document.getElementById('notaPrioridad').value = 'media';
     document.getElementById('notaTexto').value = '';
+    document.getElementById('notaFecha').value = ''; // Limpiar fecha
     
     if (sistemaNotas) {
         sistemaNotas.notaEditando = null;
@@ -693,6 +900,7 @@ async function guardarNota() {
     const tipo = document.getElementById('notaTipo').value;
     const prioridad = document.getElementById('notaPrioridad').value;
     const texto = document.getElementById('notaTexto').value.trim();
+    const fechaAccion = document.getElementById('notaFecha').value; // NUEVO
 
     if (!estudiante) {
         notificaciones.advertencia('Campo requerido', 'Por favor ingresa el nombre del estudiante');
@@ -721,9 +929,9 @@ async function guardarNota() {
 
     try {
         if (sistemaNotas.notaEditando) {
-            await sistemaNotas.editarNota(sistemaNotas.notaEditando, estudiante, tipo, prioridad, texto);
+            await sistemaNotas.editarNota(sistemaNotas.notaEditando, estudiante, tipo, prioridad, texto, fechaAccion);
         } else {
-            await sistemaNotas.agregarNota(estudiante, tipo, prioridad, texto);
+            await sistemaNotas.agregarNota(estudiante, tipo, prioridad, texto, fechaAccion);
         }
 
         cancelarNuevaNota();
@@ -734,6 +942,157 @@ async function guardarNota() {
         btnGuardar.classList.remove('btn-cargando');
         btnGuardar.textContent = textoOriginal;
     }
+}
+
+// ========================================
+// FUNCIONES PARA FECHAS RÁPIDAS (FASE 1)
+// ========================================
+
+function setFechaRapida(tipo) {
+    const inputFecha = document.getElementById('notaFecha');
+    if (!inputFecha) return;
+    
+    const ahora = new Date();
+    let fechaTarget = new Date();
+    
+    switch(tipo) {
+        case 'hoy':
+            // Hoy a las 5:00 PM
+            fechaTarget.setHours(17, 0, 0, 0);
+            break;
+        case 'manana':
+            // Mañana a las 9:00 AM
+            fechaTarget.setDate(fechaTarget.getDate() + 1);
+            fechaTarget.setHours(9, 0, 0, 0);
+            break;
+        case '3dias':
+            // En 3 días a las 9:00 AM
+            fechaTarget.setDate(fechaTarget.getDate() + 3);
+            fechaTarget.setHours(9, 0, 0, 0);
+            break;
+        case 'semana':
+            // Próxima semana (lunes) a las 9:00 AM
+            const diasHastaLunes = (8 - fechaTarget.getDay()) % 7 || 7;
+            fechaTarget.setDate(fechaTarget.getDate() + diasHastaLunes);
+            fechaTarget.setHours(9, 0, 0, 0);
+            break;
+        case 'limpiar':
+            inputFecha.value = '';
+            return;
+    }
+    
+    // Formatear para datetime-local (YYYY-MM-DDTHH:MM)
+    const year = fechaTarget.getFullYear();
+    const month = String(fechaTarget.getMonth() + 1).padStart(2, '0');
+    const day = String(fechaTarget.getDate()).padStart(2, '0');
+    const hours = String(fechaTarget.getHours()).padStart(2, '0');
+    const minutes = String(fechaTarget.getMinutes()).padStart(2, '0');
+    
+    inputFecha.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// ========================================
+// FUNCIONES PARA PESTAÑAS (FASE 2)
+// ========================================
+
+let tabActivaNotas = 'hoy';
+
+function cambiarTabNotas(tab) {
+    tabActivaNotas = tab;
+    
+    // Actualizar clases de pestañas
+    document.querySelectorAll('.nota-tab').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-tab') === tab) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Actualizar vista de notas
+    if (sistemaNotas) {
+        sistemaNotas.tabActiva = tab;
+        sistemaNotas.actualizarVista();
+    }
+}
+
+function actualizarContadoresPestanas() {
+    if (!sistemaNotas || !sistemaNotas.notas) return;
+    
+    const ahora = new Date();
+    ahora.setHours(0, 0, 0, 0); // Inicio del día
+    const finHoy = new Date(ahora);
+    finHoy.setHours(23, 59, 59, 999); // Fin del día
+    
+    // Contar notas por categoría
+    let countHoy = 0;
+    let countProximas = 0;
+    let countTodas = sistemaNotas.notas.length;
+    
+    sistemaNotas.notas.forEach(nota => {
+        if (nota.fechaAccion) {
+            const fechaNota = new Date(nota.fechaAccion);
+            if (fechaNota >= ahora && fechaNota <= finHoy) {
+                countHoy++;
+            } else if (fechaNota > finHoy) {
+                countProximas++;
+            }
+        }
+    });
+    
+    // Actualizar badges
+    const badgeHoy = document.getElementById('countHoy');
+    const badgeProximas = document.getElementById('countProximas');
+    const badgeTodas = document.getElementById('countTodas');
+    
+    if (badgeHoy) badgeHoy.textContent = countHoy;
+    if (badgeProximas) badgeProximas.textContent = countProximas;
+    if (badgeTodas) badgeTodas.textContent = countTodas;
+}
+
+// ========================================
+// FUNCIONES PARA NOTIFICACIÓN INICIAL (FASE 3)
+// ========================================
+
+function mostrarNotificacionNotasHoy() {
+    if (!sistemaNotas || !sistemaNotas.notas) return;
+    
+    const ahora = new Date();
+    ahora.setHours(0, 0, 0, 0);
+    const finHoy = new Date(ahora);
+    finHoy.setHours(23, 59, 59, 999);
+    
+    const notasHoy = sistemaNotas.notas.filter(nota => {
+        if (!nota.fechaAccion) return false;
+        const fechaNota = new Date(nota.fechaAccion);
+        return fechaNota >= ahora && fechaNota <= finHoy;
+    });
+    
+    if (notasHoy.length > 0) {
+        const lista = notasHoy.slice(0, 3).map(n => 
+            `• ${obtenerIconoTipo(n.tipo)} ${n.estudiante}: ${n.texto.substring(0, 40)}${n.texto.length > 40 ? '...' : ''}`
+        ).join('<br>');
+        
+        const mensaje = notasHoy.length <= 3 ? lista : 
+            `${lista}<br><em>...y ${notasHoy.length - 3} más</em>`;
+        
+        notificaciones.info(
+            `Tienes ${notasHoy.length} tarea${notasHoy.length > 1 ? 's' : ''} para hoy`,
+            mensaje,
+            6000
+        );
+    }
+}
+
+function obtenerIconoTipo(tipo) {
+    const iconos = {
+        'tardanza': '📚',
+        'incidencia': '⚠️',
+        'llamada': '📞',
+        'reunion': '👥',
+        'recordatorio': '🔔',
+        'otros': '📝'
+    };
+    return iconos[tipo] || '📝';
 }
 
 // Atajos de teclado
