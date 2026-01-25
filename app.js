@@ -3961,6 +3961,7 @@ function verDetalleReunion(index) {
     const estudiante = r['Nombre Estudiante'] || r.estudiante || '';
     const curso = r['Curso'] || r.curso || '';
     const fecha = r['Fecha y Hora'] || r.fecha || '';
+    const tipo = r['Tipo'] || r.tipo || 'Presencial';
     const padrePresente = r['Padre/Madre Presente'] || r.padrePresente || '';
     const nombrePadre = r['Nombre Padre/Madre'] || r.nombrePadre || '';
     const personal = r['Personal UGC'] || r.personal || '';
@@ -3970,6 +3971,9 @@ function verDetalleReunion(index) {
     const estado = r['Estado'] || r.estado || '';
     const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
     const observaciones = r['Observaciones'] || r.observaciones || '';
+    
+    // Icono según tipo
+    const iconoTipo = tipo === 'Llamada telefónica' ? '📞' : '🏫';
     
     // Calcular número de reunión en orden cronológico
     const reunionesEstudiante = datosReuniones
@@ -4010,6 +4014,7 @@ function verDetalleReunion(index) {
         
         <div style="background:white;padding:20px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
             <h4 style="color:#28a745;margin-bottom:15px;">📅 Reunión del ${fecha ? new Date(fecha).toLocaleDateString('es-DO') + ' - ' + new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : '-'}</h4>
+            <p><strong>Tipo:</strong> ${iconoTipo} ${tipo}</p>
             <p><strong>Estudiante:</strong> ${estudiante} (${curso})</p>
             <p><strong>Presente:</strong> ${nombrePadre || padrePresente} (${padrePresente})</p>
             <p><strong>Reunión #${numeroReunion}</strong> con este padre/madre</p>
