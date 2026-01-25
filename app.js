@@ -35,13 +35,10 @@ async function cargarDatosDesdeGoogleSheets(url) {
     console.log('Cargando datos desde:', url);
     
     try {
+        // SIMPLIFICADO: Sin headers personalizados para evitar CORS preflight
         const response = await fetch(url, {
             method: 'GET',
-            redirect: 'follow',
-            cache: 'no-cache', // Evitar cache en móviles
-            headers: {
-                'Cache-Control': 'no-cache'
-            }
+            redirect: 'follow'
         });
         
         if (response.ok) {
@@ -54,7 +51,7 @@ async function cargarDatosDesdeGoogleSheets(url) {
         }
     } catch (error) {
         console.error('Error al cargar datos:', error);
-        // Reintentar una vez en caso de error de red (común en móviles)
+        // Reintentar una vez en caso de error de red
         try {
             console.log('Reintentando carga de datos...');
             await new Promise(resolve => setTimeout(resolve, 1000)); // Esperar 1 segundo
