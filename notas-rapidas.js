@@ -1160,6 +1160,8 @@ function filtrarEstudiantesNotaRapida() {
     const sugerencias = document.getElementById('sugerenciasNotaRapida');
     const textoBusqueda = input.value.toLowerCase().trim();
     
+    console.log('🔍 filtrarEstudiantesNotaRapida ejecutándose. Búsqueda:', textoBusqueda);
+    
     // Limpiar selección previa si el usuario está escribiendo
     estudianteSeleccionadoNotaRapida = null;
     const cursoDiv = document.getElementById('cursoNotaRapida');
@@ -1172,21 +1174,28 @@ function filtrarEstudiantesNotaRapida() {
     
     // Intentar obtener estudiantes de múltiples fuentes
     let estudiantes = [];
+    let fuente = 'ninguna';
     
     // Intento 1: window.datosEstudiantes
     if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
         estudiantes = window.datosEstudiantes;
+        fuente = 'window.datosEstudiantes';
     }
     // Intento 2: variable global datosEstudiantes (sin window)
     else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
         estudiantes = datosEstudiantes;
+        fuente = 'datosEstudiantes (global)';
     }
     // Intento 3: Verificar si existe en el contexto global
     else if (typeof globalThis !== 'undefined' && globalThis.datosEstudiantes) {
         estudiantes = globalThis.datosEstudiantes;
+        fuente = 'globalThis.datosEstudiantes';
     }
     
+    console.log(`📊 Fuente: ${fuente}, Total estudiantes: ${estudiantes.length}`);
+    
     if (estudiantes.length < 10) {
+        console.log('⚠️ Pocos estudiantes, mostrando mensaje de carga');
         sugerencias.innerHTML = `
             <div class="sugerencia-item" style="color:#059669;text-align:center;padding:15px;">
                 <div style="font-size:1.2em;margin-bottom:5px;">⏳</div>
@@ -1202,6 +1211,7 @@ function filtrarEstudiantesNotaRapida() {
         setTimeout(() => {
             const inputActual = document.getElementById('notaEstudiante');
             if (inputActual && inputActual.value.toLowerCase().trim() === textoBusqueda) {
+                console.log('🔄 Reintentando filtrado...');
                 filtrarEstudiantesNotaRapida();
             }
         }, 500);
@@ -1214,6 +1224,8 @@ function filtrarEstudiantesNotaRapida() {
         const curso = (est['Curso'] || '').toLowerCase();
         return nombreCompleto.includes(textoBusqueda) || curso.includes(textoBusqueda);
     });
+    
+    console.log(`✅ Encontrados ${estudiantesFiltrados.length} estudiantes que coinciden con "${textoBusqueda}"`);
     
     if (estudiantesFiltrados.length === 0) {
         sugerencias.innerHTML = '<div class="sugerencia-item" style="color:#999;text-align:center;padding:15px;">No se encontraron estudiantes</div>';
@@ -1233,6 +1245,7 @@ function filtrarEstudiantesNotaRapida() {
         `;
     }).join('');
     
+    console.log('📝 Mostrando sugerencias en pantalla');
     sugerencias.style.display = 'block';
 }
 
@@ -1328,3 +1341,17 @@ setTimeout(() => {
 }, 2000);
 
 console.log('✅ Sistema de Notas Rápidas (Google Sheets) cargado correctamente');
+
+// Test de funciones de autocompletado
+setTimeout(() => {
+    console.log('🧪 Test de funciones de autocompletado:');
+    console.log('  typeof filtrarEstudiantesNotaRapida:', typeof filtrarEstudiantesNotaRapida);
+    console.log('  typeof mostrarSugerenciasNotaRapida:', typeof mostrarSugerenciasNotaRapida);
+    console.log('  typeof seleccionarEstudianteNotaRapida:', typeof seleccionarEstudianteNotaRapida);
+    
+    if (typeof filtrarEstudiantesNotaRapida === 'function') {
+        console.log('  ✅ Funciones de autocompletado disponibles globalmente');
+    } else {
+        console.error('  ❌ ERROR: Funciones de autocompletado NO disponibles');
+    }
+}, 100);
