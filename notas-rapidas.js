@@ -764,6 +764,22 @@ class NotasRapidas {
         document.getElementById('notaPrioridad').value = nota.prioridad;
         document.getElementById('notaTexto').value = nota.texto;
         
+        // Buscar el curso del estudiante
+        const estudiante = datosEstudiantes.find(est => {
+            const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
+            return nombreCompleto.toLowerCase() === nota.estudiante.toLowerCase();
+        });
+        
+        if (estudiante && estudiante['Curso']) {
+            const cursoDiv = document.getElementById('cursoNotaRapida');
+            cursoDiv.textContent = `📚 ${estudiante['Curso']}`;
+            cursoDiv.style.display = 'block';
+            estudianteSeleccionadoNotaRapida = { 
+                nombre: nota.estudiante, 
+                curso: estudiante['Curso'] 
+            };
+        }
+        
         // Cargar fecha de acción si existe
         if (nota.fechaAccion) {
             // Convertir a formato datetime-local (YYYY-MM-DDTHH:MM)
@@ -884,6 +900,11 @@ function cancelarNuevaNota() {
     document.getElementById('notaPrioridad').value = 'media';
     document.getElementById('notaTexto').value = '';
     document.getElementById('notaFecha').value = ''; // Limpiar fecha
+    
+    // Limpiar curso y sugerencias
+    document.getElementById('cursoNotaRapida').style.display = 'none';
+    document.getElementById('sugerenciasNotaRapida').style.display = 'none';
+    estudianteSeleccionadoNotaRapida = null;
     
     if (sistemaNotas) {
         sistemaNotas.notaEditando = null;
@@ -1112,6 +1133,87 @@ document.addEventListener('keydown', function(e) {
         } else {
             closeNotasPanel();
         }
+    }
+});
+
+// ========================================
+// AUTOCOMPLETADO DE ESTUDIANTES - NOTAS RÁPIDAS
+// ========================================
+
+let estudianteSeleccionadoNotaRapida = null;
+
+function filtrarEstudiantesNotaRapida() {
+    const input = document.getElementById('notaEstudiante');
+    const sugerencias = document.getElementById('sugerenciasNotaRapida');
+    const textoBusqueda = input.value.toLowerCase().trim();
+    
+    // Limpiar selección previa si el usuario está escribiendo
+    estudianteSeleccionadoNotaRapida = null;
+    document.getElementById('cursoNotaRapida').style.display = 'none';
+    
+    if (textoBusqueda.length < 2) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    // Filtrar estudiantes
+    const estudiantesFiltrados = datosEstudiantes.filter(est => {
+        const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`.toLowerCase();
+        const curso = (est['Curso'] || '').toLowerCase();
+        return nombreCompleto.includes(textoBusqueda) || curso.includes(textoBusqueda);
+    });
+    
+    if (estudiantesFiltrados.length === 0) {
+        sugerencias.style.display = 'none';
+        return;
+    }
+    
+    // Mostrar sugerencias
+    sugerencias.innerHTML = estudiantesFiltrados.slice(0, 10).map(est => {
+        const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
+        const curso = est['Curso'] || '';
+        return `
+            <div class="sugerencia-item" onclick="seleccionarEstudianteNotaRapida('${nombreCompleto.replace(/'/g, "\\'")}', '${curso}')">
+                <div style="font-weight:600;">${nombreCompleto}</div>
+                <div style="font-size:0.85em;color:#666;">${curso}</div>
+            </div>
+        `;
+    }).join('');
+    
+    sugerencias.style.display = 'block';
+}
+
+function mostrarSugerenciasNotaRapida() {
+    const input = document.getElementById('notaEstudiante');
+    if (input.value.length >= 2) {
+        filtrarEstudiantesNotaRapida();
+    }
+}
+
+function seleccionarEstudianteNotaRapida(nombre, curso) {
+    const input = document.getElementById('notaEstudiante');
+    const sugerencias = document.getElementById('sugerenciasNotaRapida');
+    const cursoDiv = document.getElementById('cursoNotaRapida');
+    
+    input.value = nombre;
+    estudianteSeleccionadoNotaRapida = { nombre, curso };
+    
+    // Mostrar el curso debajo del input
+    if (curso) {
+        cursoDiv.textContent = `📚 ${curso}`;
+        cursoDiv.style.display = 'block';
+    }
+    
+    sugerencias.style.display = 'none';
+}
+
+// Cerrar sugerencias al hacer click fuera
+document.addEventListener('click', function(e) {
+    const sugerencias = document.getElementById('sugerenciasNotaRapida');
+    const input = document.getElementById('notaEstudiante');
+    
+    if (sugerencias && input && e.target !== input && !sugerencias.contains(e.target)) {
+        sugerencias.style.display = 'none';
     }
 });
 
