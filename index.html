@@ -1572,6 +1572,88 @@
             background: #4b5563;
         }
 
+        /* Pestañas de filtrado */
+        .notas-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+            padding: 0 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .nota-tab {
+            flex: 1;
+            padding: 10px 15px;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 0.9em;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .nota-tab:hover {
+            color: #059669;
+            background: #f0fdf4;
+        }
+
+        .nota-tab.active {
+            color: #059669;
+            border-bottom-color: #059669;
+        }
+
+        .tab-count {
+            display: inline-block;
+            background: #e5e7eb;
+            color: #374151;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 5px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .nota-tab.active .tab-count {
+            background: #059669;
+            color: white;
+        }
+
+        /* Botones de fecha rápida */
+        .btn-fecha-rapida {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 6px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-fecha-rapida:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .btn-fecha-rapida:active {
+            background: #e5e7eb;
+        }
+
+        /* Notas vencidas */
+        .nota-vencida {
+            border-left: 4px solid #dc2626 !important;
+            background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%) !important;
+        }
+
+        .nota-vencida .nota-header-item {
+            border-bottom: 2px solid #fecaca;
+        }
+
         /* Responsive para tablets y móviles */
         @media (max-width: 768px) {
             .regimen-panel {
@@ -1880,6 +1962,19 @@
             ➕ Nueva Nota
         </button>
 
+        <!-- Pestañas de filtrado -->
+        <div class="notas-tabs" id="notasTabs">
+            <button class="nota-tab active" onclick="cambiarTabNotas('hoy')" data-tab="hoy">
+                🔥 Hoy <span class="tab-count" id="countHoy">0</span>
+            </button>
+            <button class="nota-tab" onclick="cambiarTabNotas('proximas')" data-tab="proximas">
+                📅 Próximas <span class="tab-count" id="countProximas">0</span>
+            </button>
+            <button class="nota-tab" onclick="cambiarTabNotas('todas')" data-tab="todas">
+                📋 Todas <span class="tab-count" id="countTodas">0</span>
+            </button>
+        </div>
+
         <!-- Formulario Nueva Nota (inicialmente oculto) -->
         <div class="form-nueva-nota oculto" id="formNuevaNota">
             <h3>✨ Nueva Nota Rápida</h3>
@@ -1905,6 +2000,20 @@
                     <option value="alta">🔴 Alta</option>
                     <option value="baja">🟢 Baja</option>
                 </select>
+            </div>
+            <div class="form-group-nota">
+                <label>📅 Fecha de Acción (Opcional):</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('hoy')">Hoy</button>
+                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('manana')">Mañana</button>
+                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('3dias')">En 3 días</button>
+                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('semana')">Prox. semana</button>
+                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('limpiar')" style="background:#dc3545;">✕ Sin fecha</button>
+                </div>
+                <input type="datetime-local" id="notaFecha" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
+                <small style="color:#666;font-size:0.85em;display:block;margin-top:4px;">
+                    Deja vacío si no tiene fecha específica
+                </small>
             </div>
             <div class="form-group-nota">
                 <label>📝 Nota:</label>
