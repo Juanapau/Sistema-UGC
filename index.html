@@ -1668,6 +1668,22 @@
             border-bottom: 2px solid #fecaca;
         }
 
+        /* Sugerencias de autocompletado */
+        .sugerencia-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .sugerencia-item:last-child {
+            border-bottom: none;
+        }
+
+        .sugerencia-item:hover {
+            background: #f0fdf4;
+        }
+
         /* Responsive para tablets y móviles */
         @media (max-width: 768px) {
             .regimen-panel {
@@ -1994,9 +2010,16 @@
             <!-- Formulario Nueva Nota (inicialmente oculto) -->
         <div class="form-nueva-nota oculto" id="formNuevaNota">
             <h3>✨ Nueva Nota Rápida</h3>
-            <div class="form-group-nota">
+            <div class="form-group-nota" style="position:relative;">
                 <label>👤 Estudiante:</label>
-                <input type="text" id="notaEstudiante" placeholder="Nombre del estudiante">
+                <input type="text" 
+                       id="notaEstudiante" 
+                       placeholder="Nombre del estudiante"
+                       autocomplete="off"
+                       oninput="filtrarEstudiantesNotaRapida()"
+                       onfocus="mostrarSugerenciasNotaRapida()">
+                <div id="sugerenciasNotaRapida" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:calc(100% - 30px);box-shadow:0 2px 8px rgba(0,0,0,0.1);border-radius:6px;margin-top:2px;"></div>
+                <div id="cursoNotaRapida" style="font-size:0.85em;color:#059669;margin-top:4px;font-weight:600;display:none;"></div>
             </div>
             <div class="form-group-nota">
                 <label>📂 Tipo:</label>
