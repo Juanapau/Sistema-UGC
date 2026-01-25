@@ -764,9 +764,11 @@ class NotasRapidas {
         document.getElementById('notaPrioridad').value = nota.prioridad;
         document.getElementById('notaTexto').value = nota.texto;
         
-        // Buscar el curso del estudiante (solo si datosEstudiantes está disponible)
-        if (typeof datosEstudiantes !== 'undefined' && datosEstudiantes && datosEstudiantes.length > 0) {
-            const estudiante = datosEstudiantes.find(est => {
+        // Buscar el curso del estudiante usando window.datosEstudiantes
+        const estudiantes = window.datosEstudiantes || [];
+        
+        if (estudiantes.length > 0) {
+            const estudiante = estudiantes.find(est => {
                 const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
                 return nombreCompleto.toLowerCase() === nota.estudiante.toLowerCase();
             });
@@ -1161,30 +1163,33 @@ function filtrarEstudiantesNotaRapida() {
         return;
     }
     
-    // Verificar que datosEstudiantes exista y tenga datos suficientes (>10 es señal de que ya cargó)
-    if (typeof datosEstudiantes === 'undefined' || !datosEstudiantes || datosEstudiantes.length < 10) {
+    // VERIFICACIÓN DINÁMICA: Obtener datosEstudiantes en tiempo real
+    const estudiantes = window.datosEstudiantes || [];
+    
+    if (estudiantes.length < 10) {
         sugerencias.innerHTML = `
             <div class="sugerencia-item" style="color:#059669;text-align:center;padding:15px;">
                 <div style="font-size:1.2em;margin-bottom:5px;">⏳</div>
                 <div>Cargando estudiantes...</div>
                 <div style="font-size:0.85em;margin-top:5px;color:#666;">
-                    (${datosEstudiantes ? datosEstudiantes.length : 0} de ~400 cargados)
+                    ${estudiantes.length} de ~400 cargados
                 </div>
             </div>
         `;
         sugerencias.style.display = 'block';
         
-        // Reintentar después de 1 segundo
+        // Reintentar después de 500ms
         setTimeout(() => {
-            if (document.getElementById('notaEstudiante').value.toLowerCase().trim() === textoBusqueda) {
+            const inputActual = document.getElementById('notaEstudiante');
+            if (inputActual && inputActual.value.toLowerCase().trim() === textoBusqueda) {
                 filtrarEstudiantesNotaRapida();
             }
-        }, 1000);
+        }, 500);
         return;
     }
     
     // Filtrar estudiantes
-    const estudiantesFiltrados = datosEstudiantes.filter(est => {
+    const estudiantesFiltrados = estudiantes.filter(est => {
         const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`.toLowerCase();
         const curso = (est['Curso'] || '').toLowerCase();
         return nombreCompleto.includes(textoBusqueda) || curso.includes(textoBusqueda);
@@ -1250,30 +1255,33 @@ setTimeout(() => {
     const input = document.getElementById('notaEstudiante');
     const sugerencias = document.getElementById('sugerenciasNotaRapida');
     const curso = document.getElementById('cursoNotaRapida');
+    const estudiantes = window.datosEstudiantes || [];
     
     console.log('🔍 Diagnóstico Autocompletado Notas Rápidas:');
     console.log('  Input estudiante:', input ? '✅ OK' : '❌ NO ENCONTRADO');
     console.log('  Div sugerencias:', sugerencias ? '✅ OK' : '❌ NO ENCONTRADO');
     console.log('  Div curso:', curso ? '✅ OK' : '❌ NO ENCONTRADO');
     
-    if (typeof datosEstudiantes !== 'undefined' && datosEstudiantes) {
-        const total = datosEstudiantes.length;
-        if (total < 10) {
-            console.log(`  datosEstudiantes: ⚠️ Solo ${total} estudiantes (esperando más...)`);
-        } else if (total < 100) {
-            console.log(`  datosEstudiantes: ⏳ ${total} estudiantes cargados (cargando más...)`);
-        } else {
-            console.log(`  datosEstudiantes: ✅ ${total} estudiantes cargados`);
-        }
+    const total = estudiantes.length;
+    if (total === 0) {
+        console.log('  datosEstudiantes: ❌ NO DISPONIBLE (0 estudiantes)');
+    } else if (total < 10) {
+        console.log(`  datosEstudiantes: ⚠️ Solo ${total} estudiantes (esperando más...)`);
+    } else if (total < 100) {
+        console.log(`  datosEstudiantes: ⏳ ${total} estudiantes cargados (cargando más...)`);
     } else {
-        console.log('  datosEstudiantes: ❌ NO DISPONIBLE');
+        console.log(`  datosEstudiantes: ✅ ${total} estudiantes cargados - LISTO PARA USAR`);
     }
     
     // Verificar de nuevo después de 3 segundos si aún no hay suficientes datos
-    if (typeof datosEstudiantes !== 'undefined' && datosEstudiantes && datosEstudiantes.length < 100) {
+    if (total < 100) {
         setTimeout(() => {
-            const totalFinal = datosEstudiantes ? datosEstudiantes.length : 0;
+            const estudiantesFinal = window.datosEstudiantes || [];
+            const totalFinal = estudiantesFinal.length;
             console.log(`📊 Actualización: ${totalFinal} estudiantes ahora disponibles`);
+            if (totalFinal >= 100) {
+                console.log('✅ Autocompletado LISTO para usarse');
+            }
         }, 3000);
     }
 }, 2000);
