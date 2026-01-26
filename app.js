@@ -250,21 +250,6 @@ function crearModalIncidencias() {
         <div class="modal-body">
             <div class="alert alert-success" id="alertIncidencias" style="display:none;"></div>
             
-            <!-- INSTRUCCIONES -->
-            <div style="background:#f0fdf4;border-left:4px solid #059669;padding:15px 20px;margin-bottom:25px;border-radius:8px;">
-                <div style="display:flex;align-items:start;gap:12px;">
-                    <div style="font-size:1.5em;color:#059669;">💡</div>
-                    <div style="flex:1;">
-                        <strong style="color:#059669;display:block;margin-bottom:8px;">Instrucciones:</strong>
-                        <ul style="margin:0;padding-left:20px;line-height:1.8;color:#065f46;">
-                            <li>Complete todos los campos marcados con <span style="color:#dc2626;font-weight:bold;">*</span></li>
-                            <li>Al escribir el <strong>nombre del estudiante</strong>, verá sugerencias automáticas</li>
-                            <li>Seleccione el nombre correcto y el <strong>curso se completará automáticamente</strong></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
             <h3>Nueva Incidencia</h3>
             <form id="formIncidencia" onsubmit="registrarIncidencia(event)">
                 <div class="form-row">
