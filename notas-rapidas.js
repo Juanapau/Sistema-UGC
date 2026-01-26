@@ -596,17 +596,33 @@ class NotasRapidas {
             ${fechaAccionHTML}
             <div class="nota-fecha">🕐 Creada ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
             <div class="nota-acciones">
-                <button class="nota-btn nota-btn-registrar" onclick="sistemaNotas.registrarIncidencia('${nota.id}')">
+                <button class="nota-btn nota-btn-registrar" data-nota-id="${nota.id}" data-accion="registrar">
                     📋 Registrar
                 </button>
-                <button class="nota-btn nota-btn-editar" onclick="sistemaNotas.iniciarEdicion('${nota.id}')">
+                <button class="nota-btn nota-btn-editar" data-nota-id="${nota.id}" data-accion="editar">
                     ✏️ Editar
                 </button>
-                <button class="nota-btn nota-btn-borrar" onclick="sistemaNotas.confirmarEliminar('${nota.id}')">
+                <button class="nota-btn nota-btn-borrar" data-nota-id="${nota.id}" data-accion="borrar">
                     🗑️ Borrar
                 </button>
             </div>
         `;
+        
+        // Agregar event listeners a los botones
+        const btnRegistrar = div.querySelector('[data-accion="registrar"]');
+        const btnEditar = div.querySelector('[data-accion="editar"]');
+        const btnBorrar = div.querySelector('[data-accion="borrar"]');
+        
+        if (btnRegistrar) {
+            btnRegistrar.addEventListener('click', () => this.registrarIncidencia(nota.id));
+        }
+        if (btnEditar) {
+            btnEditar.addEventListener('click', () => this.iniciarEdicion(nota.id));
+        }
+        if (btnBorrar) {
+            btnBorrar.addEventListener('click', () => this.confirmarEliminar(nota.id));
+        }
+        
         return div;
     }
     
