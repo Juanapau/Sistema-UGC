@@ -12,6 +12,112 @@
             box-sizing: border-box;
         }
 
+        /* MODO OSCURO - Variables y estilos base */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        body.dark-mode header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        body.dark-mode .card {
+            background: #1e293b;
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+
+        body.dark-mode .card h3 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .modal-content {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .modal-header {
+            border-bottom-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background: #0f172a;
+            color: #f1f5f9;
+            border-color: #334155;
+        }
+
+        body.dark-mode input:focus,
+        body.dark-mode select:focus,
+        body.dark-mode textarea:focus {
+            border-color: #10b981;
+        }
+
+        body.dark-mode table {
+            background: #1e293b;
+        }
+
+        body.dark-mode th {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode td {
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode tr:hover {
+            background: #334155;
+        }
+
+        body.dark-mode .btn {
+            color: white;
+        }
+
+        /* VISTA COMPACTA */
+        body.vista-compacta .card {
+            padding: 15px;
+        }
+
+        body.vista-compacta .form-group {
+            margin-bottom: 10px;
+        }
+
+        body.vista-compacta .modal-body {
+            padding: 15px;
+        }
+
+        body.vista-compacta header {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        body.vista-compacta header h1 {
+            font-size: 2em;
+        }
+
+        body.vista-compacta .grid {
+            gap: 15px;
+        }
+
+        body.vista-compacta table {
+            font-size: 0.9em;
+        }
+
+        body.vista-compacta th,
+        body.vista-compacta td {
+            padding: 8px;
+        }
+
+        /* SIN ANIMACIONES */
+        body.sin-animaciones * {
+            animation: none !important;
+            transition: none !important;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
