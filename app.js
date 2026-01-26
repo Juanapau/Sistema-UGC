@@ -2,14 +2,14 @@
 // SISTEMA DE GESTIÓN DE CONVIVENCIA CENSA
 // ========================================
 
-// Configuración global
+// 👉 CONFIGURACIÓN DE URLs - Cambia aquí las URLs de Google Sheets si es necesario
 let CONFIG = {
-    urlIncidencias: '',
-    urlTardanzas: '',
-    urlContactos: '',
-    urlEstudiantes: '',
-    urlReuniones: '',
-    urlNotasRapidas: ''
+    👉 urlIncidencias: 'https://script.google.com/macros/s/AKfycbwnCHIHNum-8uCHLbuE5NvwJeVmVMF6hCLWOAQQRUOwsU5GK_vpkrxifDFlMat1tP-z/exec',
+    👉 urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
+    👉 urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
+    👉 urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
+    👉 urlReuniones: 'https://script.google.com/macros/s/AKfycbxjky9LnAAqElohVjgLESUA2nh-ICXYWNDMGkVfGjwVEb1tc0HQAtg-sayrFMXH788aLA/exec',
+    👉 urlNotasRapidas: 'https://script.google.com/macros/s/AKfycbz-Dka2Nj27ArjgQhR72s5wl8AohebgppDmnWux4rnLrEG5zQyOco9uwxlJqgAzJtW17Q/exec'
 };
 
 // Almacenamiento de datos local
@@ -243,6 +243,21 @@ function crearModalIncidencias() {
         </div>
         <div class="modal-body">
             <div class="alert alert-success" id="alertIncidencias" style="display:none;"></div>
+            
+            <!-- INSTRUCCIONES -->
+            <div style="background:#f0fdf4;border-left:4px solid #059669;padding:15px 20px;margin-bottom:25px;border-radius:8px;">
+                <div style="display:flex;align-items:start;gap:12px;">
+                    <div style="font-size:1.5em;color:#059669;">💡</div>
+                    <div style="flex:1;">
+                        <strong style="color:#059669;display:block;margin-bottom:8px;">Instrucciones:</strong>
+                        <ul style="margin:0;padding-left:20px;line-height:1.8;color:#065f46;">
+                            <li>Complete todos los campos marcados con <span style="color:#dc2626;font-weight:bold;">*</span></li>
+                            <li>Al escribir el <strong>nombre del estudiante</strong>, verá sugerencias automáticas</li>
+                            <li>Seleccione el nombre correcto y el <strong>curso se completará automáticamente</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
             
             <h3>Nueva Incidencia</h3>
             <form id="formIncidencia" onsubmit="registrarIncidencia(event)">
@@ -2361,8 +2376,22 @@ function crearModalConfiguracion() {
             <div id="tabConexion" class="config-tab-content">
                 <div class="config-section">
                     <h3>🔗 URLs de Google Sheets</h3>
+                    
+                    <!-- NOTA INFORMATIVA -->
+                    <div style="background:#dbeafe;border-left:4px solid #3b82f6;padding:15px 20px;margin-bottom:20px;border-radius:8px;">
+                        <div style="display:flex;align-items:start;gap:12px;">
+                            <div style="font-size:1.3em;color:#3b82f6;">ℹ️</div>
+                            <div style="flex:1;">
+                                <strong style="color:#1e40af;display:block;margin-bottom:5px;">URLs Pre-configuradas</strong>
+                                <p style="color:#1e3a8a;font-size:0.9em;margin:0;line-height:1.6;">
+                                    Las URLs ya están configuradas en el código. El sistema funciona automáticamente en cualquier dispositivo sin necesidad de configuración adicional.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <p style="color:#666;font-size:0.9em;margin-bottom:20px;">
-                        Configura las URLs de tus hojas de Google Sheets para conectar el sistema
+                        Puedes ver o actualizar las URLs de tus hojas de Google Sheets
                     </p>
                     
                     <form id="formConfig" onsubmit="guardarConfig(event)">
