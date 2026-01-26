@@ -172,6 +172,21 @@ if (document.readyState === 'loading') {
 // Backup con window.onload
 window.addEventListener('load', function() {
     console.log('Window load event');
+    
+    // Aplicar tema guardado
+    const temaGuardado = localStorage.getItem('censaTema') || 'claro';
+    aplicarTema(temaGuardado);
+    
+    // Aplicar vista compacta si está activada
+    if (localStorage.getItem('censaVistaCompacta') === 'true') {
+        document.body.classList.add('vista-compacta');
+    }
+    
+    // Aplicar preferencia de animaciones
+    if (localStorage.getItem('censaAnimaciones') === 'false') {
+        document.body.classList.add('sin-animaciones');
+    }
+    
     if (!CONFIG.urlIncidencias && !CONFIG.urlTardanzas) {
         inicializarSistema();
     }
@@ -2252,94 +2267,734 @@ function crearModalReuniones() {
 // MODAL CONFIGURACIÓN
 // ==================
 function crearModalConfiguracion() {
+    // Obtener tema actual
+    const temaActual = localStorage.getItem('censaTema') || 'claro';
+    const compactoActual = localStorage.getItem('censaVistaCom pacta') === 'true';
+    const animacionesActual = localStorage.getItem('censaAnimaciones') !== 'false';
+    
     const html = `
 <div id="modalConfiguracion" class="modal" style="display:block;">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:900px;">
         <div class="modal-header">
-            <h2>⚙️ Configuración</h2>
+            <h2>⚙️ Configuración del Sistema</h2>
             <span class="close" onclick="closeModal('modalConfiguracion')">&times;</span>
         </div>
         <div class="modal-body">
             <div class="alert alert-success" id="alertConfig" style="display:none;"></div>
             
-            <div class="config-section">
-                <h3>🔗 Conexión con Google Sheets</h3>
-                <p>Siga estos pasos para conectar el sistema:</p>
+            <!-- PESTAÑAS DE CONFIGURACIÓN -->
+            <div class="config-tabs">
+                <button class="config-tab active" onclick="cambiarTabConfig('general')">
+                    🎨 Apariencia
+                </button>
+                <button class="config-tab" onclick="cambiarTabConfig('conexion')">
+                    🔗 Conexión
+                </button>
+                <button class="config-tab" onclick="cambiarTabConfig('sistema')">
+                    ℹ️ Sistema
+                </button>
+            </div>
+            
+            <!-- TAB: APARIENCIA -->
+            <div id="tabGeneral" class="config-tab-content active">
+                <div class="config-section">
+                    <h3>🌓 Tema del Sistema</h3>
+                    <p style="color:#666;font-size:0.9em;margin-bottom:20px;">Personaliza la apariencia visual del sistema</p>
+                    
+                    <div class="theme-selector">
+                        <div class="theme-option ${temaActual === 'claro' ? 'selected' : ''}" onclick="cambiarTema('claro')">
+                            <div class="theme-preview theme-light">
+                                <div class="preview-header"></div>
+                                <div class="preview-body">
+                                    <div class="preview-line"></div>
+                                    <div class="preview-line short"></div>
+                                </div>
+                            </div>
+                            <div class="theme-name">☀️ Modo Claro</div>
+                            <div class="theme-check">✓</div>
+                        </div>
+                        
+                        <div class="theme-option ${temaActual === 'oscuro' ? 'selected' : ''}" onclick="cambiarTema('oscuro')">
+                            <div class="theme-preview theme-dark">
+                                <div class="preview-header"></div>
+                                <div class="preview-body">
+                                    <div class="preview-line"></div>
+                                    <div class="preview-line short"></div>
+                                </div>
+                            </div>
+                            <div class="theme-name">🌙 Modo Oscuro</div>
+                            <div class="theme-check">✓</div>
+                        </div>
+                    </div>
+                </div>
                 
-                <h4>Paso 1: Crear Google Sheets</h4>
-                <p>Cree 4 hojas de cálculo en Google Sheets con los siguientes nombres:</p>
-                <ul style="line-height:2;">
-                    <li>Incidencias</li>
-                    <li>Tardanzas</li>
-                    <li>Contactos</li>
-                    <li>Estudiantes</li>
-                </ul>
+                <hr style="margin:30px 0;border:none;border-top:1px solid #e5e7eb;">
                 
-                <h4>Paso 2: Apps Script</h4>
-                <p>En cada hoja, vaya a <strong>Extensiones → Apps Script</strong> y pegue el siguiente código:</p>
-                <textarea readonly style="width:100%;height:200px;font-family:monospace;padding:10px;background:#f5f5f5;border-radius:8px;">
-function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  var row = [];
-  for (var key in data) { row.push(data[key]); }
-  sheet.appendRow(row);
-  return ContentService.createTextOutput(JSON.stringify({result: 'success'}))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = sheet.getDataRange().getValues();
-  var jsonData = [];
-  var headers = data[0];
-  for (var i = 1; i < data.length; i++) {
-    var row = {};
-    for (var j = 0; j < headers.length; j++) {
-      row[headers[j]] = data[i][j];
-    }
-    jsonData.push(row);
-  }
-  return ContentService.createTextOutput(JSON.stringify(jsonData))
-    .setMimeType(ContentService.MimeType.JSON);
-}</textarea>
-                
-                <h4>Paso 3: Implementar</h4>
-                <p>Click en <strong>Implementar → Nueva implementación</strong>, seleccione <strong>Aplicación web</strong>, configure acceso como <strong>Cualquier persona</strong>, y copie la URL generada.</p>
-                
-                <h4>Paso 4: Configurar URLs</h4>
-                <form id="formConfig" onsubmit="guardarConfig(event)">
-                    <div class="form-group">
-                        <label>URL Incidencias</label>
-                        <input type="url" id="urlInc" value="${CONFIG.urlIncidencias}">
+                <div class="config-section">
+                    <h3>🎯 Preferencias de Visualización</h3>
+                    
+                    <div class="config-option">
+                        <div class="option-info">
+                            <div class="option-title">Vista Compacta</div>
+                            <div class="option-desc">Reduce el espaciado para mostrar más información</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="vistaCompacta" ${compactoActual ? 'checked' : ''} onchange="toggleVistaCompacta()">
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <div class="form-group">
-                        <label>URL Tardanzas</label>
-                        <input type="url" id="urlTard" value="${CONFIG.urlTardanzas}">
+                    
+                    <div class="config-option">
+                        <div class="option-info">
+                            <div class="option-title">Animaciones</div>
+                            <div class="option-desc">Transiciones y efectos visuales suaves</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="animaciones" ${animacionesActual ? 'checked' : ''} onchange="toggleAnimaciones()">
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <div class="form-group">
-                        <label>URL Contactos</label>
-                        <input type="url" id="urlCont" value="${CONFIG.urlContactos}">
+                </div>
+            </div>
+            
+            <!-- TAB: CONEXIÓN -->
+            <div id="tabConexion" class="config-tab-content">
+                <div class="config-section">
+                    <h3>🔗 URLs de Google Sheets</h3>
+                    <p style="color:#666;font-size:0.9em;margin-bottom:20px;">
+                        Configura las URLs de tus hojas de Google Sheets para conectar el sistema
+                    </p>
+                    
+                    <form id="formConfig" onsubmit="guardarConfig(event)">
+                        <div class="url-grid">
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">📋</span>
+                                    <span class="label-text">Incidencias</span>
+                                </label>
+                                <input type="url" id="urlInc" value="${CONFIG.urlIncidencias || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">⏰</span>
+                                    <span class="label-text">Tardanzas</span>
+                                </label>
+                                <input type="url" id="urlTard" value="${CONFIG.urlTardanzas || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">👥</span>
+                                    <span class="label-text">Estudiantes</span>
+                                </label>
+                                <input type="url" id="urlEst" value="${CONFIG.urlEstudiantes || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">📞</span>
+                                    <span class="label-text">Contactos</span>
+                                </label>
+                                <input type="url" id="urlCont" value="${CONFIG.urlContactos || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">👨‍👩‍👧</span>
+                                    <span class="label-text">Reuniones</span>
+                                </label>
+                                <input type="url" id="urlReun" value="${CONFIG.urlReuniones || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">📝</span>
+                                    <span class="label-text">Notas Rápidas</span>
+                                </label>
+                                <input type="url" id="urlNotas" value="${CONFIG.urlNotasRapidas || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top:30px;display:flex;gap:10px;">
+                            <button type="submit" class="btn btn-success" style="flex:1;">
+                                💾 Guardar Configuración
+                            </button>
+                            <button type="button" class="btn" onclick="probarConexiones()" style="background:#3b82f6;color:white;">
+                                🔍 Probar Conexiones
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- TAB: SISTEMA -->
+            <div id="tabSistema" class="config-tab-content">
+                <div class="config-section">
+                    <h3>ℹ️ Información del Sistema</h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Versión</div>
+                            <div class="info-value">2.0.0</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Última actualización</div>
+                            <div class="info-value">Enero 2026</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Módulos activos</div>
+                            <div class="info-value">7</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Navegador</div>
+                            <div class="info-value" id="infoBrowser">-</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>URL Estudiantes</label>
-                        <input type="url" id="urlEst" value="${CONFIG.urlEstudiantes}">
+                    
+                    <hr style="margin:30px 0;border:none;border-top:1px solid #e5e7eb;">
+                    
+                    <h3>🗑️ Gestión de Datos</h3>
+                    <div class="danger-zone">
+                        <div class="danger-warning">
+                            <strong>⚠️ Zona de peligro</strong>
+                            <p>Estas acciones no se pueden deshacer</p>
+                        </div>
+                        <button class="btn btn-danger" onclick="limpiarCacheSistema()">
+                            🗑️ Limpiar Caché del Sistema
+                        </button>
+                        <button class="btn btn-danger" onclick="resetearConfiguracion()">
+                            ↺ Resetear Configuración
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>URL Reuniones</label>
-                        <input type="url" id="urlReun" value="${CONFIG.urlReuniones}">
-                    </div>
-                    <div class="form-group">
-                        <label>URL Notas Rápidas</label>
-                        <input type="url" id="urlNotas" value="${CONFIG.urlNotasRapidas}">
-                    </div>
-                    <button type="submit" class="btn btn-success">💾 Guardar</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-</div>`;
+</div>
+
+<style>
+/* PESTAÑAS */
+.config-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.config-tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.3s;
+}
+
+.config-tab:hover {
+    color: #059669;
+    background: #f0fdf4;
+}
+
+.config-tab.active {
+    color: #059669;
+    border-bottom-color: #059669;
+}
+
+.config-tab-content {
+    display: none;
+}
+
+.config-tab-content.active {
+    display: block;
+}
+
+/* SELECTOR DE TEMA */
+.theme-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.theme-option {
+    border: 3px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.theme-option:hover {
+    border-color: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);
+}
+
+.theme-option.selected {
+    border-color: #059669;
+    background: #f0fdf4;
+}
+
+.theme-preview {
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.theme-light {
+    background: white;
+}
+
+.theme-dark {
+    background: #1f2937;
+}
+
+.preview-header {
+    height: 30px;
+    background: #059669;
+}
+
+.theme-dark .preview-header {
+    background: #047857;
+}
+
+.preview-body {
+    padding: 15px;
+}
+
+.preview-line {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.theme-dark .preview-line {
+    background: #374151;
+}
+
+.preview-line.short {
+    width: 60%;
+}
+
+.theme-name {
+    font-weight: 600;
+    text-align: center;
+    color: #374151;
+}
+
+.theme-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    background: #059669;
+    color: white;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.theme-option.selected .theme-check {
+    display: flex;
+}
+
+/* OPCIONES CON SWITCH */
+.config-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.option-info {
+    flex: 1;
+}
+
+.option-title {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.option-desc {
+    font-size: 0.85em;
+    color: #6b7280;
+}
+
+/* SWITCH TOGGLE */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 26px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #059669;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+/* GRID DE URLs */
+.url-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.url-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.url-input-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.label-icon {
+    font-size: 1.2em;
+}
+
+.url-input-group input {
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9em;
+    transition: all 0.3s;
+}
+
+.url-input-group input:focus {
+    border-color: #059669;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* INFO GRID */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.info-item {
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border-left: 4px solid #059669;
+}
+
+.info-label {
+    font-size: 0.85em;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.info-value {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* ZONA DE PELIGRO */
+.danger-zone {
+    padding: 20px;
+    border: 2px solid #fecaca;
+    border-radius: 8px;
+    background: #fef2f2;
+}
+
+.danger-warning {
+    margin-bottom: 20px;
+}
+
+.danger-warning strong {
+    color: #dc2626;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.danger-warning p {
+    color: #991b1b;
+    font-size: 0.9em;
+    margin: 0;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+/* MODO OSCURO */
+body.dark-mode {
+    background: #111827;
+    color: #f3f4f6;
+}
+
+body.dark-mode .modal-content {
+    background: #1f2937;
+    color: #f3f4f6;
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: #374151;
+}
+
+body.dark-mode .config-tab {
+    color: #9ca3af;
+}
+
+body.dark-mode .config-tab:hover {
+    background: #374151;
+    color: #10b981;
+}
+
+body.dark-mode .config-tab.active {
+    color: #10b981;
+}
+
+body.dark-mode .config-tabs {
+    border-bottom-color: #374151;
+}
+
+body.dark-mode .theme-option {
+    border-color: #374151;
+    background: #111827;
+}
+
+body.dark-mode .theme-option:hover {
+    border-color: #10b981;
+}
+
+body.dark-mode .theme-option.selected {
+    background: #064e3b;
+    border-color: #10b981;
+}
+
+body.dark-mode .config-option {
+    border-color: #374151;
+    background: #111827;
+}
+
+body.dark-mode .option-title {
+    color: #f3f4f6;
+}
+
+body.dark-mode .url-input-group input {
+    background: #111827;
+    border-color: #374151;
+    color: #f3f4f6;
+}
+
+body.dark-mode .info-item {
+    background: #111827;
+    border-left-color: #10b981;
+}
+
+body.dark-mode .info-value {
+    color: #f3f4f6;
+}
+
+body.dark-mode .card {
+    background: #1f2937;
+    color: #f3f4f6;
+}
+
+body.dark-mode .modal {
+    background: rgba(0, 0, 0, 0.8);
+}
+</style>`;
+
     document.getElementById('modalContainer').innerHTML = html;
+    
+    // Detectar navegador
+    const browser = detectarNavegador();
+    document.getElementById('infoBrowser').textContent = browser;
+    
+    // Aplicar tema actual
+    aplicarTema(temaActual);
+}
+
+// Funciones de configuración
+function cambiarTabConfig(tab) {
+    // Desactivar todas las tabs
+    document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.config-tab-content').forEach(c => c.classList.remove('active'));
+    
+    // Activar tab seleccionada
+    event.target.classList.add('active');
+    document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+}
+
+function cambiarTema(tema) {
+    localStorage.setItem('censaTema', tema);
+    aplicarTema(tema);
+    
+    // Actualizar UI
+    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    
+    mostrarAlerta('alertConfig', `✅ Tema ${tema} activado`);
+}
+
+function aplicarTema(tema) {
+    if (tema === 'oscuro') {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+}
+
+function toggleVistaCompacta() {
+    const activo = document.getElementById('vistaCompacta').checked;
+    localStorage.setItem('censaVistaCompacta', activo);
+    
+    if (activo) {
+        document.body.classList.add('vista-compacta');
+    } else {
+        document.body.classList.remove('vista-compacta');
+    }
+    
+    mostrarAlerta('alertConfig', activo ? '✅ Vista compacta activada' : '✅ Vista normal activada');
+}
+
+function toggleAnimaciones() {
+    const activo = document.getElementById('animaciones').checked;
+    localStorage.setItem('censaAnimaciones', activo);
+    
+    if (!activo) {
+        document.body.classList.add('sin-animaciones');
+    } else {
+        document.body.classList.remove('sin-animaciones');
+    }
+    
+    mostrarAlerta('alertConfig', activo ? '✅ Animaciones activadas' : '✅ Animaciones desactivadas');
+}
+
+function detectarNavegador() {
+    const ua = navigator.userAgent;
+    if (ua.indexOf('Firefox') > -1) return 'Firefox';
+    if (ua.indexOf('Chrome') > -1) return 'Chrome';
+    if (ua.indexOf('Safari') > -1) return 'Safari';
+    if (ua.indexOf('Edge') > -1) return 'Edge';
+    return 'Desconocido';
+}
+
+function probarConexiones() {
+    mostrarAlerta('alertConfig', '🔍 Probando conexiones...', 'info');
+    
+    const urls = {
+        'Incidencias': document.getElementById('urlInc').value,
+        'Tardanzas': document.getElementById('urlTard').value,
+        'Estudiantes': document.getElementById('urlEst').value,
+        'Contactos': document.getElementById('urlCont').value,
+        'Reuniones': document.getElementById('urlReun').value,
+        'Notas': document.getElementById('urlNotas').value
+    };
+    
+    let exitosas = 0;
+    let total = 0;
+    
+    Object.entries(urls).forEach(([nombre, url]) => {
+        if (url) {
+            total++;
+            fetch(url)
+                .then(r => {
+                    if (r.ok) exitosas++;
+                })
+                .catch(() => {})
+                .finally(() => {
+                    if (exitosas === total) {
+                        mostrarAlerta('alertConfig', `✅ Todas las conexiones exitosas (${exitosas}/${total})`);
+                    }
+                });
+        }
+    });
+    
+    if (total === 0) {
+        mostrarAlerta('alertConfig', '⚠️ No hay URLs configuradas', 'warning');
+    }
+}
+
+function limpiarCacheSistema() {
+    if (confirm('¿Estás segura de que deseas limpiar la caché? Esto no eliminará tus URLs configuradas.')) {
+        // Limpiar solo cache, no configuración
+        localStorage.removeItem('censaCacheEstudiantes');
+        localStorage.removeItem('censaCacheIncidencias');
+        localStorage.removeItem('censaCacheTardanzas');
+        mostrarAlerta('alertConfig', '✅ Caché limpiada. Recarga la página para aplicar cambios.');
+    }
+}
+
+function resetearConfiguracion() {
+    if (confirm('¿Estás segura? Esto eliminará TODAS las URLs y configuraciones. Esta acción NO se puede deshacer.')) {
+        if (confirm('⚠️ ÚLTIMA ADVERTENCIA: Se perderán todas las URLs configuradas. ¿Continuar?')) {
+            localStorage.clear();
+            mostrarAlerta('alertConfig', '✅ Configuración reseteada. Recarga la página.');
+            setTimeout(() => location.reload(), 2000);
+        }
+    }
 }
 
 function guardarConfig(e) {
@@ -2355,7 +3010,7 @@ function guardarConfig(e) {
     urlNotasRapidas = CONFIG.urlNotasRapidas;
     
     localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
-    mostrarAlerta('alertConfig', '✅ Configuración guardada');
+    mostrarAlerta('alertConfig', '✅ Configuración guardada correctamente');
     
     // Inicializar sistema de notas si se configuró la URL
     if (CONFIG.urlNotasRapidas && typeof inicializarSistemaNotas === 'function') {
