@@ -583,12 +583,15 @@ class NotasRapidas {
             fechaAccionHTML = `<div style="font-weight:600;color:${colorFecha};margin-top:6px;font-size:0.9em;">${textoFecha}</div>`;
         }
         
+        // Mostrar curso si existe
+        const cursoHTML = nota.curso ? ` <span style="color:#059669;font-weight:600;">📚 ${nota.curso}</span>` : '';
+        
         div.innerHTML = `
             <div class="nota-header-item">
                 <span class="nota-tipo ${nota.tipo}">${this.obtenerIconoTipo(nota.tipo)} ${this.obtenerNombreTipo(nota.tipo)}</span>
                 <span class="nota-prioridad ${nota.prioridad}">${this.obtenerIconoPrioridad(nota.prioridad)} ${nota.prioridad.toUpperCase()}</span>
             </div>
-            <div class="nota-estudiante">👤 ${nota.estudiante}</div>
+            <div class="nota-estudiante">👤 ${nota.estudiante}${cursoHTML}</div>
             <div class="nota-texto">${nota.texto}</div>
             ${fechaAccionHTML}
             <div class="nota-fecha">🕐 Creada ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
