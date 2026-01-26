@@ -3,8 +3,8 @@
 // Con Google Sheets (como los demás módulos)
 // ========================================
 
-// Configuración de Google Sheets
-let urlNotasRapidas = ''; // Se configura desde el módulo de configuración
+// 👉 CONFIGURACIÓN DE URL - Cambia aquí la URL de Google Sheets si es necesario
+let urlNotasRapidas = 'https://script.google.com/macros/s/AKfycbz-Dka2Nj27ArjgQhR72s5wl8AohebgppDmnWux4rnLrEG5zQyOco9uwxlJqgAzJtW17Q/exec';
 let datosNotas = [];
 
 // ========================================
