@@ -5446,22 +5446,20 @@ function crearGraficoIncidenciasPorCurso() {
 async function cargarTodosDatosAlInicio() {
     console.log('🔄 Cargando todos los datos al iniciar...');
     
-    const configGuardada = localStorage.getItem('censaConfig');
-    if (!configGuardada) {
-        console.log('⚠️ No hay configuración guardada. Configura las URLs primero.');
-        return;
-    }
+    const loadingText = document.getElementById('loadingText');
+    const loadingScreen = document.getElementById('loadingScreen');
     
-    const config = JSON.parse(configGuardada);
-    console.log('✅ Configuración encontrada:', config);
+    // Usar CONFIG directamente (ya tiene las URLs hardcodeadas)
+    console.log('✅ Configuración encontrada:', CONFIG);
     
     const promesas = [];
     
     // Cargar Estudiantes
-    if (config.urlEstudiantes) {
+    if (CONFIG.urlEstudiantes) {
+        if (loadingText) loadingText.textContent = '📥 Cargando estudiantes...';
         console.log('📥 Cargando estudiantes...');
         promesas.push(
-            cargarDatosDesdeGoogleSheets(config.urlEstudiantes)
+            cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes)
                 .then(datos => {
                     if (datos && datos.length > 0) {
                         datosEstudiantes = datos;
@@ -5473,10 +5471,11 @@ async function cargarTodosDatosAlInicio() {
     }
     
     // Cargar Incidencias
-    if (config.urlIncidencias) {
+    if (CONFIG.urlIncidencias) {
+        if (loadingText) loadingText.textContent = '📥 Cargando incidencias...';
         console.log('📥 Cargando incidencias...');
         promesas.push(
-            cargarDatosDesdeGoogleSheets(config.urlIncidencias)
+            cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias)
                 .then(datos => {
                     if (datos && datos.length > 0) {
                         datosIncidencias = datos;
@@ -5488,10 +5487,11 @@ async function cargarTodosDatosAlInicio() {
     }
     
     // Cargar Tardanzas
-    if (config.urlTardanzas) {
+    if (CONFIG.urlTardanzas) {
+        if (loadingText) loadingText.textContent = '📥 Cargando tardanzas...';
         console.log('📥 Cargando tardanzas...');
         promesas.push(
-            cargarDatosDesdeGoogleSheets(config.urlTardanzas)
+            cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas)
                 .then(datos => {
                     if (datos && datos.length > 0) {
                         datosTardanzas = datos;
@@ -5503,10 +5503,11 @@ async function cargarTodosDatosAlInicio() {
     }
     
     // Cargar Contactos
-    if (config.urlContactos) {
+    if (CONFIG.urlContactos) {
+        if (loadingText) loadingText.textContent = '📥 Cargando contactos...';
         console.log('📥 Cargando contactos...');
         promesas.push(
-            cargarDatosDesdeGoogleSheets(config.urlContactos)
+            cargarDatosDesdeGoogleSheets(CONFIG.urlContactos)
                 .then(datos => {
                     if (datos && datos.length > 0) {
                         datosContactos = datos;
@@ -5518,10 +5519,11 @@ async function cargarTodosDatosAlInicio() {
     }
     
     // Cargar Reuniones
-    if (config.urlReuniones) {
+    if (CONFIG.urlReuniones) {
+        if (loadingText) loadingText.textContent = '📥 Cargando reuniones...';
         console.log('📥 Cargando reuniones...');
         promesas.push(
-            cargarDatosDesdeGoogleSheets(config.urlReuniones)
+            cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones)
                 .then(datos => {
                     if (datos && datos.length > 0) {
                         datosReuniones = datos;
@@ -5533,10 +5535,9 @@ async function cargarTodosDatosAlInicio() {
     }
     
     // Cargar Notas Rápidas
-    if (config.urlNotasRapidas) {
+    if (CONFIG.urlNotasRapidas) {
+        if (loadingText) loadingText.textContent = '📥 Cargando notas rápidas...';
         console.log('📥 Cargando notas rápidas...');
-        urlNotasRapidas = config.urlNotasRapidas;
-        CONFIG.urlNotasRapidas = config.urlNotasRapidas;
         
         // Inicializar sistema de notas
         if (typeof inicializarSistemaNotas === 'function') {
@@ -5551,6 +5552,7 @@ async function cargarTodosDatosAlInicio() {
         }
     }
     
+    if (loadingText) loadingText.textContent = '⏳ Procesando datos...';
     await Promise.all(promesas);
     
     console.log('✅ CARGA COMPLETA. Datos disponibles:', {
@@ -5564,6 +5566,18 @@ async function cargarTodosDatosAlInicio() {
     
     // Actualizar alertas después de cargar datos
     actualizarAlertas();
+    
+    // Ocultar pantalla de carga con animación
+    if (loadingText) loadingText.textContent = '✅ ¡Sistema listo!';
+    setTimeout(() => {
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }
+    }, 500);
 }
 
 // Función para abrir/cerrar el panel del régimen disciplinario
