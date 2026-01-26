@@ -1504,10 +1504,27 @@ function crearModalContactos() {
                     <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarCont" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
+                <button class="btn" id="btnSinContactos" onclick="toggleFiltroSinContactos()" style="background:#dc2626;color:white;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+                    🚨 Sin Contactos
+                </button>
                 <button class="btn btn-primary" onclick="buscarContactos()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarContactos()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarContactosPDF()">📥 Exportar</button>
             </div>
+            
+            <!-- ALERTA DE ESTUDIANTES SIN CONTACTOS -->
+            <div id="alertaSinContactos" style="display:none;background:#fee2e2;border-left:4px solid #dc2626;padding:15px 20px;margin:20px 0;border-radius:8px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:1.5em;">⚠️</span>
+                    <div style="flex:1;">
+                        <strong style="color:#991b1b;display:block;margin-bottom:5px;">Estudiantes sin contactos registrados</strong>
+                        <p style="color:#7f1d1d;margin:0;font-size:0.9em;">
+                            Se encontraron <strong id="contadorSinContactos">0</strong> estudiantes sin ningún contacto de padres registrado.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
             <div class="table-container">
                 <table>
                     <thead>
@@ -1518,6 +1535,7 @@ function crearModalContactos() {
                             <th>Madre</th>
                             <th>Tel. Madre</th>
                             <th>Emergencia</th>
+                            <th id="thAcciones" style="display:none;">Acción</th>
                         </tr>
                     </thead>
                     <tbody id="bodyContactos"></tbody>
@@ -1791,6 +1809,114 @@ function buscarContactos() {
         </tr>
     `;
     }).join('');
+}
+
+// Variable global para controlar el estado del filtro
+let filtroSinContactosActivo = false;
+
+function toggleFiltroSinContactos() {
+    const btn = document.getElementById('btnSinContactos');
+    const alerta = document.getElementById('alertaSinContactos');
+    const contador = document.getElementById('contadorSinContactos');
+    const thAcciones = document.getElementById('thAcciones');
+    
+    filtroSinContactosActivo = !filtroSinContactosActivo;
+    
+    if (filtroSinContactosActivo) {
+        // Activar filtro
+        btn.style.background = '#059669';
+        btn.innerHTML = '✅ Mostrando Sin Contactos';
+        
+        // Obtener estudiantes sin contactos
+        const estudiantesSinContactos = obtenerEstudiantesSinContactos();
+        
+        // Mostrar alerta
+        alerta.style.display = 'block';
+        contador.textContent = estudiantesSinContactos.length;
+        thAcciones.style.display = '';
+        
+        // Mostrar en tabla
+        mostrarEstudiantesSinContactos(estudiantesSinContactos);
+    } else {
+        // Desactivar filtro
+        btn.style.background = '#dc2626';
+        btn.innerHTML = '🚨 Sin Contactos';
+        alerta.style.display = 'none';
+        thAcciones.style.display = 'none';
+        
+        // Volver a mostrar todos los contactos
+        cargarTablaContactos();
+    }
+}
+
+function obtenerEstudiantesSinContactos() {
+    // Obtener lista de estudiantes que SÍ tienen contactos registrados
+    const estudiantesConContactos = new Set(
+        datosContactos.map(c => {
+            const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+            return nombre.trim();
+        }).filter(n => n !== '')
+    );
+    
+    // Filtrar estudiantes que NO están en esa lista
+    const estudiantesSinContactos = datosEstudiantes.filter(est => {
+        const nombre = (est['Nombre Completo'] || est.nombre || est.Nombre || '').trim();
+        return nombre !== '' && !estudiantesConContactos.has(nombre);
+    });
+    
+    console.log(`📊 Estudiantes sin contactos: ${estudiantesSinContactos.length}`);
+    return estudiantesSinContactos;
+}
+
+function mostrarEstudiantesSinContactos(estudiantes) {
+    const tbody = document.getElementById('bodyContactos');
+    
+    if (estudiantes.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align:center;padding:40px;color:#059669;">
+                    <div style="font-size:3em;margin-bottom:15px;">✅</div>
+                    <strong style="font-size:1.2em;">¡Excelente!</strong>
+                    <p style="margin-top:10px;color:#666;">Todos los estudiantes tienen contactos registrados</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = estudiantes.map(est => {
+        const nombre = est['Nombre Completo'] || est.nombre || est.Nombre || '-';
+        const curso = est.Curso || est.curso || '-';
+        
+        return `
+        <tr style="background:#fef2f2;">
+            <td><strong style="color:#991b1b;">${nombre}</strong></td>
+            <td colspan="5" style="color:#7f1d1d;font-style:italic;">Sin contactos registrados</td>
+            <td>
+                <button class="btn btn-sm" onclick="agregarContactoRapido('${nombre.replace(/'/g, "\\'")}', '${curso}')" 
+                        style="background:#059669;color:white;padding:5px 12px;font-size:0.85em;">
+                    ➕ Agregar
+                </button>
+            </td>
+        </tr>
+        `;
+    }).join('');
+}
+
+function agregarContactoRapido(nombreEstudiante, curso) {
+    // Scroll al formulario
+    document.querySelector('#formContacto').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Llenar el nombre del estudiante
+    document.getElementById('estContacto').value = nombreEstudiante;
+    
+    // Focus en el primer campo de contacto
+    setTimeout(() => {
+        document.getElementById('nombrePadre').focus();
+    }, 500);
+    
+    // Mostrar alerta
+    mostrarAlerta('alertContactos', `✏️ Agregando contacto para: ${nombreEstudiante} (${curso})`);
 }
 
 function exportarContactos() {
