@@ -236,9 +236,13 @@ class NotasRapidas {
     }
 
     async agregarNota(estudiante, tipo, prioridad, texto, fechaAccion = null) {
+        // Obtener el curso del estudiante seleccionado
+        const curso = estudianteSeleccionadoNotaRapida ? estudianteSeleccionadoNotaRapida.curso : '';
+        
         const nuevaNota = {
             id: Date.now().toString(),
             estudiante: estudiante,
+            curso: curso, // ✨ NUEVO: Guardar el curso
             tipo: tipo,
             prioridad: prioridad,
             texto: texto,
@@ -273,9 +277,13 @@ class NotasRapidas {
     async editarNota(id, estudiante, tipo, prioridad, texto, fechaAccion = null) {
         const index = this.notas.findIndex(n => n.id === id);
         if (index !== -1) {
+            // Obtener el curso del estudiante seleccionado o mantener el existente
+            const curso = estudianteSeleccionadoNotaRapida ? estudianteSeleccionadoNotaRapida.curso : this.notas[index].curso;
+            
             const notaActualizada = {
                 ...this.notas[index],
                 estudiante: estudiante,
+                curso: curso, // ✨ Mantener o actualizar el curso
                 tipo: tipo,
                 prioridad: prioridad,
                 texto: texto,
