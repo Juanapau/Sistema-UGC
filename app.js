@@ -3545,19 +3545,20 @@ async function enviarGoogleSheets(url, datos) {
     }
     
     try {
-        // Enviar como JSON (método correcto para Apps Script)
+        // Convertir datos a FormData (compatible con no-cors)
+        const formData = new URLSearchParams();
+        for (const key in datos) {
+            formData.append(key, datos[key]);
+        }
+        
         const response = await fetch(url, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datos)
+            body: formData
         });
         
-        console.log('Datos enviados a Google Sheets:', datos);
+        console.log('✅ Datos enviados a Google Sheets:', datos);
     } catch (error) {
-        console.error('Error al enviar a Google Sheets:', error);
+        console.error('❌ Error al enviar a Google Sheets:', error);
     }
 }
 
