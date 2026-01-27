@@ -40,56 +40,22 @@ async function cargarDatosDesdeGoogleSheets(url) {
     
     console.log('Cargando datos desde:', url);
     
-    // Usar script tag method para evitar CORS
-    return new Promise((resolve, reject) => {
-        const callbackName = 'jsonpCallback_' + Date.now();
-        const script = document.createElement('script');
+    try {
+        // Usar fetch simple - Apps Script acepta GET sin problemas
+        const response = await fetch(url);
         
-        // Crear callback temporal
-        window[callbackName] = function(data) {
+        if (response.ok) {
+            const data = await response.json();
             console.log('Datos cargados desde Google Sheets:', data.length, 'registros');
-            delete window[callbackName];
-            document.body.removeChild(script);
-            resolve(data);
-        };
-        
-        // Agregar parámetro callback a la URL
-        const separator = url.includes('?') ? '&' : '?';
-        script.src = url + separator + 'callback=' + callbackName;
-        
-        script.onerror = function() {
-            console.error('Error al cargar datos desde:', url);
-            delete window[callbackName];
-            document.body.removeChild(script);
-            
-            // Reintentar con fetch como fallback
-            fetch(url, {
-                method: 'GET',
-                redirect: 'follow'
-            })
-            .then(r => r.json())
-            .then(data => {
-                console.log('Datos cargados en segundo intento:', data.length, 'registros');
-                resolve(data);
-            })
-            .catch(err => {
-                console.error('Error en segundo intento:', err);
-                resolve([]);
-            });
-        };
-        
-        document.body.appendChild(script);
-        
-        // Timeout de 10 segundos
-        setTimeout(() => {
-            if (window[callbackName]) {
-                console.warn('Timeout al cargar datos');
-                delete window[callbackName];
-                document.body.removeChild(script);
-                resolve([]);
-            }
-        }, 10000);
-    });
+            return data;
+        } else {
+            console.error('Error al cargar datos:', response.status, response.statusText);
+            return [];
+        }
+    } catch (error) {
+        console.error('Error al cargar datos:', error);
+        return [];
+    }
 }
 
 // Funciones de recarga manual
