@@ -1127,15 +1127,45 @@ function cargarTablaTardanzas() {
         agrupado[key].total++;
     });
     
-    tbody.innerHTML = Object.values(agrupado).map(g => `
-        <tr>
-            <td>${g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-'}</td>
-            <td><strong>${g.estudiante}</strong></td>
+    // Aplicar filtro de cantidad de tardanzas
+    const filtroTardanzas = document.querySelector('input[name="filtroTardanzas"]:checked')?.value || 'todas';
+    const gruposFiltrados = Object.values(agrupado).filter(g => {
+        if (filtroTardanzas === '3') {
+            return g.total === 3;
+        } else if (filtroTardanzas === 'mas3') {
+            return g.total > 3;
+        }
+        return true; // 'todas'
+    });
+    
+    if (gruposFiltrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = gruposFiltrados.map(g => {
+        const fechaUltima = g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-';
+        let colorFondo = '';
+        let icono = '';
+        
+        if (g.total === 3) {
+            colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
+            icono = '⚠️';
+        } else if (g.total > 3) {
+            colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
+            icono = '🚨';
+        }
+        
+        return `
+        <tr ${colorFondo} onclick="mostrarResumenTardanzas('${g.estudiante}', '${g.curso}', '${g.mes}', '${g.año}', ${g.total})" style="cursor:pointer;">
+            <td>${fechaUltima}</td>
+            <td><strong>${icono} ${g.estudiante}</strong></td>
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
             <td><strong>${g.total}</strong></td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function buscarTardanzas() {
