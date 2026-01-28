@@ -299,9 +299,33 @@ const regimenData = {
     ],
     
     notasImportantes: {
-        leves: "Art. 39: Cuando las faltas leves son reiterativas se convierten en faltas graves porque una falta cometida de manera sistemática afecta el clima escolar, el ambiente de aprendizaje y la disciplina general del centro. Si un estudiante no logra adaptarse a la disciplina general, violando reiteradamente el Manual de Convivencia con faltas leves podría tener consecuencias en el logro de los aprendizajes y en su permanencia en el Centro Educativo.\n\nArt. 40: Si un estudiante acumula más de dos faltas leves el Departamento de disciplina convocará a los padres del mismo y se tomarán las medidas de lugar, a fin de que las mismas no se conviertan en faltas graves. Se seguirá el siguiente procedimiento:\n• Se convocara a los padres o tutores del estudiante.\n• Se sostendrá un dialogo reflexivo con el estudiante y sus padres o representantes.\n• Se tomaran acuerdos y compromisos de mejora. (Entre ellos labores en el centro).\n• Se firmara la asistencia de ambos y los acuerdos correspondientes.",
-        graves: "Art. 42: Las FALTAS GRAVES son plausibles de sanción, lo cual implica una privación temporal de alguno de los beneficios que tiene el estudiante como miembro de la comunidad educativa de los Centros Educativos de las Hijas de María Auxiliadora, Salesianas.\n\nPárrafo: La sanción aplicada a un estudiante constará en su expediente académico personal desde la primera vez en que incurra en falta grave.\n\nArt. 44: Las faltas graves la reincidencia en ellas, así como también el incumplimiento de sanciones, serán motivos para inscripción condicional en el Centro Educativo. El estudiante y su familia deberán solicitar nuevamente y por escrito la inscripción, si se le concede será bajo acuerdos y compromisos que deberán ser evaluados al final de cada periodo.\n\nArt. 45: Las FALTAS GRAVES pueden considerarse faltas MUY GRAVES cuando estas sean cometidas de forma reiterativa y/o con intenciones de hacer daño.",
-        muyGraves: "Art. 47: Además de las anteriores, serán faltas gravísimas otras situaciones que surjan, perjudicando a la Comunidad Educativa y que sean evaluadas como tales por el equipo de disciplina del Centro Educativo.\n\nArt. 49: Ante cualquier falta MUY GRAVE, el Centro procederá a la cancelación de la matrícula al estudiante. El equipo de disciplina del Centro Educativo se reserva el derecho de determinar el momento de la cancelación de matrícula, después de analizar la severidad del caso."
+         leves: `
+        <p><strong>Art. 39:</strong> Cuando las faltas leves son reiterativas se convierten en faltas graves porque una falta cometida de manera sistemática afecta el clima escolar, el ambiente de aprendizaje y la disciplina general del centro. Si un estudiante no logra adaptarse a la disciplina general, violando reiteradamente el Manual de Convivencia con faltas leves podría tener consecuencias en el logro de los aprendizajes y en su permanencia en el Centro Educativo.</p>
+        
+        <p><strong>Art. 40:</strong> Si un estudiante acumula más de dos faltas leves el Departamento de disciplina convocará a los padres del mismo y se tomarán las medidas de lugar, a fin de que las mismas no se conviertan en faltas graves. Se seguirá el siguiente procedimiento:</p>
+        <ul>
+            <li>Se convocara a los padres o tutores del estudiante.</li>
+            <li>Se sostendrá un dialogo reflexivo con el estudiante y sus padres o representantes.</li>
+            <li>Se tomaran acuerdos y compromisos de mejora. (Entre ellos labores en el centro).</li>
+            <li>Se firmara la asistencia de ambos y los acuerdos correspondientes.</li>
+        </ul>
+    `,
+    
+    graves: `
+        <p><strong>Art. 42:</strong> Las FALTAS GRAVES son plausibles de sanción, lo cual implica una privación temporal de alguno de los beneficios que tiene el estudiante como miembro de la comunidad educativa de los Centros Educativos de las Hijas de María Auxiliadora, Salesianas.</p>
+        
+        <p><strong>Párrafo:</strong> La sanción aplicada a un estudiante constará en su expediente académico personal desde la primera vez en que incurra en falta grave.</p>
+        
+        <p><strong>Art. 44:</strong> Las faltas graves la reincidencia en ellas, así como también el incumplimiento de sanciones, serán motivos para inscripción condicional en el Centro Educativo. El estudiante y su familia deberán solicitar nuevamente y por escrito la inscripción, si se le concede será bajo acuerdos y compromisos que deberán ser evaluados al final de cada periodo.</p>
+        
+        <p><strong>Art. 45:</strong> Las FALTAS GRAVES pueden considerarse faltas MUY GRAVES cuando estas sean cometidas de forma reiterativa y/o con intenciones de hacer daño.</p>
+    `,
+    
+    muyGraves: `
+        <p><strong>Art. 47:</strong> Además de las anteriores, serán faltas gravísimas otras situaciones que surjan, perjudicando a la Comunidad Educativa y que sean evaluadas como tales por el equipo de disciplina del Centro Educativo.</p>
+        
+        <p><strong>Art. 49:</strong> Ante cualquier falta MUY GRAVE, el Centro procederá a la cancelación de la matrícula al estudiante. El equipo de disciplina del Centro Educativo se reserva el derecho de determinar el momento de la cancelación de matrícula, después de analizar la severidad del caso.</p>
+    `
     }
 };
 
