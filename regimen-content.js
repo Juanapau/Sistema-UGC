@@ -299,18 +299,17 @@ const regimenData = {
     ],
     
     notasImportantes: {
-         leves: `
+
+     leves: `
         <p><strong>Art. 39:</strong> Cuando las faltas leves son reiterativas se convierten en faltas graves porque una falta cometida de manera sistemática afecta el clima escolar, el ambiente de aprendizaje y la disciplina general del centro. Si un estudiante no logra adaptarse a la disciplina general, violando reiteradamente el Manual de Convivencia con faltas leves podría tener consecuencias en el logro de los aprendizajes y en su permanencia en el Centro Educativo.</p>
         
         <p><strong>Art. 40:</strong> Si un estudiante acumula más de dos faltas leves el Departamento de disciplina convocará a los padres del mismo y se tomarán las medidas de lugar, a fin de que las mismas no se conviertan en faltas graves. Se seguirá el siguiente procedimiento:</p>
-       
-        <ul>
+        <ul style="margin-left: 40px; padding-left: 20px;">
             <li>Se convocara a los padres o tutores del estudiante.</li>
             <li>Se sostendrá un dialogo reflexivo con el estudiante y sus padres o representantes.</li>
             <li>Se tomaran acuerdos y compromisos de mejora. (Entre ellos labores en el centro).</li>
             <li>Se firmara la asistencia de ambos y los acuerdos correspondientes.</li>
         </ul>
-        
     `,
     
         graves: `
@@ -342,7 +341,7 @@ function cargarContenidoRegimen() {
     html += `
         <div class="falta-seccion" data-tipo="leves">
             <h3 class="seccion-title leves">⚠️ FALTAS LEVES</h3>
-            <p class="seccion-intro">Faltas que por su naturaleza no atentan contra los valores institucionales. Son fruto de la irreflexión del estudiante.</p>
+            <p class="seccion-intro"> <strong>ART. 38: Las FALTAS LEVES</strong> son aquellas que por la naturaleza de la acción no atentan contra los valores y principios éticos / morales o filosóficos de la Institución. Estas faltas se consideran como tales porque son fruto de la irreflexión del estudiante, en una palabra, como decía Don Bosco, de la inmadurez propia de la edad, aunque no por esto son justificables. En los Centros Educativos de las Hijas de María Auxiliadora, Salesianas, cada falta leve tiene su consecuencia, convirtiéndose la misma en <strong>FALTA GRAVE</strong> cuando es realizada de manera reiterada por el estudiante (esto quiere decir más de dos veces). A continuación, se enumeran las faltas leves y su consecuente medida correctiva:</p>
     `;
     
     regimenData.leves.forEach(falta => {
@@ -368,7 +367,7 @@ function cargarContenidoRegimen() {
     html += `
         <div class="falta-seccion" data-tipo="graves">
             <h3 class="seccion-title graves">🔶 FALTAS GRAVES</h3>
-            <p class="seccion-intro">Acciones que afectan significativamente al estudiante, compañeros o comunidad educativa. Atentan contra los valores institucionales.</p>
+            <p class="seccion-intro"><strong>Art. 41:</strong> Se describen como <strong>FALTAS GRAVES</strong> aquellas acciones que por su naturaleza afectan de manera significativa al propio estudiante, a los compañeros o a cualquier miembro de la comunidad educativa. También son consideradas faltas graves aquellas acciones que atentan contra los valores declarados de la Institución, a saber, honestidad, disciplina, tolerancia, justicia, solidaridad, paz, responsabilidad, espíritu de familia, alegría, amor a la vida, respeto, patriotismo, por considerarse el marco de referencia del Manual de Convivencia, de cuyo cumplimiento o no depende el clima del centro. Se consideran faltas graves las siguientes:</p>
     `;
     
     regimenData.graves.forEach(falta => {
@@ -400,7 +399,7 @@ function cargarContenidoRegimen() {
     html += `
         <div class="falta-seccion" data-tipo="muy-graves">
             <h3 class="seccion-title muy-graves">🔴 FALTAS MUY GRAVES</h3>
-            <p class="seccion-intro">Acciones que atentan contra la moral, buenas costumbres, conductas antisociales, pandillismo, agresiones o comportamientos reñidos con la ley.</p>
+            <p class="seccion-intro"><strong>Art. 47:</strong> Son consideradas <strong>FALTAS MUY GRAVES</strong> en los Centros Educativos de las Hijas de María Auxiliadora,  Salesianas, todas las acciones que, por su naturaleza, atenten contra la moral y las buenas costumbres, además de aquellas que involucren conductas antisociales, pandillismo, agresiones, o comportamientos reñidos con la ley. Dentro de estas se encuentran:</p>
     `;
     
     regimenData.muyGraves.forEach(falta => {
