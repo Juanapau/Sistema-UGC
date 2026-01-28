@@ -4710,73 +4710,11 @@ function buscarReuniones() {
         return;
     }
     
-    // Renderizar filtrados pero con índices del array original
-    tbody.innerHTML = filtrados.map((r) => {
-        // Encontrar el índice REAL en datosReuniones
-        const indiceReal = datosReuniones.indexOf(r);
-        
-        const fecha = r['Fecha y Hora'] || r.fecha || '';
-        const tipo = r['Tipo'] || r.tipo || 'Presencial';
-        const estudiante = r['Nombre Estudiante'] || r.estudiante || '';
-        const curso = r['Curso'] || r.curso || '';
-        const padrePresente = r['Padre/Madre Presente'] || r.padrePresente || '';
-        const nombrePadre = r['Nombre Padre/Madre'] || r.nombrePadre || '';
-        const motivo = r['Motivo'] || r.motivo || '';
-        const estado = r['Estado'] || r.estado || '';
-        const fechaSeguimiento = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
-        
-        // Icono según tipo
-        const iconoTipo = tipo === 'Llamada telefónica' ? '📞' : '🏫';
-        
-        // Calcular número de reunión en orden cronológico
-        const reunionesEstudiante = datosReuniones
-            .filter(reunion => {
-                const est = reunion['Nombre Estudiante'] || reunion.estudiante || '';
-                return est.toLowerCase() === estudiante.toLowerCase();
-            })
-            .sort((a, b) => {
-                const fechaA = new Date(a['Fecha y Hora'] || a.fecha || '');
-                const fechaB = new Date(b['Fecha y Hora'] || b.fecha || '');
-                return fechaA - fechaB;
-            });
-        
-        const numeroReunion = reunionesEstudiante.findIndex(reunion => reunion === r) + 1;
-        
-        // Colores según número de reunión
-        const badgeReuniones = numeroReunion >= 5 ? 'badge-warning' : 
-                              numeroReunion >= 3 ? 'badge-info' : 'badge-success';
-        
-        // Colores según estado
-        let badgeEstado = 'badge-info';
-        let colorEstado = '#0c5460';
-        if (estado === 'Cumplido') {
-            badgeEstado = 'badge-success';
-            colorEstado = '#155724';
-        } else if (estado === 'No cumplido') {
-            badgeEstado = 'badge-muy-grave';
-            colorEstado = '#721c24';
-        } else if (estado === 'Parcialmente cumplido') {
-            badgeEstado = 'badge-warning';
-            colorEstado = '#856404';
-        }
-        
-        return `
-        <tr onclick="editarReunion(${indiceReal})" style="cursor:pointer;" title="Click para editar">
-            <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric'}) : ''}<br><small>${fecha ? new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : ''}</small></td>
-            <td style="text-align:center;">${iconoTipo}<br><small>${tipo}</small></td>
-            <td><strong>${estudiante}</strong><br><small>${curso}</small></td>
-            <td>${nombrePadre || padrePresente}<br><small>${padrePresente}</small></td>
-            <td style="text-align:center;"><span class="status-badge ${badgeReuniones}">${numeroReunion}ª vez</span></td>
-            <td>${motivo}</td>
-            <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
-            <td>${fechaSeguimiento ? new Date(fechaSeguimiento).toLocaleDateString('es-DO') : '-'}</td>
-            <td>
-                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${indiceReal})" style="padding:5px 10px;font-size:0.85em;">👁️ Ver</button>
-                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${indiceReal})" style="padding:5px 10px;font-size:0.85em;">📄 Acta</button>
-            </td>
-        </tr>
-        `;
-    }).join('');
+    // Mostrar resultados filtrados (reutilizando lógica de cargarTablaReuniones)
+    const reunionesTemp = datosReuniones;
+    datosReuniones = filtrados;
+    cargarTablaReuniones();
+    datosReuniones = reunionesTemp;
 }
 
 async function recargarReuniones() {
