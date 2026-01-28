@@ -304,12 +304,12 @@ const regimenData = {
         
         <p><strong>Art. 40:</strong> Si un estudiante acumula más de dos faltas leves el Departamento de disciplina convocará a los padres del mismo y se tomarán las medidas de lugar, a fin de que las mismas no se conviertan en faltas graves. Se seguirá el siguiente procedimiento:</p>
        
-        <ol>
+        <ul>
             <li>Se convocara a los padres o tutores del estudiante.</li>
             <li>Se sostendrá un dialogo reflexivo con el estudiante y sus padres o representantes.</li>
             <li>Se tomaran acuerdos y compromisos de mejora. (Entre ellos labores en el centro).</li>
             <li>Se firmara la asistencia de ambos y los acuerdos correspondientes.</li>
-        </ol>
+        </ul>
         
     `,
     
