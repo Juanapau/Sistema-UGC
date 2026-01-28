@@ -303,14 +303,14 @@ const regimenData = {
         <p><strong>Art. 39:</strong> Cuando las faltas leves son reiterativas se convierten en faltas graves porque una falta cometida de manera sistemática afecta el clima escolar, el ambiente de aprendizaje y la disciplina general del centro. Si un estudiante no logra adaptarse a la disciplina general, violando reiteradamente el Manual de Convivencia con faltas leves podría tener consecuencias en el logro de los aprendizajes y en su permanencia en el Centro Educativo.</p>
         
         <p><strong>Art. 40:</strong> Si un estudiante acumula más de dos faltas leves el Departamento de disciplina convocará a los padres del mismo y se tomarán las medidas de lugar, a fin de que las mismas no se conviertan en faltas graves. Se seguirá el siguiente procedimiento:</p>
-       <p>
-        <ul>
+       
+        <ol>
             <li>Se convocara a los padres o tutores del estudiante.</li>
             <li>Se sostendrá un dialogo reflexivo con el estudiante y sus padres o representantes.</li>
             <li>Se tomaran acuerdos y compromisos de mejora. (Entre ellos labores en el centro).</li>
             <li>Se firmara la asistencia de ambos y los acuerdos correspondientes.</li>
-        </ul>
-        </p>
+        </ol>
+        
     `,
     
         graves: `
