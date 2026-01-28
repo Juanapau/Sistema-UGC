@@ -472,9 +472,9 @@ function registrarIncidencia(e) {
         'Nombre Estudiante': document.getElementById('nombreEstudianteInc').value,
         'Curso': document.getElementById('cursoIncidencia').value,
         'Tipo de falta': document.getElementById('tipoFalta').value,
-        'Docente que Reporta': document.getElementById('docenteReporta').value,
+        'Docente': document.getElementById('docenteReporta').value,
         'Descripción': document.getElementById('descripcionIncidencia').value,
-        'Acciones del Docente': document.getElementById('accionesDocente').value
+        'Acciones Docente': document.getElementById('accionesDocente').value
     };
     
     if (modoEdicion === 'true') {
