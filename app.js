@@ -467,15 +467,16 @@ function registrarIncidencia(e) {
     const modoEdicion = document.getElementById('formIncidencia').dataset.modoEdicion;
     const indiceEdicion = document.getElementById('formIncidencia').dataset.indiceEdicion;
     
-    const inc = {
-        'Fecha y Hora': document.getElementById('fechaIncidencia').value,
-        'Nombre Estudiante': document.getElementById('nombreEstudianteInc').value,
-        'Curso': document.getElementById('cursoIncidencia').value,
-        'Tipo de falta': document.getElementById('tipoFalta').value,
-        'Docente': document.getElementById('docenteReporta').value,
-        'Descripción': document.getElementById('descripcionIncidencia').value,
-        'Acciones Docente': document.getElementById('accionesDocente').value
-    };
+const inc = {
+    'Fecha y Hora': document.getElementById('fechaIncidencia').value,
+    'Nombre Estudiante': document.getElementById('nombreEstudianteInc').value,
+    'Curso': document.getElementById('cursoIncidencia').value,
+    'Tipo de falta': document.getElementById('tipoFalta').value,
+    'Docente': document.getElementById('docenteReporta').value,
+    'Descripción': document.getElementById('descripcionIncidencia').value,
+    'Acciones Docente': document.getElementById('accionesDocente').value,
+    'Seguimiento UGC': document.getElementById('seguimientoUGC').value
+};
     
     if (modoEdicion === 'true') {
         // Actualizar incidencia existente
