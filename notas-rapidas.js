@@ -852,16 +852,28 @@ class NotasRapidas {
 
         const botonesDiv = document.createElement('div');
         botonesDiv.style.cssText = 'display: flex; gap: 8px; margin-top: 10px;';
-        botonesDiv.innerHTML = `
-            <button onclick="sistemaNotas.eliminarNotaConfirmada('${id}'); this.closest('.notificacion').remove();" 
-                    style="flex: 1; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                Sí, eliminar
-            </button>
-            <button onclick="this.closest('.notificacion').remove();" 
-                    style="flex: 1; padding: 8px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                Cancelar
-            </button>
-        `;
+        
+        const btnEliminar = document.createElement('button');
+        btnEliminar.textContent = 'Sí, eliminar';
+        btnEliminar.style.cssText = 'flex: 1; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;';
+        
+        const btnCancelar = document.createElement('button');
+        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.style.cssText = 'flex: 1; padding: 8px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;';
+        
+        // Event listener para eliminar
+        btnEliminar.addEventListener('click', async () => {
+            await this.eliminarNotaConfirmada(id);
+            notifConfirm.remove();
+        });
+        
+        // Event listener para cancelar
+        btnCancelar.addEventListener('click', () => {
+            notifConfirm.remove();
+        });
+        
+        botonesDiv.appendChild(btnEliminar);
+        botonesDiv.appendChild(btnCancelar);
         notifConfirm.querySelector('.notificacion-contenido').appendChild(botonesDiv);
     }
 
