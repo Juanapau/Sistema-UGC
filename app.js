@@ -3206,6 +3206,27 @@ function crearModalReportes() {
             </div>
             
             <hr style="margin:40px 0;">
+            <h3>Estadísticas de Conductas Graves</h3>
+            <div class="stats-grid">
+                <div class="stat-card" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white;">
+                    <h4>Agresión Física</h4>
+                    <div class="number" id="statAgresionFisica">0</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white;">
+                    <h4>Agresión Verbal</h4>
+                    <div class="number" id="statAgresionVerbal">0</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white;">
+                    <h4>Bullying</h4>
+                    <div class="number" id="statBullying">0</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: white;">
+                    <h4>Cyber Bullying</h4>
+                    <div class="number" id="statCyberBullying">0</div>
+                </div>
+            </div>
+            
+            <hr style="margin:40px 0;">
             <h3>Reporte por Curso</h3>
             <div class="form-group">
                 <label>Seleccione Curso</label>
@@ -3311,6 +3332,40 @@ async function cargarDatosYActualizarEstadisticas() {
     if (statTardanzas) statTardanzas.textContent = datosTardanzas.length;
     if (statEstudiantes) statEstudiantes.textContent = datosEstudiantes.length;
     if (statContactos) statContactos.textContent = datosContactos.length;
+    
+    // Calcular y actualizar estadísticas de conductas graves
+    const statAgresionFisica = document.getElementById('statAgresionFisica');
+    const statAgresionVerbal = document.getElementById('statAgresionVerbal');
+    const statBullying = document.getElementById('statBullying');
+    const statCyberBullying = document.getElementById('statCyberBullying');
+    
+    if (statAgresionFisica) {
+        const countAgresionFisica = datosIncidencias.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
+        ).length;
+        statAgresionFisica.textContent = countAgresionFisica;
+    }
+    
+    if (statAgresionVerbal) {
+        const countAgresionVerbal = datosIncidencias.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
+        ).length;
+        statAgresionVerbal.textContent = countAgresionVerbal;
+    }
+    
+    if (statBullying) {
+        const countBullying = datosIncidencias.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
+        ).length;
+        statBullying.textContent = countBullying;
+    }
+    
+    if (statCyberBullying) {
+        const countCyberBullying = datosIncidencias.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
+        ).length;
+        statCyberBullying.textContent = countCyberBullying;
+    }
     
     // Actualizar datalist de estudiantes
     actualizarDatalistsEstudiantes();
