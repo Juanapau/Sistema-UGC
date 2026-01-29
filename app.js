@@ -265,9 +265,30 @@ function crearModalIncidencias() {
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Docente que Reporta *</label>
-                    <input type="text" id="docenteReporta" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Docente que Reporta *</label>
+                        <input type="text" id="docenteReporta" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Conducta *</label>
+                        <select id="tipoConducta" required>
+                            <option value="">Seleccione el tipo</option>
+                            <option value="Agresión física">Agresión física</option>
+                            <option value="Agresión verbal">Agresión verbal</option>
+                            <option value="Bullying">Bullying</option>
+                            <option value="Cyber bullying">Cyber bullying</option>
+                            <option value="Indisciplina en el aula">Indisciplina en el aula</option>
+                            <option value="Llegada tarde al aula">Llegada tarde al aula</option>
+                            <option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
+                            <option value="Falta de respeto a compañeros">Falta de respeto a compañeros</option>
+                            <option value="Falta de respeto al maestro/a">Falta de respeto al maestro/a</option>
+                            <option value="Desafío de la autoridad">Desafío de la autoridad</option>
+                            <option value="Reincidencia por uniformidad">Reincidencia por uniformidad</option>
+                            <option value="Corte de pelo no permitido">Corte de pelo no permitido</option>
+                            <option value="Peinado no permitido">Peinado no permitido</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Descripción *</label>
@@ -318,6 +339,7 @@ function crearModalIncidencias() {
                             <th>Curso</th>
                             <th>Tipo</th>
                             <th>Docente</th>
+                            <th>Tipo de Conducta</th>
                             <th>Descripción</th>
                             <th>Acciones</th>
                             <th>Seguimiento UGC</th>
@@ -473,6 +495,7 @@ const inc = {
     'Curso': document.getElementById('cursoIncidencia').value,
     'Tipo de falta': document.getElementById('tipoFalta').value,
     'Docente': document.getElementById('docenteReporta').value,
+    'Tipo de Conducta': document.getElementById('tipoConducta').value,
     'Descripción': document.getElementById('descripcionIncidencia').value,
     'Acciones Docente': document.getElementById('accionesDocente').value,
     'Seguimiento UGC': document.getElementById('seguimientoUGC').value
@@ -520,6 +543,7 @@ function editarIncidencia(indice) {
     document.getElementById('cursoIncidencia').value = inc['Curso'] || '';
     document.getElementById('tipoFalta').value = inc['Tipo de falta'] || '';
     document.getElementById('docenteReporta').value = inc['Docente'] || '';
+    document.getElementById('tipoConducta').value = inc['Tipo de Conducta'] || '';
     document.getElementById('descripcionIncidencia').value = inc['Descripción'] || '';
     document.getElementById('accionesDocente').value = inc['Acciones Docente'] || '';
     document.getElementById('seguimientoUGC').value = inc['Seguimiento UGC'] || '';
@@ -582,7 +606,7 @@ function cancelarEdicionIncidencia() {
 function cargarTablaIncidencias() {
     const tbody = document.getElementById('bodyIncidencias');
     if (datosIncidencias.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No hay incidencias</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#999;">No hay incidencias</td></tr>';
         return;
     }
     tbody.innerHTML = datosIncidencias.map((inc, i) => {
@@ -591,6 +615,7 @@ function cargarTablaIncidencias() {
         const curso = inc['Curso'] || inc.curso || '';
         const tipo = inc['Tipo de falta'] || inc.tipoFalta || '';
         const docente = inc['Docente'] || inc.docente || '';
+        const tipoConducta = inc['Tipo de Conducta'] || inc.tipoConducta || '-';
         const descripcion = inc['Descripción'] || inc.descripcion || '';
         const acciones = inc['Acciones Docente'] || inc.acciones || '';
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
@@ -602,6 +627,7 @@ function cargarTablaIncidencias() {
             <td>${curso}</td>
             <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
             <td>${docente}</td>
+            <td style="white-space:normal;max-width:150px;">${tipoConducta}</td>
             <td style="white-space:normal;max-width:250px;">${descripcion}</td>
             <td style="white-space:normal;max-width:200px;">${acciones || '-'}</td>
             <td style="white-space:normal;max-width:200px;">${seguimiento || '-'}</td>
@@ -628,7 +654,7 @@ function buscarIncidencias() {
     
     const tbody = document.getElementById('bodyIncidencias');
     if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
     tbody.innerHTML = filtrados.map((inc, index) => {
@@ -637,6 +663,7 @@ function buscarIncidencias() {
         const curso = inc['Curso'] || inc.curso || '';
         const tipo = inc['Tipo de falta'] || inc.tipoFalta || '';
         const docente = inc['Docente'] || inc.docente || '';
+        const tipoConducta = inc['Tipo de Conducta'] || inc.tipoConducta || '-';
         const descripcion = inc['Descripción'] || inc.descripcion || '';
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
         const observaciones = inc['Observaciones'] || inc.observaciones || '';
@@ -651,6 +678,7 @@ function buscarIncidencias() {
             <td>${curso}</td>
             <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
             <td>${docente}</td>
+            <td>${tipoConducta}</td>
             <td>${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
             <td>${seguimiento ? seguimiento.substring(0,60) + '...' : '-'}</td>
             <td>${observaciones ? observaciones.substring(0,60) + '...' : '-'}</td>
