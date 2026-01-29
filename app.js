@@ -3575,6 +3575,13 @@ async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null)
         return;
     }
     
+    console.log(`🔍 enviarGoogleSheets llamada con:`, {
+        accion: accion,
+        indice: indice,
+        url: url,
+        datos: datos
+    });
+    
     try {
         // Convertir datos a FormData (compatible con no-cors)
         const formData = new URLSearchParams();
@@ -3583,6 +3590,9 @@ async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null)
         if (accion === 'actualizar' && indice !== null) {
             formData.append('accion', 'actualizar');
             formData.append('indice', indice);
+            console.log(`🔄 Modo ACTUALIZACIÓN - Fila ${indice + 2} en Google Sheets`);
+        } else {
+            console.log(`➕ Modo AGREGAR NUEVO`);
         }
         
         // Agregar todos los datos
