@@ -320,6 +320,7 @@ autocomplete="off"
 </select>
 </div>
 
+<div class="form-row">
 <div class="form-group">
 <label for="docenteReporta">Docente que Reporta <span class="required">*</span></label>
 <input 
@@ -328,6 +329,27 @@ id="docenteReporta"
 placeholder="Su nombre completo"
 required
 >
+</div>
+
+<div class="form-group">
+<label for="tipoConducta">Tipo de Conducta <span class="required">*</span></label>
+<select id="tipoConducta" required>
+<option value="">Seleccione el tipo</option>
+<option value="Agresión física">Agresión física</option>
+<option value="Agresión verbal">Agresión verbal</option>
+<option value="Bullying">Bullying</option>
+<option value="Cyber bullying">Cyber bullying</option>
+<option value="Indisciplina en el aula">Indisciplina en el aula</option>
+<option value="Llegada tarde al aula">Llegada tarde al aula</option>
+<option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
+<option value="Falta de respeto a compañeros">Falta de respeto a compañeros</option>
+<option value="Falta de respeto al maestro/a">Falta de respeto al maestro/a</option>
+<option value="Desafío de la autoridad">Desafío de la autoridad</option>
+<option value="Reincidencia por uniformidad">Reincidencia por uniformidad</option>
+<option value="Corte de pelo no permitido">Corte de pelo no permitido</option>
+<option value="Peinado no permitido">Peinado no permitido</option>
+</select>
+</div>
 </div>
 
 <div class="form-group">
@@ -519,6 +541,7 @@ const datos = {
 'Nombre Estudiante': document.getElementById('nombreEstudiante').value,
 'Tipo de falta': document.getElementById('tipoFalta').value,
 'Docente que Reporta': document.getElementById('docenteReporta').value,
+'Tipo de Conducta': document.getElementById('tipoConducta').value,
 'Descripción': document.getElementById('descripcion').value,
 'Acciones del Docente': document.getElementById('accionesDocente').value
 };
