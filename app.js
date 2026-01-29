@@ -3569,7 +3569,7 @@ function mostrarAlerta(id, mensaje, tipo = 'success') {
     }
 }
 
-async function enviarGoogleSheets(url, datos) {
+async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null) {
     if (!url) {
         console.log('URL no configurada');
         return;
@@ -3578,6 +3578,14 @@ async function enviarGoogleSheets(url, datos) {
     try {
         // Convertir datos a FormData (compatible con no-cors)
         const formData = new URLSearchParams();
+        
+        // Si es actualización, agregar campos especiales
+        if (accion === 'actualizar' && indice !== null) {
+            formData.append('accion', 'actualizar');
+            formData.append('indice', indice);
+        }
+        
+        // Agregar todos los datos
         for (const key in datos) {
             formData.append(key, datos[key]);
         }
@@ -3587,7 +3595,7 @@ async function enviarGoogleSheets(url, datos) {
             body: formData
         });
         
-        console.log('✅ Datos enviados a Google Sheets:', datos);
+        console.log(`✅ Datos ${accion === 'actualizar' ? 'actualizados' : 'enviados'} a Google Sheets:`, datos);
     } catch (error) {
         console.error('❌ Error al enviar a Google Sheets:', error);
     }
