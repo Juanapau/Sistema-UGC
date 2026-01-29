@@ -3575,13 +3575,6 @@ async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null)
         return;
     }
     
-    console.log(`🔍 enviarGoogleSheets llamada con:`, {
-        accion: accion,
-        indice: indice,
-        url: url,
-        datos: datos
-    });
-    
     try {
         // Convertir datos a FormData (compatible con no-cors)
         const formData = new URLSearchParams();
@@ -3590,9 +3583,6 @@ async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null)
         if (accion === 'actualizar' && indice !== null) {
             formData.append('accion', 'actualizar');
             formData.append('indice', indice);
-            console.log(`🔄 Modo ACTUALIZACIÓN - Fila ${indice + 2} en Google Sheets`);
-        } else {
-            console.log(`➕ Modo AGREGAR NUEVO`);
         }
         
         // Agregar todos los datos
@@ -3605,7 +3595,7 @@ async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null)
             body: formData
         });
         
-        console.log(`✅ Datos ${accion === 'actualizar' ? 'actualizados' : 'enviados'} a Google Sheets:`, datos);
+        console.log(`✅ ${accion === 'actualizar' ? 'Registro actualizado' : 'Registro guardado'}`);
     } catch (error) {
         console.error('❌ Error al enviar a Google Sheets:', error);
     }
