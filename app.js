@@ -3234,21 +3234,21 @@ function crearModalReportes() {
             </div>
             
             <hr style="margin:40px 0;">
-            <h3>Estadísticas de Conductas Graves</h3>
+            <h3>Estadísticas de Conductas Graves (Este Mes)</h3>
             <div class="stats-grid">
-                <div class="stat-card" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
                     <h4>Agresión Física</h4>
                     <div class="number" id="statAgresionFisica">0</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
                     <h4>Agresión Verbal</h4>
                     <div class="number" id="statAgresionVerbal">0</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
                     <h4>Bullying</h4>
                     <div class="number" id="statBullying">0</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: white;">
+                <div class="stat-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
                     <h4>Cyber Bullying</h4>
                     <div class="number" id="statCyberBullying">0</div>
                 </div>
@@ -3361,35 +3361,46 @@ async function cargarDatosYActualizarEstadisticas() {
     if (statEstudiantes) statEstudiantes.textContent = datosEstudiantes.length;
     if (statContactos) statContactos.textContent = datosContactos.length;
     
-    // Calcular y actualizar estadísticas de conductas graves
+    // Calcular y actualizar estadísticas de conductas graves (FILTRANDO POR MES ACTUAL)
     const statAgresionFisica = document.getElementById('statAgresionFisica');
     const statAgresionVerbal = document.getElementById('statAgresionVerbal');
     const statBullying = document.getElementById('statBullying');
     const statCyberBullying = document.getElementById('statCyberBullying');
     
+    // Obtener fecha actual
+    const ahora = new Date();
+    const mesActual = ahora.getMonth(); // 0-11
+    const añoActual = ahora.getFullYear();
+    
+    // Filtrar incidencias del mes actual
+    const incidenciasMesActual = datosIncidencias.filter(i => {
+        const fechaInc = new Date(i['Fecha y Hora'] || i.fecha || '');
+        return fechaInc.getMonth() === mesActual && fechaInc.getFullYear() === añoActual;
+    });
+    
     if (statAgresionFisica) {
-        const countAgresionFisica = datosIncidencias.filter(i => 
+        const countAgresionFisica = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
         ).length;
         statAgresionFisica.textContent = countAgresionFisica;
     }
     
     if (statAgresionVerbal) {
-        const countAgresionVerbal = datosIncidencias.filter(i => 
+        const countAgresionVerbal = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
         ).length;
         statAgresionVerbal.textContent = countAgresionVerbal;
     }
     
     if (statBullying) {
-        const countBullying = datosIncidencias.filter(i => 
+        const countBullying = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
         ).length;
         statBullying.textContent = countBullying;
     }
     
     if (statCyberBullying) {
-        const countCyberBullying = datosIncidencias.filter(i => 
+        const countCyberBullying = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
         ).length;
         statCyberBullying.textContent = countCyberBullying;
