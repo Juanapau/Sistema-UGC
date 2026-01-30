@@ -3333,6 +3333,17 @@ function actualizarEstadisticasConductas() {
     console.log('📊 Incidencias del mes actual:', incidenciasMesActual.length);
     console.log('📋 Primera incidencia del mes:', incidenciasMesActual[0]);
     
+    // Mostrar los valores de Tipo de Conducta de las primeras 3 incidencias
+    console.log('🔍 Verificando campo "Tipo de Conducta":');
+    incidenciasMesActual.slice(0, 3).forEach((inc, idx) => {
+        console.log(`  Incidencia ${idx + 1}:`, {
+            'Tipo de Conducta': inc['Tipo de Conducta'],
+            'tipo de conducta': inc['tipo de conducta'],
+            'tipoConducta': inc['tipoConducta'],
+            'todas las claves': Object.keys(inc)
+        });
+    });
+    
     if (statAgresionFisica) {
         const countAgresionFisica = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
