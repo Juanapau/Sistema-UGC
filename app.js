@@ -543,7 +543,7 @@ function editarIncidencia(indice) {
     document.getElementById('cursoIncidencia').value = inc['Curso'] || '';
     document.getElementById('tipoFalta').value = inc['Tipo de falta'] || '';
     document.getElementById('docenteReporta').value = inc['Docente'] || '';
-    document.getElementById('tipoConducta').value = inc['Tipo de Conducta'] || '';
+    document.getElementById('tipoConducta').value = inc['Tipo de Conducta'] || inc['Tipo de conducta'] || '';
     document.getElementById('descripcionIncidencia').value = inc['Descripción'] || '';
     document.getElementById('accionesDocente').value = inc['Acciones Docente'] || '';
     document.getElementById('seguimientoUGC').value = inc['Seguimiento UGC'] || '';
@@ -615,7 +615,7 @@ function cargarTablaIncidencias() {
         const curso = inc['Curso'] || inc.curso || '';
         const tipo = inc['Tipo de falta'] || inc.tipoFalta || '';
         const docente = inc['Docente'] || inc.docente || '';
-        const tipoConducta = inc['Tipo de Conducta'] || inc.tipoConducta || '-';
+        const tipoConducta = inc['Tipo de Conducta'] || inc['Tipo de conducta'] || inc.tipoConducta || '-';
         const descripcion = inc['Descripción'] || inc.descripcion || '';
         const acciones = inc['Acciones Docente'] || inc.acciones || '';
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
@@ -663,7 +663,7 @@ function buscarIncidencias() {
         const curso = inc['Curso'] || inc.curso || '';
         const tipo = inc['Tipo de falta'] || inc.tipoFalta || '';
         const docente = inc['Docente'] || inc.docente || '';
-        const tipoConducta = inc['Tipo de Conducta'] || inc.tipoConducta || '-';
+        const tipoConducta = inc['Tipo de Conducta'] || inc['Tipo de conducta'] || inc.tipoConducta || '-';
         const descripcion = inc['Descripción'] || inc.descripcion || '';
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
         const observaciones = inc['Observaciones'] || inc.observaciones || '';
