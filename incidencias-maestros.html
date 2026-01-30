@@ -585,21 +585,34 @@ btnSubmit.innerHTML = 'Registrar Incidencia';
 
 async function enviarAGoogleSheets(datos) {
 try {
+// Convertir los datos a URLSearchParams (formato formulario)
+const formData = new URLSearchParams();
+for (const key in datos) {
+formData.append(key, datos[key]);
+}
+
+console.log('📤 Enviando datos a Google Sheets...');
+console.log('📋 Datos a enviar:', datos);
+
+// Enviar los datos
 const response = await fetch(CONFIG.urlAppsScript, {
 method: 'POST',
-mode: 'no-cors',
-headers: {
-'Content-Type': 'application/json',
-},
-body: JSON.stringify(datos)
+body: formData,
+redirect: 'follow'
 });
 
+// No intentamos leer la respuesta en modo no-cors
+// Solo confirmamos que se envió
 console.log('✅ Datos enviados a Google Sheets');
 console.log('📋 INCIDENCIA REGISTRADA:');
 console.log(datos);
+
+// Pequeña pausa para asegurar que se procesó
+await new Promise(resolve => setTimeout(resolve, 1000));
+
 return true;
 } catch (error) {
-console.error('Error enviando a Apps Script:', error);
+console.error('❌ Error enviando a Apps Script:', error);
 throw new Error('No se pudo conectar con Google Sheets');
 }
 }
