@@ -3340,7 +3340,8 @@ function actualizarEstadisticasConductas() {
             'Tipo de Conducta': inc['Tipo de Conducta'],
             'tipo de conducta': inc['tipo de conducta'],
             'tipoConducta': inc['tipoConducta'],
-            'todas las claves': Object.keys(inc)
+            'Columnas disponibles': Object.keys(inc),
+            'TODAS LAS CLAVES Y VALORES': inc
         });
     });
     
