@@ -3295,20 +3295,34 @@ function crearModalReportes() {
 
 // Función para actualizar solo las estadísticas de conductas graves
 function actualizarEstadisticasConductas() {
+    console.log('🔍 actualizarEstadisticasConductas llamada');
+    
     const statAgresionFisica = document.getElementById('statAgresionFisica');
     const statAgresionVerbal = document.getElementById('statAgresionVerbal');
     const statBullying = document.getElementById('statBullying');
     const statCyberBullying = document.getElementById('statCyberBullying');
     
+    console.log('🔍 Elementos encontrados:', {
+        statAgresionFisica: !!statAgresionFisica,
+        statAgresionVerbal: !!statAgresionVerbal,
+        statBullying: !!statBullying,
+        statCyberBullying: !!statCyberBullying
+    });
+    
     // Si no existen los elementos, salir
     if (!statAgresionFisica && !statAgresionVerbal && !statBullying && !statCyberBullying) {
+        console.log('⚠️ No se encontraron elementos de estadísticas de conductas');
         return;
     }
+    
+    console.log('📊 Total incidencias disponibles:', datosIncidencias.length);
     
     // Obtener fecha actual
     const ahora = new Date();
     const mesActual = ahora.getMonth(); // 0-11
     const añoActual = ahora.getFullYear();
+    
+    console.log('📅 Filtrando por mes:', mesActual, 'año:', añoActual);
     
     // Filtrar incidencias del mes actual
     const incidenciasMesActual = datosIncidencias.filter(i => {
@@ -3316,10 +3330,14 @@ function actualizarEstadisticasConductas() {
         return fechaInc.getMonth() === mesActual && fechaInc.getFullYear() === añoActual;
     });
     
+    console.log('📊 Incidencias del mes actual:', incidenciasMesActual.length);
+    console.log('📋 Primera incidencia del mes:', incidenciasMesActual[0]);
+    
     if (statAgresionFisica) {
         const countAgresionFisica = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
         ).length;
+        console.log('🔴 Agresión física:', countAgresionFisica);
         statAgresionFisica.textContent = countAgresionFisica;
     }
     
@@ -3327,6 +3345,7 @@ function actualizarEstadisticasConductas() {
         const countAgresionVerbal = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
         ).length;
+        console.log('🟠 Agresión verbal:', countAgresionVerbal);
         statAgresionVerbal.textContent = countAgresionVerbal;
     }
     
@@ -3334,6 +3353,7 @@ function actualizarEstadisticasConductas() {
         const countBullying = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
         ).length;
+        console.log('🟢 Bullying:', countBullying);
         statBullying.textContent = countBullying;
     }
     
@@ -3341,8 +3361,11 @@ function actualizarEstadisticasConductas() {
         const countCyberBullying = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
         ).length;
+        console.log('🔵 Cyber bullying:', countCyberBullying);
         statCyberBullying.textContent = countCyberBullying;
     }
+    
+    console.log('✅ actualizarEstadisticasConductas completada');
 }
 
 // Nueva función para cargar datos y actualizar estadísticas
