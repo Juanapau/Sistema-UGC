@@ -669,8 +669,8 @@ function buscarIncidencias() {
         const docente = inc['Docente'] || inc.docente || '';
         const tipoConducta = inc['Tipo de Conducta'] || inc['Tipo de conducta'] || inc.tipoConducta || '-';
         const descripcion = inc['Descripción'] || inc.descripcion || '';
+        const acciones = inc['Acciones Docente'] || inc.acciones || '';
         const seguimiento = inc['Seguimiento UGC'] || inc.seguimiento || '';
-        const observaciones = inc['Observaciones'] || inc.observaciones || '';
         
         // Encontrar el índice real en datosIncidencias
         const indiceReal = datosIncidencias.findIndex(i => i === inc);
@@ -682,10 +682,10 @@ function buscarIncidencias() {
             <td>${curso}</td>
             <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
             <td>${docente}</td>
-            <td>${tipoConducta}</td>
-            <td>${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
-            <td>${seguimiento ? seguimiento.substring(0,60) + '...' : '-'}</td>
-            <td>${observaciones ? observaciones.substring(0,60) + '...' : '-'}</td>
+            <td style="white-space:normal;max-width:150px;">${tipoConducta}</td>
+            <td style="white-space:normal;max-width:250px;">${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
+            <td style="white-space:normal;max-width:200px;">${acciones || '-'}</td>
+            <td style="white-space:normal;max-width:200px;">${seguimiento || '-'}</td>
         </tr>
     `;
     }).join('');
