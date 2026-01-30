@@ -3235,27 +3235,6 @@ function crearModalReportes() {
             </div>
             
             <hr style="margin:40px 0;">
-            <h3>Estadísticas de Conductas Graves (Este Mes)</h3>
-            <div class="stats-grid">
-                <div class="stat-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
-                    <h4>Agresión Física</h4>
-                    <div class="number" id="statAgresionFisica">0</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
-                    <h4>Agresión Verbal</h4>
-                    <div class="number" id="statAgresionVerbal">0</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
-                    <h4>Bullying</h4>
-                    <div class="number" id="statBullying">0</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
-                    <h4>Cyber Bullying</h4>
-                    <div class="number" id="statCyberBullying">0</div>
-                </div>
-            </div>
-            
-            <hr style="margin:40px 0;">
             <h3>Reporte por Curso</h3>
             <div class="form-group">
                 <label>Seleccione Curso</label>
@@ -3278,6 +3257,59 @@ function crearModalReportes() {
             <hr style="margin:40px 0;">
             <button class="btn btn-success" onclick="exportarTodo()">📥 Exportar Todo el Sistema</button>
             
+            <hr style="margin:40px 0;">
+            
+            <!-- SECCIÓN 1: ESTADÍSTICAS MES ACTUAL -->
+            <h3>📊 Estadísticas de Conductas Graves - Mes Actual <span style="display:inline-block;background:#10b981;color:white;padding:3px 10px;border-radius:12px;font-size:0.75em;margin-left:8px;font-weight:600;" id="badgeMesActual">Enero 2026</span></h3>
+            <div class="stats-grid">
+                <div class="stat-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+                    <h4>Agresión Física</h4>
+                    <div class="number" id="statAgresionFisicaActual">0</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                    <h4>Agresión Verbal</h4>
+                    <div class="number" id="statAgresionVerbalActual">0</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
+                    <h4>Bullying</h4>
+                    <div class="number" id="statBullyingActual">0</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+                    <h4>Cyber Bullying</h4>
+                    <div class="number" id="statCyberBullyingActual">0</div>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 2: HISTORIAL POR MES -->
+            <div style="margin-top:40px;">
+                <h3>📅 Historial de Conductas por Mes</h3>
+                
+                <!-- Selector de mes -->
+                <div id="mesSelectorContainer" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                    <!-- Se generan dinámicamente con JavaScript -->
+                </div>
+                
+                <!-- Grid compacto de estadísticas del mes seleccionado -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:12px;">
+                    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Agresión Física</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialAgresionFisica">0</div>
+                    </div>
+                    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Agresión Verbal</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialAgresionVerbal">0</div>
+                    </div>
+                    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Bullying</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialBullying">0</div>
+                    </div>
+                    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Cyber Bullying</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialCyberBullying">0</div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="contenidoReporte" style="margin-top:30px;"></div>
         </div>
     </div>
@@ -3297,10 +3329,11 @@ function crearModalReportes() {
 function actualizarEstadisticasConductas() {
     console.log('🔍 actualizarEstadisticasConductas llamada');
     
-    const statAgresionFisica = document.getElementById('statAgresionFisica');
-    const statAgresionVerbal = document.getElementById('statAgresionVerbal');
-    const statBullying = document.getElementById('statBullying');
-    const statCyberBullying = document.getElementById('statCyberBullying');
+    // Elementos del mes actual
+    const statAgresionFisica = document.getElementById('statAgresionFisicaActual');
+    const statAgresionVerbal = document.getElementById('statAgresionVerbalActual');
+    const statBullying = document.getElementById('statBullyingActual');
+    const statCyberBullying = document.getElementById('statCyberBullyingActual');
     
     console.log('🔍 Elementos encontrados:', {
         statAgresionFisica: !!statAgresionFisica,
@@ -3321,6 +3354,15 @@ function actualizarEstadisticasConductas() {
     const ahora = new Date();
     const mesActual = ahora.getMonth(); // 0-11
     const añoActual = ahora.getFullYear();
+    
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    // Actualizar badge del mes actual
+    const badgeMesActual = document.getElementById('badgeMesActual');
+    if (badgeMesActual) {
+        badgeMesActual.textContent = `${meses[mesActual]} ${añoActual}`;
+    }
     
     console.log('📅 Filtrando por mes:', mesActual, 'año:', añoActual);
     
@@ -3345,6 +3387,7 @@ function actualizarEstadisticasConductas() {
         });
     });
     
+    // Actualizar estadísticas del MES ACTUAL
     if (statAgresionFisica) {
         const countAgresionFisica = incidenciasMesActual.filter(i => 
             (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
@@ -3377,7 +3420,98 @@ function actualizarEstadisticasConductas() {
         statCyberBullying.textContent = countCyberBullying;
     }
     
+    // GENERAR HISTORIAL DE MESES
+    generarHistorialMeses();
+    
     console.log('✅ actualizarEstadisticasConductas completada');
+}
+
+// Nueva función para generar el historial de meses
+function generarHistorialMeses() {
+    const mesSelectorContainer = document.getElementById('mesSelectorContainer');
+    if (!mesSelectorContainer) return;
+    
+    const ahora = new Date();
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    // Generar últimos 6 meses
+    const botonesMeses = [];
+    for (let i = 0; i < 6; i++) {
+        const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+        const mes = fecha.getMonth();
+        const año = fecha.getFullYear();
+        const nombreMes = `${meses[mes]} ${año}`;
+        
+        botonesMeses.push({
+            nombre: nombreMes,
+            mes: mes,
+            año: año,
+            esActual: i === 0
+        });
+    }
+    
+    // Crear botones
+    mesSelectorContainer.innerHTML = botonesMeses.map(m => `
+        <button class="btn ${m.esActual ? 'btn-primary' : 'btn-secondary'}" 
+                onclick="mostrarEstadisticasMes(${m.mes}, ${m.año})"
+                data-mes="${m.mes}" data-año="${m.año}"
+                style="padding:10px 20px;border-radius:8px;font-size:0.9em;font-weight:600;">
+            ${m.nombre}
+        </button>
+    `).join('');
+    
+    // Mostrar estadísticas del mes actual por defecto
+    mostrarEstadisticasMes(ahora.getMonth(), ahora.getFullYear());
+}
+
+// Función para mostrar estadísticas de un mes específico
+function mostrarEstadisticasMes(mes, año) {
+    // Filtrar incidencias del mes seleccionado
+    const incidenciasMes = datosIncidencias.filter(i => {
+        const fechaInc = new Date(i['Fecha y Hora'] || i.fecha || '');
+        return fechaInc.getMonth() === mes && fechaInc.getFullYear() === año;
+    });
+    
+    // Contar conductas
+    const agresionFisica = incidenciasMes.filter(i => 
+        (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
+    ).length;
+    
+    const agresionVerbal = incidenciasMes.filter(i => 
+        (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
+    ).length;
+    
+    const bullying = incidenciasMes.filter(i => 
+        (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
+    ).length;
+    
+    const cyberBullying = incidenciasMes.filter(i => 
+        (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
+    ).length;
+    
+    // Actualizar interfaz
+    const elemFisica = document.getElementById('historialAgresionFisica');
+    const elemVerbal = document.getElementById('historialAgresionVerbal');
+    const elemBullying = document.getElementById('historialBullying');
+    const elemCyber = document.getElementById('historialCyberBullying');
+    
+    if (elemFisica) elemFisica.textContent = agresionFisica;
+    if (elemVerbal) elemVerbal.textContent = agresionVerbal;
+    if (elemBullying) elemBullying.textContent = bullying;
+    if (elemCyber) elemCyber.textContent = cyberBullying;
+    
+    // Actualizar clase activa de botones
+    const botones = document.querySelectorAll('#mesSelectorContainer button');
+    botones.forEach(btn => {
+        const btnMes = parseInt(btn.getAttribute('data-mes'));
+        const btnAño = parseInt(btn.getAttribute('data-año'));
+        if (btnMes === mes && btnAño === año) {
+            btn.className = 'btn btn-primary';
+        } else {
+            btn.className = 'btn btn-secondary';
+        }
+    });
 }
 
 // Nueva función para cargar datos y actualizar estadísticas
