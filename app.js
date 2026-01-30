@@ -528,6 +528,7 @@ const inc = {
     document.getElementById('formIncidencia').reset();
     cargarTablaIncidencias();
     buscarIncidencias(); // Actualizar tabla de búsqueda también
+    actualizarEstadisticasConductas(); // Actualizar estadísticas de conductas
 }
 
 function editarIncidencia(indice) {
@@ -3292,6 +3293,58 @@ function crearModalReportes() {
     }, 200);
 }
 
+// Función para actualizar solo las estadísticas de conductas graves
+function actualizarEstadisticasConductas() {
+    const statAgresionFisica = document.getElementById('statAgresionFisica');
+    const statAgresionVerbal = document.getElementById('statAgresionVerbal');
+    const statBullying = document.getElementById('statBullying');
+    const statCyberBullying = document.getElementById('statCyberBullying');
+    
+    // Si no existen los elementos, salir
+    if (!statAgresionFisica && !statAgresionVerbal && !statBullying && !statCyberBullying) {
+        return;
+    }
+    
+    // Obtener fecha actual
+    const ahora = new Date();
+    const mesActual = ahora.getMonth(); // 0-11
+    const añoActual = ahora.getFullYear();
+    
+    // Filtrar incidencias del mes actual
+    const incidenciasMesActual = datosIncidencias.filter(i => {
+        const fechaInc = new Date(i['Fecha y Hora'] || i.fecha || '');
+        return fechaInc.getMonth() === mesActual && fechaInc.getFullYear() === añoActual;
+    });
+    
+    if (statAgresionFisica) {
+        const countAgresionFisica = incidenciasMesActual.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
+        ).length;
+        statAgresionFisica.textContent = countAgresionFisica;
+    }
+    
+    if (statAgresionVerbal) {
+        const countAgresionVerbal = incidenciasMesActual.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
+        ).length;
+        statAgresionVerbal.textContent = countAgresionVerbal;
+    }
+    
+    if (statBullying) {
+        const countBullying = incidenciasMesActual.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
+        ).length;
+        statBullying.textContent = countBullying;
+    }
+    
+    if (statCyberBullying) {
+        const countCyberBullying = incidenciasMesActual.filter(i => 
+            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
+        ).length;
+        statCyberBullying.textContent = countCyberBullying;
+    }
+}
+
 // Nueva función para cargar datos y actualizar estadísticas
 async function cargarDatosYActualizarEstadisticas() {
     // Cargar datos desde Google Sheets si están configuradas las URLs
@@ -3361,50 +3414,8 @@ async function cargarDatosYActualizarEstadisticas() {
     if (statEstudiantes) statEstudiantes.textContent = datosEstudiantes.length;
     if (statContactos) statContactos.textContent = datosContactos.length;
     
-    // Calcular y actualizar estadísticas de conductas graves (FILTRANDO POR MES ACTUAL)
-    const statAgresionFisica = document.getElementById('statAgresionFisica');
-    const statAgresionVerbal = document.getElementById('statAgresionVerbal');
-    const statBullying = document.getElementById('statBullying');
-    const statCyberBullying = document.getElementById('statCyberBullying');
-    
-    // Obtener fecha actual
-    const ahora = new Date();
-    const mesActual = ahora.getMonth(); // 0-11
-    const añoActual = ahora.getFullYear();
-    
-    // Filtrar incidencias del mes actual
-    const incidenciasMesActual = datosIncidencias.filter(i => {
-        const fechaInc = new Date(i['Fecha y Hora'] || i.fecha || '');
-        return fechaInc.getMonth() === mesActual && fechaInc.getFullYear() === añoActual;
-    });
-    
-    if (statAgresionFisica) {
-        const countAgresionFisica = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
-        ).length;
-        statAgresionFisica.textContent = countAgresionFisica;
-    }
-    
-    if (statAgresionVerbal) {
-        const countAgresionVerbal = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
-        ).length;
-        statAgresionVerbal.textContent = countAgresionVerbal;
-    }
-    
-    if (statBullying) {
-        const countBullying = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
-        ).length;
-        statBullying.textContent = countBullying;
-    }
-    
-    if (statCyberBullying) {
-        const countCyberBullying = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
-        ).length;
-        statCyberBullying.textContent = countCyberBullying;
-    }
+    // Actualizar estadísticas de conductas graves usando la función dedicada
+    actualizarEstadisticasConductas();
     
     // Actualizar datalist de estudiantes
     actualizarDatalistsEstudiantes();
