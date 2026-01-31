@@ -5,14 +5,14 @@ const CACHE_NAME = `ugc-cache-${CACHE_VERSION}`;
 
 // Archivos críticos que se cachean para funcionar offline
 const CRITICAL_FILES = [
-  '/',
-  '/index.html',
-  '/app.js',
-  '/styles.css',
-  '/notas-rapidas.js',
-  '/regimen-content.js',
-  '/logo.png',
-  '/incidencias-maestros.html'
+  '/Sistema-UGC/',
+  '/Sistema-UGC/index.html',
+  '/Sistema-UGC/app.js',
+  '/Sistema-UGC/styles.css',
+  '/Sistema-UGC/notas-rapidas.js',
+  '/Sistema-UGC/regimen-content.js',
+  '/Sistema-UGC/logo.png',
+  '/Sistema-UGC/incidencias-maestros.html'
 ];
 
 // Instalación del Service Worker
