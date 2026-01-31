@@ -3874,9 +3874,213 @@ async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null)
         
         console.log(`✅ ${accion === 'actualizar' ? 'Registro actualizado' : 'Registro guardado'}`);
     } catch (error) {
-        console.error('❌ Error al enviar a Google Sheets:', error);
+        console.error('❌ Error al enviar a Google Sheets (sin conexión):', error);
+        
+        // Si falla (sin internet), guardar en cola offline
+        guardarEnColaOffline(url, datos, accion, indice);
     }
 }
+
+// Sistema de sincronización offline
+function guardarEnColaOffline(url, datos, accion, indice) {
+    // Obtener cola existente
+    let cola = JSON.parse(localStorage.getItem('colaOffline') || '[]');
+    
+    // Agregar nuevo registro a la cola
+    cola.push({
+        id: Date.now(),
+        url: url,
+        datos: datos,
+        accion: accion,
+        indice: indice,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Guardar cola actualizada
+    localStorage.setItem('colaOffline', JSON.stringify(cola));
+    
+    console.log('📱 Registro guardado offline. Pendientes:', cola.length);
+    
+    // Actualizar badge de pendientes
+    actualizarBadgePendientes();
+    
+    // Mostrar notificación
+    mostrarNotificacionOffline(cola.length);
+}
+
+function actualizarBadgePendientes() {
+    const cola = JSON.parse(localStorage.getItem('colaOffline') || '[]');
+    const cantidad = cola.length;
+    
+    // Buscar o crear badge de pendientes
+    let badge = document.getElementById('badgePendientes');
+    
+    if (cantidad > 0) {
+        if (!badge) {
+            // Crear badge si no existe
+            badge = document.createElement('div');
+            badge.id = 'badgePendientes';
+            badge.style.cssText = `
+                position: fixed;
+                top: 70px;
+                right: 20px;
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                color: white;
+                padding: 10px 15px;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: 0.9em;
+                box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+                z-index: 10000;
+                cursor: pointer;
+                animation: pulse 2s infinite;
+            `;
+            badge.onclick = sincronizarAhora;
+            document.body.appendChild(badge);
+            
+            // Agregar animación
+            if (!document.getElementById('badgeAnimation')) {
+                const style = document.createElement('style');
+                style.id = 'badgeAnimation';
+                style.textContent = `
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+        badge.textContent = `⚠️ ${cantidad} registro${cantidad > 1 ? 's' : ''} pendiente${cantidad > 1 ? 's' : ''}`;
+        badge.style.display = 'block';
+    } else {
+        if (badge) badge.style.display = 'none';
+    }
+}
+
+function mostrarNotificacionOffline(cantidad) {
+    const mensaje = `📱 Sin conexión. ${cantidad} registro${cantidad > 1 ? 's' : ''} guardado${cantidad > 1 ? 's' : ''} localmente. Se sincronizarán automáticamente cuando haya internet.`;
+    
+    // Crear notificación temporal
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #f59e0b;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 10001;
+        max-width: 90%;
+        text-align: center;
+    `;
+    notif.textContent = mensaje;
+    document.body.appendChild(notif);
+    
+    // Quitar después de 5 segundos
+    setTimeout(() => {
+        notif.remove();
+    }, 5000);
+}
+
+async function sincronizarRegistrosPendientes() {
+    const cola = JSON.parse(localStorage.getItem('colaOffline') || '[]');
+    
+    if (cola.length === 0) return;
+    
+    console.log(`🔄 Iniciando sincronización de ${cola.length} registros pendientes...`);
+    
+    let sincronizados = 0;
+    let fallidos = [];
+    
+    for (const registro of cola) {
+        try {
+            const formData = new URLSearchParams();
+            
+            if (registro.accion === 'actualizar' && registro.indice !== null) {
+                formData.append('accion', 'actualizar');
+                formData.append('indice', registro.indice);
+            }
+            
+            for (const key in registro.datos) {
+                formData.append(key, registro.datos[key]);
+            }
+            
+            const response = await fetch(registro.url, {
+                method: 'POST',
+                body: formData
+            });
+            
+            sincronizados++;
+            console.log(`✅ Registro ${registro.id} sincronizado`);
+            
+        } catch (error) {
+            console.error(`❌ Error al sincronizar registro ${registro.id}:`, error);
+            fallidos.push(registro);
+        }
+    }
+    
+    // Actualizar cola (solo dejar los fallidos)
+    localStorage.setItem('colaOffline', JSON.stringify(fallidos));
+    
+    // Actualizar badge
+    actualizarBadgePendientes();
+    
+    // Notificar resultado
+    if (sincronizados > 0) {
+        mostrarNotificacionSincronizado(sincronizados);
+    }
+    
+    console.log(`✅ Sincronización completada: ${sincronizados} exitosos, ${fallidos.length} pendientes`);
+}
+
+function mostrarNotificacionSincronizado(cantidad) {
+    const mensaje = `✅ ${cantidad} registro${cantidad > 1 ? 's' : ''} sincronizado${cantidad > 1 ? 's' : ''} con Google Sheets`;
+    
+    const notif = document.createElement('div');
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #10b981;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 10001;
+        max-width: 90%;
+        text-align: center;
+    `;
+    notif.textContent = mensaje;
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+        notif.remove();
+    }, 4000);
+}
+
+function sincronizarAhora() {
+    if (confirm('¿Deseas sincronizar ahora los registros pendientes?')) {
+        sincronizarRegistrosPendientes();
+    }
+}
+
+// Detectar cuando vuelve la conexión
+window.addEventListener('online', () => {
+    console.log('🌐 Conexión restaurada. Sincronizando...');
+    sincronizarRegistrosPendientes();
+});
+
+// Verificar pendientes al cargar
+window.addEventListener('load', () => {
+    actualizarBadgePendientes();
+});
 
 // Función para enviar múltiples registros de una vez (MASIVO)
 async function enviarGoogleSheetsMasivo(url, arrayDatos) {
