@@ -1,0 +1,22 @@
+{
+  "name": "Sistema UGC - Unidad de Gestión de la Convivencia",
+  "short_name": "Sistema UGC",
+  "description": "Sistema de Control Escolar y Normas de Aula - Unidad de Gestión de la Convivencia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "es-DO",
+  "dir": "ltr"
+}
