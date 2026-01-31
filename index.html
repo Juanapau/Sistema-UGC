@@ -3,8 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Convivencia - CENSA</title>
+    <title>Sistema UGC - Unidad de Gestión de la Convivencia</title>
+    <meta name="description" content="Sistema de Control Escolar y Normas de Aula - Unidad de Gestión de la Convivencia">
     <link rel="icon" type="image/png" href="./logo.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sistema UGC">
+    <link rel="apple-touch-icon" href="./logo.png">
+    <link rel="manifest" href="./manifest.json">
+    
     <style>
         * {
             margin: 0;
@@ -2181,5 +2191,68 @@
 
     <!-- Script del Sistema de Notas -->
     <script src="notas-rapidas.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registrado correctamente:', registration.scope);
+                        
+                        // Verificar actualizaciones cada 30 segundos
+                        setInterval(() => {
+                            registration.update();
+                        }, 30000);
+                        
+                        // Detectar cuando hay una nueva versión esperando
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Hay una nueva versión disponible
+                                    console.log('🔄 Nueva versión disponible');
+                                    
+                                    // Mostrar notificación de actualización
+                                    if (confirm('🔄 Nueva versión de Sistema UGC disponible. ¿Actualizar ahora?')) {
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.log('❌ Error al registrar Service Worker:', error);
+                    });
+                
+                // Recargar cuando el nuevo service worker tome control
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                });
+            });
+        }
+        
+        // Detectar cuando se instala como app
+        window.addEventListener('appinstalled', () => {
+            console.log('📱 Sistema UGC instalado como aplicación');
+        });
+        
+        // Prompt de instalación personalizado
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevenir el prompt automático
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostrar botón de instalación personalizado (opcional)
+            console.log('💡 Sistema UGC puede instalarse como app');
+        });
+    </script>
 </body>
 </html>
