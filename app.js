@@ -1243,12 +1243,20 @@ function buscarTardanzas() {
     const cursoFiltro = document.getElementById('filtrarCursoTard').value;
     const mesFiltro = document.getElementById('filtrarMesTard').value;
     
+    // DIAGNÓSTICO: Ver qué meses hay en los datos
+    const mesesEnDatos = [...new Set(datosTardanzas.map(t => t['Mes'] || t.mes || 'SIN_MES'))];
+    console.log('📅 Meses disponibles en los datos:', mesesEnDatos);
     console.log('🔍 Filtros aplicados:', { buscar, cursoFiltro, mesFiltro });
     
     const filtrados = datosTardanzas.filter(t => {
         const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
         const cursoT = t['Curso'] || t.curso || '';
         const mesT = t['Mes'] || t.mes || '';
+        
+        // DIAGNÓSTICO: Ver un ejemplo de comparación
+        if (mesFiltro && datosTardanzas.indexOf(t) === 0) {
+            console.log('🔎 Ejemplo de comparación:', { mesFiltro, mesT, coincide: mesT === mesFiltro });
+        }
         
         const matchNombre = !buscar || estudiante.includes(buscar);
         const matchCurso = !cursoFiltro || cursoT === cursoFiltro;
