@@ -373,8 +373,7 @@ async function cargarEstudiantes() {
 // Obtener referencia al input de estudiante
 const inputEstudiante = document.getElementById('estudiante');
 
-// Mostrar indicador de carga en el input
-inputEstudiante.placeholder = '⏳ Cargando estudiantes...';
+// Deshabilitar el campo sin cambiar el placeholder
 inputEstudiante.disabled = true;
 
 try {
@@ -383,7 +382,6 @@ const data = await response.json();
 
 if (data && data.length > 0) {
 estudiantes = data;
-inputEstudiante.placeholder = 'Escriba el nombre del estudiante...';
 inputEstudiante.disabled = false;
 console.log(`✅ ${estudiantes.length} estudiantes cargados`);
 } else {
