@@ -2418,30 +2418,18 @@ function crearModalReuniones() {
             </div>
             <div class="table-container">
                 <table>
-                    <colgroup>
-                        <col style="width: 95px;">      <!-- Fecha -->
-                        <col style="width: 65px;">      <!-- Tipo -->
-                        <col style="width: 130px;">     <!-- Estudiante -->
-                        <col style="width: 120px;">     <!-- Padre/Madre -->
-                        <col style="width: 80px;">      <!-- ¿Asistió? -->
-                        <col style="width: 80px;">      <!-- Reuniones -->
-                        <col style="width: 130px;">     <!-- Motivo -->
-                        <col style="width: 80px;">     <!-- Estado -->
-                        <col style="width: 90px;">      <!-- Seguimiento -->
-                        <col style="width: 90px;">     <!-- Acciones -->
-                    </colgroup>
                     <thead>
                         <tr>
-                            <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Estudiante</th>
-                            <th>Padre/Madre</th>
-                            <th>¿Asistió?</th>
-                            <th>Reuniones</th>
-                            <th>Motivo</th>
-                            <th>Estado</th>
-                            <th>Seguimiento</th>
-                            <th>Acciones</th>
+                            <th style="width:8%;">Fecha</th>
+                            <th style="width:6%;">Tipo</th>
+                            <th style="width:12%;">Estudiante</th>
+                            <th style="width:11%;">Padre/Madre</th>
+                            <th style="width:7%;">¿Asistió?</th>
+                            <th style="width:7%;">Reuniones</th>
+                            <th style="width:15%;">Motivo</th>
+                            <th style="width:10%;">Estado</th>
+                            <th style="width:8%;">Seguimiento</th>
+                            <th style="width:16%;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="bodyReuniones"></tbody>
@@ -5251,8 +5239,10 @@ function cargarTablaReuniones() {
             <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
             <td>${fechaSeguimiento ? new Date(fechaSeguimiento).toLocaleDateString('es-DO') : '-'}</td>
             <td style="white-space:nowrap;">
-                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${index})" style="padding:4px 8px;font-size:0.8em;">👁️</button>
-                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${index})" style="padding:4px 8px;font-size:0.8em;">📄</button>
+                <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${index})" style="padding:3px 8px;font-size:0.75em;width:100%;">👁️ Ver</button>
+                    <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${index})" style="padding:3px 8px;font-size:0.75em;width:100%;">📄 Acta</button>
+                </div>
             </td>
         </tr>
         `;
@@ -5409,8 +5399,10 @@ function buscarReuniones() {
             <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
             <td>${fechaSeguimiento ? new Date(fechaSeguimiento).toLocaleDateString('es-DO') : '-'}</td>
             <td style="white-space:nowrap;">
-                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${indiceReal})" style="padding:4px 8px;font-size:0.8em;">👁️</button>
-                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${indiceReal})" style="padding:4px 8px;font-size:0.8em;">📄</button>
+                <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${indiceReal})" style="padding:3px 8px;font-size:0.75em;width:100%;">👁️ Ver</button>
+                    <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${indiceReal})" style="padding:3px 8px;font-size:0.75em;width:100%;">📄 Acta</button>
+                </div>
             </td>
         </tr>
         `;
