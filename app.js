@@ -1240,8 +1240,10 @@ function cargarTablaTardanzas() {
 
 function buscarTardanzas() {
     const buscar = document.getElementById('buscarTard').value.toLowerCase().trim();
-    const curso = document.getElementById('filtrarCursoTard').value;
-    const mes = document.getElementById('filtrarMesTard').value;
+    const cursoFiltro = document.getElementById('filtrarCursoTard').value;
+    const mesFiltro = document.getElementById('filtrarMesTard').value;
+    
+    console.log('🔍 Filtros aplicados:', { buscar, cursoFiltro, mesFiltro });
     
     const filtrados = datosTardanzas.filter(t => {
         const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
@@ -1249,10 +1251,13 @@ function buscarTardanzas() {
         const mesT = t['Mes'] || t.mes || '';
         
         const matchNombre = !buscar || estudiante.includes(buscar);
-        const matchCurso = !curso || cursoT === curso;
-        const matchMes = !mes || mesT === mes;
+        const matchCurso = !cursoFiltro || cursoT === cursoFiltro;
+        const matchMes = !mesFiltro || mesT === mesFiltro;
+        
         return matchNombre && matchCurso && matchMes;
     });
+    
+    console.log(`📊 Tardanzas filtradas: ${filtrados.length} de ${datosTardanzas.length}`);
     
     const tbody = document.getElementById('bodyTardanzas');
     if (filtrados.length === 0) {
@@ -1264,18 +1269,20 @@ function buscarTardanzas() {
     const agrupado = {};
     filtrados.forEach(t => {
         const estudiante = t['Nombre Estudiante'] || t.estudiante || '';
-        const mes = t['Mes'] || t.mes || '';
-        const año = t['Año'] || t.año || '';
-        const curso = t['Curso'] || t.curso || '';
+        const mesData = t['Mes'] || t.mes || '';
+        const añoData = t['Año'] || t.año || '';
+        const cursoData = t['Curso'] || t.curso || '';
         const fecha = t['Fecha'] || t.fecha || '';
         
-        const key = `${estudiante}-${mes}-${año}`;
+        const key = `${estudiante}-${mesData}-${añoData}`;
         if (!agrupado[key]) {
-            agrupado[key] = {estudiante, curso, mes, año, fechas: [], total: 0};
+            agrupado[key] = {estudiante, curso: cursoData, mes: mesData, año: añoData, fechas: [], total: 0};
         }
         agrupado[key].fechas.push(fecha);
         agrupado[key].total++;
     });
+    
+    console.log(`📦 Grupos creados: ${Object.keys(agrupado).length}`);
     
     // Aplicar filtro de cantidad de tardanzas
     const filtroTardanzas = document.querySelector('input[name="filtroTardanzas"]:checked')?.value || 'todas';
@@ -1287,6 +1294,8 @@ function buscarTardanzas() {
         }
         return true; // 'todas'
     });
+    
+    console.log(`✅ Grupos finales a mostrar: ${gruposFiltrados.length}`);
     
     if (gruposFiltrados.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
