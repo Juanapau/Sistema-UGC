@@ -1584,7 +1584,10 @@ function crearModalContactos() {
             <form id="formContacto" onsubmit="registrarContacto(event)">
                 <div class="form-group">
                     <label>Estudiante *</label>
-                    <input type="text" id="estContacto" required>
+                    <div style="position:relative;">
+                        <input type="text" id="estContacto" data-sugerencias="sugerenciasEstContacto" placeholder="Escriba el nombre del estudiante..." autocomplete="off" required>
+                        <div id="sugerenciasEstContacto" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -1692,6 +1695,7 @@ function crearModalContactos() {
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
         crearAutocompletadoBusqueda('buscarContacto', 'sugerenciasBuscarCont');
+        crearAutocompletadoBusqueda('estContacto', 'sugerenciasEstContacto');
     }, 200);
 }
 
