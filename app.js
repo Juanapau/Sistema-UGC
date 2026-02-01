@@ -1241,7 +1241,7 @@ function cargarTablaTardanzas() {
 function buscarTardanzas() {
     const buscar = document.getElementById('buscarTard').value.toLowerCase().trim();
     const cursoFiltro = document.getElementById('filtrarCursoTard').value;
-    const mesFiltro = document.getElementById('filtrarMesTard').value;
+    const mesFiltro = document.getElementById('filtrarMesTard').value.toLowerCase(); // ← NORMALIZAR A MINÚSCULAS
     
     // DIAGNÓSTICO: Ver qué meses hay en los datos
     const mesesEnDatos = [...new Set(datosTardanzas.map(t => t['Mes'] || t.mes || 'SIN_MES'))];
@@ -1251,7 +1251,7 @@ function buscarTardanzas() {
     const filtrados = datosTardanzas.filter(t => {
         const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
         const cursoT = t['Curso'] || t.curso || '';
-        const mesT = t['Mes'] || t.mes || '';
+        const mesT = (t['Mes'] || t.mes || '').toLowerCase(); // ← NORMALIZAR A MINÚSCULAS
         
         // DIAGNÓSTICO: Ver un ejemplo de comparación
         if (mesFiltro && datosTardanzas.indexOf(t) === 0) {
