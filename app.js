@@ -2425,7 +2425,7 @@ function crearModalReuniones() {
                         <col style="width: 120px;">     <!-- Padre/Madre -->
                         <col style="width: 80px;">      <!-- ¿Asistió? -->
                         <col style="width: 80px;">      <!-- Reuniones -->
-                        <col style="width: 150px;">     <!-- Motivo (reducido) -->
+                        <col style="width: 130px;">     <!-- Motivo -->
                         <col style="width: 115px;">     <!-- Estado -->
                         <col style="width: 90px;">      <!-- Seguimiento -->
                         <col style="width: 145px;">     <!-- Acciones -->
