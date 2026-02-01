@@ -796,6 +796,7 @@ function crearModalTardanzas() {
                             <th>Curso</th>
                             <th>Mes</th>
                             <th>Total Mes</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody id="bodyTardanzas"></tbody>
@@ -1140,7 +1141,7 @@ function registrarTardanza(e) {
 function cargarTablaTardanzas() {
     const tbody = document.getElementById('bodyTardanzas');
     if (datosTardanzas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">No hay tardanzas</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay tardanzas</td></tr>';
         return;
     }
     
@@ -1172,7 +1173,7 @@ function cargarTablaTardanzas() {
     });
     
     if (gruposFiltrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
         return;
     }
     
@@ -1180,13 +1181,18 @@ function cargarTablaTardanzas() {
         const fechaUltima = g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-';
         let colorFondo = '';
         let icono = '';
+        let botonCircular = '';
         
         if (g.total === 3) {
             colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
             icono = '⚠️';
+            botonCircular = `<button class="btn" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">📄 Circular</button>`;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
+            botonCircular = `<button class="btn" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">⚠️ Circular</button>`;
+        } else {
+            botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
         }
         
         return `
@@ -1196,6 +1202,7 @@ function cargarTablaTardanzas() {
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
             <td><strong>${g.total}</strong></td>
+            <td>${botonCircular}</td>
         </tr>
         `;
     }).join('');
@@ -1216,7 +1223,7 @@ function buscarTardanzas() {
     
     const tbody = document.getElementById('bodyTardanzas');
     if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
     
@@ -1249,7 +1256,7 @@ function buscarTardanzas() {
     });
     
     if (gruposFiltrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
         return;
     }
     
@@ -1257,13 +1264,18 @@ function buscarTardanzas() {
         const fechaUltima = g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-';
         let colorFondo = '';
         let icono = '';
+        let botonCircular = '';
         
         if (g.total === 3) {
             colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
             icono = '⚠️';
+            botonCircular = `<button class="btn" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">📄 Circular</button>`;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
+            botonCircular = `<button class="btn" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">⚠️ Circular</button>`;
+        } else {
+            botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
         }
         
         return `
@@ -1273,6 +1285,7 @@ function buscarTardanzas() {
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
             <td><strong>${g.total}</strong></td>
+            <td>${botonCircular}</td>
         </tr>
     `;
     }).join('');
@@ -2369,6 +2382,7 @@ function crearModalReuniones() {
                             <th>Tipo</th>
                             <th>Estudiante</th>
                             <th>Padre/Madre</th>
+                            <th>¿Asistió?</th>
                             <th>Reuniones</th>
                             <th>Motivo</th>
                             <th>Estado</th>
@@ -4990,7 +5004,8 @@ function registrarReunion(e) {
         'Acuerdos Establecidos': document.getElementById('acuerdosEstablecidos').value,
         'Fecha Seguimiento': document.getElementById('fechaSeguimiento').value,
         'Estado': document.getElementById('estadoAcuerdo').value,
-        'Observaciones': document.getElementById('observacionesReunion').value
+        'Observaciones': document.getElementById('observacionesReunion').value,
+        'Asistió': 'No' // Por defecto No, se marca después con el checkbox
     };
     
     if (modoEdicion === 'true') {
@@ -5105,7 +5120,7 @@ function cancelarEdicionReunion() {
 function cargarTablaReuniones() {
     const tbody = document.getElementById('bodyReuniones');
     if (datosReuniones.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#999;">No hay reuniones registradas</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#999;">No hay reuniones registradas</td></tr>';
         return;
     }
     
@@ -5119,6 +5134,7 @@ function cargarTablaReuniones() {
         const motivo = r['Motivo'] || r.motivo || '';
         const estado = r['Estado'] || r.estado || '';
         const fechaSeguimiento = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
+        const asistio = r['Asistió'] || r['asistio'] || r.asistio || 'No';
         
         // Icono según tipo
         const iconoTipo = tipo === 'Llamada telefónica' ? '📞' : '🏫';
@@ -5155,12 +5171,23 @@ function cargarTablaReuniones() {
             colorEstado = '#856404';
         }
         
+        // Checkbox de asistencia
+        const checked = asistio === 'Sí' ? 'checked' : '';
+        const colorCheck = asistio === 'Sí' ? '#10b981' : '#9ca3af';
+        const textoCheck = asistio === 'Sí' ? 'Sí' : 'No';
+        
         return `
         <tr onclick="editarReunion(${index})" style="cursor:pointer;" title="Click para editar">
             <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric'}) : ''}<br><small>${fecha ? new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : ''}</small></td>
             <td style="text-align:center;">${iconoTipo}<br><small>${tipo}</small></td>
             <td><strong>${estudiante}</strong><br><small>${curso}</small></td>
             <td>${nombrePadre || padrePresente}<br><small>${padrePresente}</small></td>
+            <td style="text-align:center;" onclick="event.stopPropagation();">
+                <label style="display:flex;align-items:center;justify-content:center;cursor:pointer;gap:5px;">
+                    <input type="checkbox" ${checked} onchange="toggleAsistencia(${index}, this.checked)" style="width:18px;height:18px;cursor:pointer;">
+                    <span style="color:${colorCheck};font-weight:600;font-size:0.9em;">${textoCheck}</span>
+                </label>
+            </td>
             <td style="text-align:center;"><span class="status-badge ${badgeReuniones}">${numeroReunion}ª vez</span></td>
             <td>${motivo}</td>
             <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
@@ -5172,6 +5199,29 @@ function cargarTablaReuniones() {
         </tr>
         `;
     }).join('');
+}
+
+// Función para marcar/desmarcar asistencia a reunión
+function toggleAsistencia(indice, asistio) {
+    const reunion = datosReuniones[indice];
+    if (!reunion) return;
+    
+    // Actualizar valor
+    const nuevoValor = asistio ? 'Sí' : 'No';
+    reunion['Asistió'] = nuevoValor;
+    datosReuniones[indice] = reunion;
+    
+    // Guardar en Google Sheets
+    if (CONFIG.urlReuniones) {
+        enviarGoogleSheets(CONFIG.urlReuniones, reunion, 'actualizar', indice);
+    }
+    
+    // Recargar tabla para actualizar visualmente
+    cargarTablaReuniones();
+    
+    // Mostrar notificación
+    const mensaje = asistio ? '✅ Asistencia registrada' : '⚪ Asistencia desmarcada';
+    mostrarAlerta('alertReuniones', mensaje, 'info');
 }
 
 function actualizarEstadisticasReuniones() {
