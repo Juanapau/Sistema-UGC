@@ -283,7 +283,7 @@ padding: 25px;
 <p>Cargando estudiantes...</p>
 </div>
 
-<form id="formContacto" style="display:none;">
+<form id="formContacto">
 <div class="form-group autocomplete-container">
 <label for="estudiante">Nombre del Estudiante</label>
 <input 
@@ -356,7 +356,7 @@ placeholder="Número de emergencia"
 const CONFIG = {
 urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
 urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
-urlAppsScript: 'https://script.google.com/macros/s/AKfycbxNKt-FpUcqtjrGCGjGiAohVEDpyAjNeq3C53HNA3xa6QfQy9w5uMjUnJhk3jfJe5t1/exec'
+urlAppsScript: 'https://script.google.com/macros/s/AKfycbyQ7veYDEtfslxTrulAYaXQvX0pgBhAhL0n5JmBgyQAeJUnaUzjZM-l4hRfiJ4GoBdp/exec'
 };
 
 // Array de estudiantes
@@ -367,11 +367,12 @@ let estudiantes = [];
 // ==========================================
 
 async function cargarEstudiantes() {
-const loading = document.getElementById('loading');
-const form = document.getElementById('formContacto');
-const alert = document.getElementById('alert');
+// Obtener referencia al input de estudiante
+const inputEstudiante = document.getElementById('estudiante');
 
-loading.style.display = 'block';
+// Mostrar indicador de carga en el input
+inputEstudiante.placeholder = '⏳ Cargando estudiantes...';
+inputEstudiante.disabled = true;
 
 try {
 const response = await fetch(CONFIG.urlEstudiantes);
@@ -379,15 +380,16 @@ const data = await response.json();
 
 if (data && data.length > 0) {
 estudiantes = data;
-loading.style.display = 'none';
-form.style.display = 'block';
+inputEstudiante.placeholder = 'Escriba el nombre del estudiante...';
+inputEstudiante.disabled = false;
 console.log(`✅ ${estudiantes.length} estudiantes cargados`);
 } else {
 throw new Error('No se pudieron cargar los estudiantes');
 }
 } catch (error) {
 console.error('Error al cargar estudiantes:', error);
-loading.style.display = 'none';
+inputEstudiante.placeholder = '❌ Error al cargar estudiantes';
+inputEstudiante.disabled = true;
 mostrarAlerta('No se pudieron cargar los estudiantes. Por favor, recargue la página.', 'error');
 }
 }
