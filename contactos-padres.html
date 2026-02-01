@@ -362,6 +362,9 @@ urlAppsScript: 'https://script.google.com/macros/s/AKfycbyQ7veYDEtfslxTrulAYaXQv
 // Array de estudiantes
 let estudiantes = [];
 
+// Array de contactos existentes
+let contactosExistentes = [];
+
 // ==========================================
 // CARGA DE ESTUDIANTES
 // ==========================================
@@ -391,6 +394,25 @@ console.error('Error al cargar estudiantes:', error);
 inputEstudiante.placeholder = '❌ Error al cargar estudiantes';
 inputEstudiante.disabled = true;
 mostrarAlerta('No se pudieron cargar los estudiantes. Por favor, recargue la página.', 'error');
+}
+}
+
+// ==========================================
+// CARGA DE CONTACTOS EXISTENTES
+// ==========================================
+
+async function cargarContactosExistentes() {
+try {
+const response = await fetch(CONFIG.urlContactos);
+const data = await response.json();
+
+if (data && Array.isArray(data)) {
+contactosExistentes = data;
+console.log(`✅ ${contactosExistentes.length} contactos existentes cargados`);
+}
+} catch (error) {
+console.error('⚠️ No se pudieron cargar contactos existentes:', error);
+// No mostramos error al usuario, solo lo registramos
 }
 }
 
@@ -455,12 +477,31 @@ document.getElementById('formContacto').addEventListener('submit', async functio
 e.preventDefault();
 
 const btnSubmit = document.getElementById('btnSubmit');
+const nombreEstudiante = document.getElementById('estudiante').value.trim();
+
+// Validar que se haya seleccionado un estudiante
+if (!nombreEstudiante) {
+mostrarAlerta('⚠️ Por favor, seleccione un estudiante de la lista.', 'error');
+return;
+}
+
+// Verificar si el contacto ya existe
+const contactoExistente = contactosExistentes.find(c => {
+const nombreEnBD = (c['Nombre Estudiante'] || c.estudiante || '').trim().toLowerCase();
+return nombreEnBD === nombreEstudiante.toLowerCase();
+});
+
+if (contactoExistente) {
+mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información, por favor contacte a la administración del colegio.', 'info');
+return;
+}
+
 btnSubmit.disabled = true;
 btnSubmit.textContent = '⏳ Registrando...';
 
 try {
 const contacto = {
-'Nombre Estudiante': document.getElementById('estudiante').value,
+'Nombre Estudiante': nombreEstudiante,
 'Nombre Padre': document.getElementById('nombrePadre').value || '',
 'Contacto Padre': document.getElementById('contactoPadre').value || '',
 'Nombre Madre': document.getElementById('nombreMadre').value || '',
@@ -487,6 +528,9 @@ console.log('✅ Contacto enviado a Google Sheets');
 
 // Pequeña pausa para asegurar procesamiento
 await new Promise(resolve => setTimeout(resolve, 1000));
+
+// Agregar el nuevo contacto al array local para futuras validaciones
+contactosExistentes.push(contacto);
 
 mostrarAlerta('✅ ¡Contacto registrado exitosamente! Gracias por proporcionar su información.', 'success');
 
@@ -528,6 +572,7 @@ alert.style.display = 'none';
 window.addEventListener('load', function() {
 console.log('🚀 Página de registro de contactos cargada');
 cargarEstudiantes();
+cargarContactosExistentes();
 });
 </script>
 
