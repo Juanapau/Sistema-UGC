@@ -1177,7 +1177,7 @@ function cargarTablaTardanzas() {
         return;
     }
     
-    tbody.innerHTML = gruposFiltrados.map(g => {
+    tbody.innerHTML = gruposFiltrados.map((g, idx) => {
         const fechaUltima = g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-';
         let colorFondo = '';
         let icono = '';
@@ -1186,11 +1186,11 @@ function cargarTablaTardanzas() {
         if (g.total === 3) {
             colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
             icono = '⚠️';
-            botonCircular = `<button class="btn" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">📄 Circular</button>`;
+            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">📄 Circular</button>`;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
-            botonCircular = `<button class="btn" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">⚠️ Circular</button>`;
+            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">⚠️ Circular</button>`;
         } else {
             botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
         }
@@ -1202,10 +1202,25 @@ function cargarTablaTardanzas() {
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
             <td><strong>${g.total}</strong></td>
-            <td>${botonCircular}</td>
+            <td onclick="event.stopPropagation();">${botonCircular}</td>
         </tr>
         `;
     }).join('');
+    
+    // Agregar event listeners a los botones de circular
+    setTimeout(() => {
+        document.querySelectorAll('.btn-generar-circular').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const estudiante = this.dataset.estudiante;
+                const curso = this.dataset.curso;
+                const total = this.dataset.total;
+                const mes = this.dataset.mes;
+                const año = this.dataset.año;
+                generarCircular(estudiante, curso, total, mes, año);
+            });
+        });
+    }, 100);
 }
 
 function buscarTardanzas() {
@@ -1269,11 +1284,11 @@ function buscarTardanzas() {
         if (g.total === 3) {
             colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
             icono = '⚠️';
-            botonCircular = `<button class="btn" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">📄 Circular</button>`;
+            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">📄 Circular</button>`;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
-            botonCircular = `<button class="btn" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;" onclick="event.stopPropagation(); generarCircular('${g.estudiante}', '${g.curso}', ${g.total}, '${g.mes}', '${g.año}')">⚠️ Circular</button>`;
+            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">⚠️ Circular</button>`;
         } else {
             botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
         }
@@ -1285,10 +1300,25 @@ function buscarTardanzas() {
             <td>${g.curso}</td>
             <td>${g.mes} ${g.año}</td>
             <td><strong>${g.total}</strong></td>
-            <td>${botonCircular}</td>
+            <td onclick="event.stopPropagation();">${botonCircular}</td>
         </tr>
     `;
     }).join('');
+    
+    // Agregar event listeners a los botones de circular
+    setTimeout(() => {
+        document.querySelectorAll('.btn-generar-circular').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const estudiante = this.dataset.estudiante;
+                const curso = this.dataset.curso;
+                const total = this.dataset.total;
+                const mes = this.dataset.mes;
+                const año = this.dataset.año;
+                generarCircular(estudiante, curso, total, mes, año);
+            });
+        });
+    }, 100);
 }
 
 function aplicarFiltroTardanzas() {
@@ -1331,13 +1361,25 @@ function exportarTardanzas() {
     XLSX.writeFile(wb, `Tardanzas_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
-function generarCircular() {
-    const btn = document.getElementById('btnCircular');
-    const estudiante = btn.dataset.estudiante;
-    const curso = btn.dataset.curso;
-    const mes = btn.dataset.mes;
-    const año = btn.dataset.año;
-    const total = btn.dataset.total || '3';
+function generarCircular(estudianteParam, cursoParam, totalParam, mesParam, añoParam) {
+    let estudiante, curso, mes, año, total;
+    
+    // Si se pasan parámetros, usar esos (llamada desde tabla)
+    if (estudianteParam) {
+        estudiante = estudianteParam;
+        curso = cursoParam;
+        total = totalParam || '3';
+        mes = mesParam;
+        año = añoParam;
+    } else {
+        // Si no, leer del botón (llamada desde resumen)
+        const btn = document.getElementById('btnCircular');
+        estudiante = btn.dataset.estudiante;
+        curso = btn.dataset.curso;
+        mes = btn.dataset.mes;
+        año = btn.dataset.año;
+        total = btn.dataset.total || '3';
+    }
     
     // Filtrar tardanzas del estudiante en ese mes
     const tardanzasMes = datosTardanzas.filter(t => {
@@ -5004,12 +5046,14 @@ function registrarReunion(e) {
         'Acuerdos Establecidos': document.getElementById('acuerdosEstablecidos').value,
         'Fecha Seguimiento': document.getElementById('fechaSeguimiento').value,
         'Estado': document.getElementById('estadoAcuerdo').value,
-        'Observaciones': document.getElementById('observacionesReunion').value,
-        'Asistió': 'No' // Por defecto No, se marca después con el checkbox
+        'Observaciones': document.getElementById('observacionesReunion').value
     };
     
     if (modoEdicion === 'true') {
-        // Actualizar reunión existente
+        // Actualizar reunión existente - preservar el campo Asistió si existe
+        const reunionExistente = datosReuniones[parseInt(indiceEdicion)];
+        reunion['Asistió'] = reunionExistente['Asistió'] || reunionExistente['asistio'] || reunionExistente.asistio || 'No';
+        
         datosReuniones[parseInt(indiceEdicion)] = reunion;
         if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion, 'actualizar', parseInt(indiceEdicion));
         mostrarAlerta('alertReuniones', '✅ Reunión actualizada correctamente');
@@ -5026,7 +5070,9 @@ function registrarReunion(e) {
         const btnCancelar = document.getElementById('btnCancelarEdicionReunion');
         if (btnCancelar) btnCancelar.style.display = 'none';
     } else {
-        // Registrar nueva reunión
+        // Registrar nueva reunión - agregar campo Asistió con valor por defecto
+        reunion['Asistió'] = 'No';
+        
         datosReuniones.push(reunion);
         if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion);
         mostrarAlerta('alertReuniones', '✅ Reunión registrada correctamente');
