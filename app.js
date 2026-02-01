@@ -4385,37 +4385,47 @@ function exportarTardanzasPDF() {
         return;
     }
     
-    // Obtener valor de búsqueda
+    // Obtener valores de búsqueda y filtros
     const buscar = document.getElementById('buscarTard').value.toLowerCase().trim();
     const cursoFiltro = document.getElementById('filtrarCursoTard').value;
+    const mesFiltro = document.getElementById('filtrarMesTard').value.toLowerCase();
     
-    // Filtrar tardanzas si hay búsqueda
+    // Filtrar tardanzas según filtros activos
     let tardanzasAExportar = datosTardanzas;
     
-    if (buscar || (cursoFiltro && cursoFiltro !== 'Todos')) {
+    if (buscar || cursoFiltro || mesFiltro) {
         tardanzasAExportar = datosTardanzas.filter(t => {
             const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
             const cursoT = t['Curso'] || t.curso || '';
+            const mesT = (t['Mes'] || t.mes || '').toLowerCase();
             
             const matchNombre = !buscar || estudiante.includes(buscar);
-            const matchCurso = !cursoFiltro || cursoFiltro === 'Todos' || cursoT === cursoFiltro;
-            return matchNombre && matchCurso;
+            const matchCurso = !cursoFiltro || cursoT === cursoFiltro;
+            const matchMes = !mesFiltro || mesT === mesFiltro;
+            
+            return matchNombre && matchCurso && matchMes;
         });
     }
     
     if (tardanzasAExportar.length === 0) {
-        alert('No hay tardanzas que coincidan con la búsqueda');
+        alert('No hay tardanzas que coincidan con los filtros aplicados');
         return;
     }
     
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Título personalizado
+    // Título personalizado según filtros
     let titulo = 'Reporte de Tardanzas';
-    if (buscar) {
-        titulo += ` - ${buscar.charAt(0).toUpperCase() + buscar.slice(1)}`;
+    const filtrosActivos = [];
+    if (cursoFiltro) filtrosActivos.push(cursoFiltro);
+    if (mesFiltro) filtrosActivos.push(mesFiltro.charAt(0).toUpperCase() + mesFiltro.slice(1));
+    if (buscar) filtrosActivos.push(buscar.charAt(0).toUpperCase() + buscar.slice(1));
+    
+    if (filtrosActivos.length > 0) {
+        titulo += ` - ${filtrosActivos.join(' / ')}`;
     }
+    
     const startY = agregarEncabezadoCENSA(doc, titulo);
     
     // Agrupar por estudiante y mes
@@ -4477,11 +4487,18 @@ function exportarTardanzasPDF() {
     
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(8);
-    doc.text(`Total de tardanzas: ${tardanzasAExportar.length}`, 14, finalY);
+    const indicadorFiltros = (buscar || cursoFiltro || mesFiltro) ? ' (filtradas)' : '';
+    doc.text(`Total de tardanzas: ${tardanzasAExportar.length}${indicadorFiltros}`, 14, finalY);
     doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
     
-    // Nombre de archivo
+    // Nombre de archivo con filtros
     let nombreArchivo = 'Tardanzas_CENSA';
+    if (cursoFiltro) {
+        nombreArchivo += `_${cursoFiltro}`;
+    }
+    if (mesFiltro) {
+        nombreArchivo += `_${mesFiltro.charAt(0).toUpperCase() + mesFiltro.slice(1)}`;
+    }
     if (buscar) {
         nombreArchivo += `_${buscar.replace(/ /g, '_')}`;
     }
