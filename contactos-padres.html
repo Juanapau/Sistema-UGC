@@ -492,7 +492,7 @@ return nombreEnBD === nombreEstudiante.toLowerCase();
 });
 
 if (contactoExistente) {
-mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información, por favor contacte a la administración del colegio.', 'info');
+mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información porque ha cambiado su número, por favor contacte a la Unidad de Gestión de Convivencia del colegio.', 'info');
 return;
 }
 
@@ -538,9 +538,6 @@ mostrarAlerta('✅ ¡Contacto registrado exitosamente! Gracias por proporcionar 
 document.getElementById('formContacto').reset();
 document.getElementById('cursoHidden').value = '';
 
-// Scroll hacia arriba
-window.scrollTo({ top: 0, behavior: 'smooth' });
-
 } catch (error) {
 console.error('❌ Error:', error);
 mostrarAlerta('❌ Error al registrar el contacto. Por favor, intente nuevamente.', 'error');
@@ -560,9 +557,11 @@ alert.textContent = mensaje;
 alert.className = 'alert alert-' + tipo;
 alert.style.display = 'block';
 
-setTimeout(() => {
-alert.style.display = 'none';
-}, 5000);
+// Scroll hacia arriba para asegurar que el mensaje sea visible
+window.scrollTo({ top: 0, behavior: 'smooth' });
+
+// El mensaje NO desaparece automáticamente
+// Solo se oculta cuando se envía otro mensaje o se recarga la página
 }
 
 // ==========================================
