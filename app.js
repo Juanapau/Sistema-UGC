@@ -780,8 +780,23 @@ function crearModalTardanzas() {
                     <div id="sugerenciasBuscarTard" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
                 <select id="filtrarCursoTard">
-                    <option value="">Todos</option>
+                    <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+                <select id="filtrarMesTard">
+                    <option value="">Todos los meses</option>
+                    <option value="Enero">Enero</option>
+                    <option value="Febrero">Febrero</option>
+                    <option value="Marzo">Marzo</option>
+                    <option value="Abril">Abril</option>
+                    <option value="Mayo">Mayo</option>
+                    <option value="Junio">Junio</option>
+                    <option value="Julio">Julio</option>
+                    <option value="Agosto">Agosto</option>
+                    <option value="Septiembre">Septiembre</option>
+                    <option value="Octubre">Octubre</option>
+                    <option value="Noviembre">Noviembre</option>
+                    <option value="Diciembre">Diciembre</option>
                 </select>
                 <button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarTardanzas()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
@@ -1226,14 +1241,17 @@ function cargarTablaTardanzas() {
 function buscarTardanzas() {
     const buscar = document.getElementById('buscarTard').value.toLowerCase().trim();
     const curso = document.getElementById('filtrarCursoTard').value;
+    const mes = document.getElementById('filtrarMesTard').value;
     
     const filtrados = datosTardanzas.filter(t => {
         const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
         const cursoT = t['Curso'] || t.curso || '';
+        const mesT = t['Mes'] || t.mes || '';
         
         const matchNombre = !buscar || estudiante.includes(buscar);
-        const matchCurso = !curso || curso === 'Todos' || cursoT === curso;
-        return matchNombre && matchCurso;
+        const matchCurso = !curso || cursoT === curso;
+        const matchMes = !mes || mesT === mes;
+        return matchNombre && matchCurso && matchMes;
     });
     
     const tbody = document.getElementById('bodyTardanzas');
@@ -1931,21 +1949,30 @@ function toggleFiltroSinContactos() {
 }
 
 function obtenerEstudiantesSinContactos() {
+    // Normalizar nombres para comparación (minúsculas, sin espacios extras)
+    const normalizarNombre = (nombre) => {
+        return (nombre || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    };
+    
     // Obtener lista de estudiantes que SÍ tienen contactos registrados
     const estudiantesConContactos = new Set(
         datosContactos.map(c => {
             const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-            return nombre.trim();
+            return normalizarNombre(nombre);
         }).filter(n => n !== '')
     );
     
+    console.log('📊 Estudiantes con contactos:', estudiantesConContactos.size);
+    
     // Filtrar estudiantes que NO están en esa lista
     const estudiantesSinContactos = datosEstudiantes.filter(est => {
-        const nombre = (est['Nombre Completo'] || est.nombre || est.Nombre || '').trim();
-        return nombre !== '' && !estudiantesConContactos.has(nombre);
+        const nombre = est['Nombre Completo'] || est.nombre || est.Nombre || '';
+        const nombreNormalizado = normalizarNombre(nombre);
+        return nombreNormalizado !== '' && !estudiantesConContactos.has(nombreNormalizado);
     });
     
     console.log(`📊 Estudiantes sin contactos: ${estudiantesSinContactos.length}`);
+    console.log('📋 Lista:', estudiantesSinContactos.map(e => e['Nombre Completo']).slice(0, 5));
     return estudiantesSinContactos;
 }
 
@@ -4534,17 +4561,31 @@ function exportarContactosPDF() {
 
 // Exportar Estudiantes a PDF
 function exportarEstudiantesPDF() {
-    if (datosEstudiantes.length === 0) {
-        alert('No hay estudiantes para exportar');
+    // Obtener filtro de curso actual
+    const cursoFiltro = document.getElementById('filtrarCursoEst')?.value || '';
+    
+    // Filtrar estudiantes según búsqueda actual
+    let estudiantesAExportar = datosEstudiantes;
+    
+    if (cursoFiltro) {
+        estudiantesAExportar = datosEstudiantes.filter(e => {
+            const curso = e['Curso'] || e.curso || '';
+            return curso === cursoFiltro;
+        });
+    }
+    
+    if (estudiantesAExportar.length === 0) {
+        alert('No hay estudiantes para exportar con los filtros aplicados');
         return;
     }
     
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    const startY = agregarEncabezadoCENSA(doc, 'Listado de Estudiantes');
+    const titulo = cursoFiltro ? `Listado de Estudiantes - ${cursoFiltro}` : 'Listado de Estudiantes';
+    const startY = agregarEncabezadoCENSA(doc, titulo);
     
-    const tableData = datosEstudiantes.map(e => [
+    const tableData = estudiantesAExportar.map(e => [
         e['Nombre Completo'] || '-',
         e['Curso'] || '-'
     ]);
@@ -4560,7 +4601,7 @@ function exportarEstudiantesPDF() {
     
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(8);
-    doc.text(`Total de estudiantes: ${datosEstudiantes.length}`, 14, finalY);
+    doc.text(`Total de estudiantes: ${estudiantesAExportar.length}${cursoFiltro ? ' (filtrados)' : ''}`, 14, finalY);
     doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
     
     doc.save(`Estudiantes_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -5441,6 +5482,7 @@ function verDetalleReunion(index) {
     const estado = r['Estado'] || r.estado || '';
     const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
     const observaciones = r['Observaciones'] || r.observaciones || '';
+    const asistio = r['Asistió'] || r['asistio'] || r.asistio || 'No';
     
     // Icono según tipo
     const iconoTipo = tipo === 'Llamada telefónica' ? '📞' : '🏫';
@@ -5487,6 +5529,7 @@ function verDetalleReunion(index) {
             <p><strong>Tipo:</strong> ${iconoTipo} ${tipo}</p>
             <p><strong>Estudiante:</strong> ${estudiante} (${curso})</p>
             <p><strong>Presente:</strong> ${nombrePadre || padrePresente} (${padrePresente})</p>
+            <p><strong>¿Asistió?:</strong> <span style="color:${asistio === 'Sí' ? '#10b981' : '#9ca3af'};font-weight:600;">${asistio === 'Sí' ? '✅ Sí' : '❌ No'}</span></p>
             <p><strong>Reunión #${numeroReunion}</strong> con este padre/madre</p>
             <p><strong>Personal UGC:</strong> ${personal}</p>
             <p><strong>Motivo:</strong> ${motivo}</p>
@@ -5635,8 +5678,31 @@ function generarActaPDF(reunion) {
 }
 
 function exportarReunionesPDF() {
-    if (datosReuniones.length === 0) {
-        alert('No hay reuniones para exportar');
+    // Obtener filtros actuales
+    const buscar = document.getElementById('buscarReunion')?.value.toLowerCase().trim() || '';
+    const curso = document.getElementById('filtrarCursoReunion')?.value || '';
+    const estado = document.getElementById('filtrarEstadoReunion')?.value || '';
+    
+    // Filtrar reuniones según búsqueda actual
+    let reunionesAExportar = datosReuniones;
+    
+    if (buscar || curso || estado) {
+        reunionesAExportar = datosReuniones.filter(r => {
+            const estudiante = (r['Nombre Estudiante'] || r.estudiante || '').toLowerCase();
+            const nombrePadre = (r['Nombre Padre/Madre'] || r.nombrePadre || '').toLowerCase();
+            const cursoR = r['Curso'] || r.curso || '';
+            const estadoR = r['Estado'] || r.estado || '';
+            
+            const coincideBusqueda = !buscar || estudiante.includes(buscar) || nombrePadre.includes(buscar);
+            const coincideCurso = !curso || cursoR === curso;
+            const coincideEstado = !estado || estadoR === estado;
+            
+            return coincideBusqueda && coincideCurso && coincideEstado;
+        });
+    }
+    
+    if (reunionesAExportar.length === 0) {
+        alert('No hay reuniones para exportar con los filtros aplicados');
         return;
     }
     
@@ -5645,11 +5711,12 @@ function exportarReunionesPDF() {
     
     const startY = agregarEncabezadoCENSA(doc, 'Reporte de Reuniones con Padres');
     
-    const tableData = datosReuniones.map(r => [
+    const tableData = reunionesAExportar.map(r => [
         (r['Fecha y Hora'] || r.fecha) ? new Date(r['Fecha y Hora'] || r.fecha).toLocaleDateString('es-DO') : '',
         r['Nombre Estudiante'] || r.estudiante || '',
         r['Curso'] || r.curso || '',
         r['Nombre Padre/Madre'] || r.nombrePadre || '',
+        (r['Asistió'] || r['asistio'] || r.asistio || 'No') === 'Sí' ? 'Sí' : 'No',
         r['Motivo'] || r.motivo || '',
         r['Estado'] || r.estado || '',
         (r['Fecha Seguimiento'] || r.fechaSeguimiento) ? new Date(r['Fecha Seguimiento'] || r.fechaSeguimiento).toLocaleDateString('es-DO') : '-'
@@ -5657,32 +5724,33 @@ function exportarReunionesPDF() {
     
     doc.autoTable({
         startY: startY,
-        head: [['Fecha', 'Estudiante', 'Curso', 'Padre/Madre', 'Motivo', 'Estado', 'Seguimiento']],
+        head: [['Fecha', 'Estudiante', 'Curso', 'Padre/Madre', 'Asistió', 'Motivo', 'Estado', 'Seguimiento']],
         body: tableData,
         theme: 'grid',
         headStyles: { 
             fillColor: [30, 58, 138],
-            fontSize: 9,
+            fontSize: 8,
             fontStyle: 'bold'
         },
         styles: { 
-            fontSize: 8,
-            cellPadding: 3
+            fontSize: 7,
+            cellPadding: 2
         },
         columnStyles: {
-            0: { cellWidth: 25 },
-            1: { cellWidth: 45 },
-            2: { cellWidth: 20 },
-            3: { cellWidth: 45 },
-            4: { cellWidth: 50 },
-            5: { cellWidth: 30 },
-            6: { cellWidth: 25 }
+            0: { cellWidth: 22 },
+            1: { cellWidth: 40 },
+            2: { cellWidth: 18 },
+            3: { cellWidth: 40 },
+            4: { cellWidth: 18 },
+            5: { cellWidth: 45 },
+            6: { cellWidth: 25 },
+            7: { cellWidth: 22 }
         }
     });
     
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(8);
-    doc.text(`Total de reuniones: ${datosReuniones.length}`, 14, finalY);
+    doc.text(`Total de reuniones: ${reunionesAExportar.length}${buscar || curso || estado ? ' (filtradas)' : ''}`, 14, finalY);
     doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 5);
     
     doc.save(`Reuniones_CENSA_${new Date().toISOString().split('T')[0]}.pdf`);
