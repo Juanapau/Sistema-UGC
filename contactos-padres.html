@@ -194,15 +194,15 @@ transform: none;
 }
 
 .info-box {
-background: #eff6ff;
-border: 2px solid #2a5298;
+background: #d1fae5;
+border: 2px solid #10b981;
 border-radius: 10px;
 padding: 20px;
 margin-bottom: 25px;
 }
 
 .info-box h3 {
-color: #1e3c72;
+color: #065f46;
 margin-bottom: 10px;
 }
 
@@ -218,7 +218,7 @@ color: #374151;
 
 .info-box li:before {
 content: "✓ ";
-color: #2a5298;
+color: #10b981;
 font-weight: bold;
 margin-right: 8px;
 }
@@ -273,8 +273,7 @@ padding: 25px;
 <ul>
 <li>Escriba el nombre de su hijo/a y selecciónelo de la lista</li>
 <li>Complete los datos de contacto disponibles</li>
-<li>No es obligatorio llenar todos los campos</li>
-<li>Sus datos quedarán registrados de inmediato</li>
+<li>Clic en Registrar Contacto</li>
 </ul>
 </div>
 
@@ -356,7 +355,8 @@ placeholder="Número de emergencia"
 
 const CONFIG = {
 urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
-urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec'
+urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
+urlAppsScript: 'https://script.google.com/macros/s/AKfycbyQ7veYDEtfslxTrulAYaXQvX0pgBhAhL0n5JmBgyQAeJUnaUzjZM-l4hRfiJ4GoBdp/exec'
 };
 
 // Array de estudiantes
@@ -456,6 +456,7 @@ const btnSubmit = document.getElementById('btnSubmit');
 btnSubmit.disabled = true;
 btnSubmit.textContent = '⏳ Registrando...';
 
+try {
 const contacto = {
 'Nombre Estudiante': document.getElementById('estudiante').value,
 'Nombre Padre': document.getElementById('nombrePadre').value || '',
@@ -465,28 +466,37 @@ const contacto = {
 'Contacto Emergencia': document.getElementById('contactoEmergencia').value || ''
 };
 
-try {
-const response = await fetch(CONFIG.urlContactos, {
+console.log('📤 Enviando contacto a Google Sheets...');
+console.log('📋 Datos:', contacto);
+
+// Crear FormData
+const formData = new FormData();
+formData.append('accion', 'guardarContacto');
+formData.append('datos', JSON.stringify(contacto));
+
+// Enviar a Apps Script
+const response = await fetch(CONFIG.urlAppsScript, {
 method: 'POST',
-mode: 'no-cors',
-headers: {
-'Content-Type': 'application/json',
-},
-body: JSON.stringify(contacto)
+body: formData,
+redirect: 'follow'
 });
 
-// Como es no-cors, asumimos éxito si no hay error
+console.log('✅ Contacto enviado a Google Sheets');
+
+// Pequeña pausa para asegurar procesamiento
+await new Promise(resolve => setTimeout(resolve, 1000));
+
 mostrarAlerta('✅ ¡Contacto registrado exitosamente! Gracias por proporcionar su información.', 'success');
 
 // Limpiar formulario
 document.getElementById('formContacto').reset();
 document.getElementById('cursoHidden').value = '';
 
-// Scroll hacia arriba para ver el mensaje
+// Scroll hacia arriba
 window.scrollTo({ top: 0, behavior: 'smooth' });
 
 } catch (error) {
-console.error('Error:', error);
+console.error('❌ Error:', error);
 mostrarAlerta('❌ Error al registrar el contacto. Por favor, intente nuevamente.', 'error');
 }
 
