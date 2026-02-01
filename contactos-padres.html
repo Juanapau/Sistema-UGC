@@ -486,10 +486,27 @@ return;
 }
 
 // Verificar si el contacto ya existe
+console.log('🔍 Verificando si existe contacto para:', nombreEstudiante);
+
 const contactoExistente = contactosExistentes.find(c => {
 const nombreEnBD = (c['Nombre Estudiante'] || c.estudiante || '').trim().toLowerCase();
-return nombreEnBD === nombreEstudiante.toLowerCase();
+
+// Ignorar registros sin nombre de estudiante
+if (!nombreEnBD || nombreEnBD === '') {
+return false;
+}
+
+const coincide = nombreEnBD === nombreEstudiante.toLowerCase();
+
+// Log para debugging
+if (coincide) {
+console.log('✅ Contacto encontrado:', c);
+}
+
+return coincide;
 });
+
+console.log('Resultado de búsqueda:', contactoExistente ? 'ENCONTRADO' : 'NO ENCONTRADO');
 
 if (contactoExistente) {
 mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información porque ha cambiado su número, por favor contacte a la Unidad de Gestión de Convivencia del colegio.', 'info');
