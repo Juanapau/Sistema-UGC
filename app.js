@@ -5320,7 +5320,7 @@ function buscarReuniones() {
     
     const tbody = document.getElementById('bodyReuniones');
     if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
     
@@ -5338,6 +5338,7 @@ function buscarReuniones() {
         const motivo = r['Motivo'] || r.motivo || '';
         const estado = r['Estado'] || r.estado || '';
         const fechaSeguimiento = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
+        const asistio = r['Asistió'] || r['asistio'] || r.asistio || 'No';
         
         // Icono según tipo
         const iconoTipo = tipo === 'Llamada telefónica' ? '📞' : '🏫';
@@ -5374,12 +5375,23 @@ function buscarReuniones() {
             colorEstado = '#856404';
         }
         
+        // Checkbox de asistencia
+        const checked = asistio === 'Sí' ? 'checked' : '';
+        const colorCheck = asistio === 'Sí' ? '#10b981' : '#9ca3af';
+        const textoCheck = asistio === 'Sí' ? 'Sí' : 'No';
+        
         return `
         <tr onclick="editarReunion(${indiceReal})" style="cursor:pointer;" title="Click para editar">
             <td>${fecha ? new Date(fecha).toLocaleDateString('es-DO', {day:'2-digit',month:'2-digit',year:'numeric'}) : ''}<br><small>${fecha ? new Date(fecha).toLocaleTimeString('es-DO', {hour:'2-digit',minute:'2-digit'}) : ''}</small></td>
             <td style="text-align:center;">${iconoTipo}<br><small>${tipo}</small></td>
             <td><strong>${estudiante}</strong><br><small>${curso}</small></td>
             <td>${nombrePadre || padrePresente}<br><small>${padrePresente}</small></td>
+            <td style="text-align:center;" onclick="event.stopPropagation();">
+                <label style="display:flex;align-items:center;justify-content:center;cursor:pointer;gap:5px;">
+                    <input type="checkbox" ${checked} onchange="toggleAsistencia(${indiceReal}, this.checked)" style="width:18px;height:18px;cursor:pointer;">
+                    <span style="color:${colorCheck};font-weight:600;font-size:0.9em;">${textoCheck}</span>
+                </label>
+            </td>
             <td style="text-align:center;"><span class="status-badge ${badgeReuniones}">${numeroReunion}ª vez</span></td>
             <td>${motivo}</td>
             <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
@@ -5395,7 +5407,7 @@ function buscarReuniones() {
 
 async function recargarReuniones() {
     const tbody = document.getElementById('bodyReuniones');
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
     
     if (CONFIG.urlReuniones) {
         const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones);
@@ -5405,7 +5417,7 @@ async function recargarReuniones() {
             actualizarEstadisticasReuniones();
             mostrarAlerta('alertReuniones', `✅ ${datos.length} reuniones recargadas`);
         } else {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No se pudieron cargar los datos</td></tr>';
         }
     }
 }
