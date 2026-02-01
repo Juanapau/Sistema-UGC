@@ -2419,16 +2419,16 @@ function crearModalReuniones() {
             <div class="table-container">
                 <table>
                     <colgroup>
-                        <col style="width: 90px;">      <!-- Fecha -->
-                        <col style="width: 70px;">      <!-- Tipo -->
-                        <col style="width: 140px;">     <!-- Estudiante -->
-                        <col style="width: 130px;">     <!-- Padre/Madre -->
-                        <col style="width: 85px;">      <!-- ¿Asistió? -->
-                        <col style="width: 85px;">      <!-- Reuniones -->
-                        <col style="width: auto;">      <!-- Motivo (flexible) -->
-                        <col style="width: 110px;">     <!-- Estado -->
-                        <col style="width: 95px;">      <!-- Seguimiento -->
-                        <col style="width: 150px;">     <!-- Acciones -->
+                        <col style="width: 100px;">     <!-- Fecha -->
+                        <col style="width: 80px;">      <!-- Tipo -->
+                        <col style="width: 150px;">     <!-- Estudiante -->
+                        <col style="width: 140px;">     <!-- Padre/Madre -->
+                        <col style="width: 90px;">      <!-- ¿Asistió? -->
+                        <col style="width: 90px;">      <!-- Reuniones -->
+                        <col style="width: 200px;">     <!-- Motivo -->
+                        <col style="width: 130px;">     <!-- Estado -->
+                        <col style="width: 100px;">     <!-- Seguimiento -->
+                        <col style="width: 160px;">     <!-- Acciones -->
                     </colgroup>
                     <thead>
                         <tr>
