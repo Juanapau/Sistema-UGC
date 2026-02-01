@@ -2419,16 +2419,16 @@ function crearModalReuniones() {
             <div class="table-container">
                 <table>
                     <colgroup>
-                        <col style="width: 100px;">     <!-- Fecha -->
-                        <col style="width: 80px;">      <!-- Tipo -->
-                        <col style="width: 150px;">     <!-- Estudiante -->
-                        <col style="width: 140px;">     <!-- Padre/Madre -->
-                        <col style="width: 90px;">      <!-- ¿Asistió? -->
-                        <col style="width: 90px;">      <!-- Reuniones -->
-                        <col style="width: 200px;">     <!-- Motivo -->
-                        <col style="width: 130px;">     <!-- Estado -->
-                        <col style="width: 100px;">     <!-- Seguimiento -->
-                        <col style="width: 160px;">     <!-- Acciones -->
+                        <col style="width: 95px;">      <!-- Fecha -->
+                        <col style="width: 65px;">      <!-- Tipo -->
+                        <col style="width: 130px;">     <!-- Estudiante -->
+                        <col style="width: 120px;">     <!-- Padre/Madre -->
+                        <col style="width: 80px;">      <!-- ¿Asistió? -->
+                        <col style="width: 80px;">      <!-- Reuniones -->
+                        <col style="width: auto;">      <!-- Motivo (flexible) -->
+                        <col style="width: 115px;">     <!-- Estado -->
+                        <col style="width: 90px;">      <!-- Seguimiento -->
+                        <col style="width: 145px;">     <!-- Acciones -->
                     </colgroup>
                     <thead>
                         <tr>
@@ -5250,9 +5250,9 @@ function cargarTablaReuniones() {
             <td>${motivo}</td>
             <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
             <td>${fechaSeguimiento ? new Date(fechaSeguimiento).toLocaleDateString('es-DO') : '-'}</td>
-            <td>
-                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${index})" style="padding:5px 10px;font-size:0.85em;">👁️ Ver</button>
-                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${index})" style="padding:5px 10px;font-size:0.85em;">📄 Acta</button>
+            <td style="white-space:nowrap;">
+                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${index})" style="padding:4px 8px;font-size:0.8em;">👁️</button>
+                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${index})" style="padding:4px 8px;font-size:0.8em;">📄</button>
             </td>
         </tr>
         `;
@@ -5408,9 +5408,9 @@ function buscarReuniones() {
             <td>${motivo}</td>
             <td><span class="status-badge ${badgeEstado}" style="color:${colorEstado}">${estado}</span></td>
             <td>${fechaSeguimiento ? new Date(fechaSeguimiento).toLocaleDateString('es-DO') : '-'}</td>
-            <td>
-                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${indiceReal})" style="padding:5px 10px;font-size:0.85em;">👁️ Ver</button>
-                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${indiceReal})" style="padding:5px 10px;font-size:0.85em;">📄 Acta</button>
+            <td style="white-space:nowrap;">
+                <button class="btn btn-primary" onclick="event.stopPropagation(); verDetalleReunion(${indiceReal})" style="padding:4px 8px;font-size:0.8em;">👁️</button>
+                <button class="btn btn-success" onclick="event.stopPropagation(); generarActaReunion(${indiceReal})" style="padding:4px 8px;font-size:0.8em;">📄</button>
             </td>
         </tr>
         `;
