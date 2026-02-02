@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
@@ -1631,7 +1631,7 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
     }
     
     // Crear mensaje personalizado
-    const mensajeTardanzas = 'Saludos cordiales estimado padre/madre de familia:\n\n' +
+    const mensajeTardanzas = 'Estimado padre/madre de familia:\n\n' +
         'Le informamos que su hijo/a *' + estudiante + '* ha acumulado *' + total + ' tardanzas* durante el mes de *' + mes + '*, lo cual excede el límite permitido.\n\n' +
         'Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.\n\n' +
         'Por este motivo le solicitamos su presencia en el centro el día __________ de ___________ a las __________, para dialogar sobre esta situación.\n\n' +
@@ -1793,6 +1793,9 @@ function crearModalContactos() {
                             Se encontraron <strong id="contadorSinContactos">0</strong> estudiantes sin ningún contacto de padres registrado.
                         </p>
                     </div>
+                    <button onclick="exportarPDFSinContactos()" class="btn" style="background:#dc2626;color:white;padding:10px 20px;font-weight:600;white-space:nowrap;">
+                        📄 Exportar PDF
+                    </button>
                 </div>
             </div>
             
@@ -2172,7 +2175,8 @@ function mostrarEstudiantesSinContactos(estudiantes) {
         return `
         <tr style="background:#fef2f2;">
             <td><strong style="color:#991b1b;">${nombre}</strong></td>
-            <td colspan="5" style="color:#7f1d1d;font-style:italic;">Sin contactos registrados</td>
+            <td><span style="color:#7f1d1d;font-weight:600;">${curso}</span></td>
+            <td colspan="4" style="color:#7f1d1d;font-style:italic;">Sin contactos registrados</td>
             <td>
                 <button class="btn btn-sm" onclick="agregarContactoRapido('${nombre.replace(/'/g, "\\'")}', '${curso}')" 
                         style="background:#059669;color:white;padding:5px 12px;font-size:0.85em;">
@@ -2198,6 +2202,98 @@ function agregarContactoRapido(nombreEstudiante, curso) {
     
     // Mostrar alerta
     mostrarAlerta('alertContactos', `✏️ Agregando contacto para: ${nombreEstudiante} (${curso})`);
+}
+
+function exportarPDFSinContactos() {
+    // Obtener estudiantes sin contactos
+    const estudiantesSinContactos = obtenerEstudiantesSinContactos();
+    
+    if (estudiantesSinContactos.length === 0) {
+        alert('No hay estudiantes sin contactos para exportar');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Encabezado
+    doc.setFillColor(220, 38, 38);
+    doc.rect(0, 0, 210, 35, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('REPORTE DE ESTUDIANTES', 105, 15, { align: 'center' });
+    doc.text('SIN CONTACTOS REGISTRADOS', 105, 25, { align: 'center' });
+    
+    // Información del reporte
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const fecha = new Date().toLocaleDateString('es-DO', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    doc.text(`Fecha de generación: ${fecha}`, 20, 45);
+    doc.text(`Total de estudiantes sin contactos: ${estudiantesSinContactos.length}`, 20, 52);
+    
+    // Línea separadora
+    doc.setDrawColor(220, 38, 38);
+    doc.setLineWidth(0.5);
+    doc.line(20, 57, 190, 57);
+    
+    // Preparar datos para la tabla
+    const datosTabla = estudiantesSinContactos.map((est, index) => {
+        return [
+            index + 1,
+            est['Nombre Completo'] || est.nombre || est.Nombre || '-',
+            est.Curso || est.curso || '-'
+        ];
+    });
+    
+    // Crear tabla
+    doc.autoTable({
+        startY: 62,
+        head: [['#', 'Nombre del Estudiante', 'Curso']],
+        body: datosTabla,
+        headStyles: {
+            fillColor: [220, 38, 38],
+            textColor: 255,
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        bodyStyles: {
+            textColor: 50
+        },
+        alternateRowStyles: {
+            fillColor: [254, 242, 242]
+        },
+        columnStyles: {
+            0: { halign: 'center', cellWidth: 15 },
+            1: { halign: 'left', cellWidth: 120 },
+            2: { halign: 'center', cellWidth: 45 }
+        },
+        margin: { left: 20, right: 20 }
+    });
+    
+    // Pie de página con instrucciones
+    const yFinal = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Es necesario registrar los contactos de estos estudiantes para completar la base de datos.', 105, yFinal, { align: 'center', maxWidth: 170 });
+    
+    // Información del pie
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generado el ${new Date().toLocaleString('es-DO')} | Unidad de Gestión de Convivencia - CENSA`, 105, 285, { align: 'center' });
+    
+    // Guardar PDF
+    const nombreArchivo = `Estudiantes_Sin_Contactos_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(nombreArchivo);
+    
+    console.log('✅ PDF exportado:', nombreArchivo);
 }
 
 function exportarContactos() {
