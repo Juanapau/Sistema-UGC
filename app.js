@@ -1619,43 +1619,54 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
     }
     
     // Crear mensaje personalizado
-    const mensajeTardanzas = `Estimado padre/madre de familia:
-
-Le informamos que su hijo/a *${estudiante}* ha acumulado *${total} tardanzas* durante el mes de *${mes}*, lo cual excede el límite permitido.
-
-Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.
-
-Por este motivo le solicitamos su presencia en el centro el día ___________ a las _____________, para dialogar sobre esta situación.
-
-Unidad de Gestión de Convivencia
-CENSA`;
+    const mensajeTardanzas = 'Estimado padre/madre de familia:\n\n' +
+        'Le informamos que su hijo/a *' + estudiante + '* ha acumulado *' + total + ' tardanzas* durante el mes de *' + mes + '*, lo cual excede el límite permitido.\n\n' +
+        'Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.\n\n' +
+        'Por este motivo le solicitamos su presencia en el centro el día ___________ a las _____________, para dialogar sobre esta situación.\n\n' +
+        'Unidad de Gestión de Convivencia\n' +
+        'CENSA';
     
     // Mostrar modal de selección de número
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
     
-    // Escapar el mensaje para poder usarlo en onclick
-    const mensajeEscapado = mensajeTardanzas.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+    // Crear botones según números disponibles
+    let botonesHTML = '';
+    if (telPadre) {
+        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telPadre + '" data-label="Padre" style="background:#25D366;padding:12px;font-size:1em;margin-bottom:10px;width:100%;">📱 Padre: ' + telPadre + '</button>';
+    }
+    if (telMadre) {
+        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telMadre + '" data-label="Madre" style="background:#25D366;padding:12px;font-size:1em;margin-bottom:10px;width:100%;">📱 Madre: ' + telMadre + '</button>';
+    }
+    if (telEmergencia) {
+        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telEmergencia + '" data-label="Emergencia" style="background:#25D366;padding:12px;font-size:1em;margin-bottom:10px;width:100%;">📱 Emergencia: ' + telEmergencia + '</button>';
+    }
     
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width:500px;">
-            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
-            <h2 style="color:#25D366;margin-bottom:20px;">💬 Enviar WhatsApp</h2>
-            <p><strong>Estudiante:</strong> ${estudiante}</p>
-            <p><strong>Tardanzas:</strong> ${total} en ${mes}</p>
-            <hr style="margin:20px 0;">
-            <p style="margin-bottom:15px;"><strong>Seleccione el número al que desea enviar:</strong></p>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-                ${telPadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telPadre}', \`${mensajeEscapado}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Padre: ${telPadre}</button>` : ''}
-                ${telMadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telMadre}', \`${mensajeEscapado}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Madre: ${telMadre}</button>` : ''}
-                ${telEmergencia ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telEmergencia}', \`${mensajeEscapado}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Emergencia: ${telEmergencia}</button>` : ''}
-            </div>
-            <button class="btn" onclick="this.closest('.modal').remove()" style="margin-top:15px;background:#6c757d;">Cancelar</button>
-        </div>
-    `;
+    modal.innerHTML = 
+        '<div class="modal-content" style="max-width:500px;">' +
+            '<span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>' +
+            '<h2 style="color:#25D366;margin-bottom:20px;">💬 Enviar WhatsApp</h2>' +
+            '<p><strong>Estudiante:</strong> ' + estudiante + '</p>' +
+            '<p><strong>Tardanzas:</strong> ' + total + ' en ' + mes + '</p>' +
+            '<hr style="margin:20px 0;">' +
+            '<p style="margin-bottom:15px;"><strong>Seleccione el número al que desea enviar:</strong></p>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;">' +
+                botonesHTML +
+            '</div>' +
+            '<button class="btn" onclick="this.closest(\'.modal\').remove()" style="margin-top:15px;background:#6c757d;">Cancelar</button>' +
+        '</div>';
     
     document.body.appendChild(modal);
+    
+    // Agregar event listeners a los botones de WhatsApp
+    document.querySelectorAll('.btn-whatsapp-numero').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const numero = this.dataset.numero;
+            abrirWhatsApp(numero, mensajeTardanzas);
+            modal.remove();
+        });
+    });
 }
 
 function abrirWhatsApp(numero, mensaje) {
