@@ -1631,7 +1631,7 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
     }
     
     // Crear mensaje personalizado
-    const mensajeTardanzas = 'Estimado padre/madre de familia:\n\n' +
+    const mensajeTardanzas = 'Saludos cordiales estimado padre/madre de familia:\n\n' +
         'Le informamos que su hijo/a *' + estudiante + '* ha acumulado *' + total + ' tardanzas* durante el mes de *' + mes + '*, lo cual excede el límite permitido.\n\n' +
         'Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.\n\n' +
         'Por este motivo le solicitamos su presencia en el centro el día __________ de ___________ a las __________, para dialogar sobre esta situación.\n\n' +
