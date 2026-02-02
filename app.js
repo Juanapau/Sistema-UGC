@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
@@ -17,6 +17,9 @@ let CONFIG = {
     // 👉 URL de Notas Rápidas
     urlNotasRapidas: 'https://script.google.com/macros/s/AKfycbz-Dka2Nj27ArjgQhR72s5wl8AohebgppDmnWux4rnLrEG5zQyOco9uwxlJqgAzJtW17Q/exec'
 };
+
+// Guardar URLs predeterminadas (las del código)
+const CONFIG_PREDETERMINADO = { ...CONFIG };
 
 // Almacenamiento de datos local
 let datosIncidencias = [];
@@ -137,10 +140,19 @@ function inicializarSistema() {
     console.log('Inicializando sistema CENSA...');
     const configGuardada = localStorage.getItem('censaConfig');
     if (configGuardada) {
-        CONFIG = JSON.parse(configGuardada);
-        console.log('Configuración cargada:', CONFIG);
+        const configUsuario = JSON.parse(configGuardada);
+        
+        // Fusionar: URLs del código (predeterminadas) + URLs modificadas por el usuario
+        // Si el usuario cambió una URL, esa se mantiene. Si no, usa la del código.
+        CONFIG = {
+            ...CONFIG_PREDETERMINADO, // URLs del código (siempre actualizadas)
+            ...configUsuario // Sobrescribir solo las que el usuario haya modificado
+        };
+        
+        console.log('✅ Configuración cargada y fusionada con URLs del código');
+        console.log('📋 CONFIG actual:', CONFIG);
     } else {
-        console.log('No hay configuración guardada');
+        console.log('No hay configuración guardada, usando URLs del código');
     }
     cargarDatosEjemplo();
 }
@@ -2853,11 +2865,14 @@ function crearModalConfiguracion() {
                             </div>
                         </div>
                         
-                        <div style="margin-top:30px;display:flex;gap:10px;">
-                            <button type="submit" class="btn btn-success" style="flex:1;">
+                        <div style="margin-top:30px;display:flex;gap:10px;flex-wrap:wrap;">
+                            <button type="submit" class="btn btn-success" style="flex:1;min-width:200px;">
                                 💾 Guardar Configuración
                             </button>
-                            <button type="button" class="btn" onclick="probarConexiones()" style="background:#3b82f6;color:white;">
+                            <button type="button" class="btn" onclick="restaurarURLsPredeterminadas()" style="background:#f59e0b;color:white;flex:1;min-width:200px;">
+                                🔄 Restaurar URLs del Código
+                            </button>
+                            <button type="button" class="btn" onclick="probarConexiones()" style="background:#3b82f6;color:white;min-width:180px;">
                                 🔍 Probar Conexiones
                             </button>
                         </div>
@@ -3447,6 +3462,33 @@ function guardarConfig(e) {
     if (CONFIG.urlNotasRapidas && typeof inicializarSistemaNotas === 'function') {
         inicializarSistemaNotas();
     }
+}
+
+function restaurarURLsPredeterminadas() {
+    if (!confirm('¿Estás segura de restaurar las URLs del código?\n\nEsto reemplazará las URLs actuales con las URLs predeterminadas del sistema.')) {
+        return;
+    }
+    
+    // Restaurar URLs del código
+    CONFIG = { ...CONFIG_PREDETERMINADO };
+    
+    // Actualizar campos del formulario
+    document.getElementById('urlInc').value = CONFIG.urlIncidencias;
+    document.getElementById('urlTard').value = CONFIG.urlTardanzas;
+    document.getElementById('urlCont').value = CONFIG.urlContactos;
+    document.getElementById('urlEst').value = CONFIG.urlEstudiantes;
+    document.getElementById('urlReun').value = CONFIG.urlReuniones;
+    document.getElementById('urlNotas').value = CONFIG.urlNotasRapidas;
+    
+    // Guardar en localStorage
+    localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
+    
+    // Actualizar variable global de notas
+    urlNotasRapidas = CONFIG.urlNotasRapidas;
+    
+    mostrarAlerta('alertConfig', '✅ URLs restauradas a las predeterminadas del código. Por favor, recarga la página para aplicar los cambios.', 'success');
+    
+    console.log('✅ URLs restauradas:', CONFIG);
 }
 
 // ==================
