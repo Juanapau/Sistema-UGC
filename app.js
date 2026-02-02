@@ -1634,6 +1634,10 @@ CENSA`;
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
+    
+    // Escapar el mensaje para poder usarlo en onclick
+    const mensajeEscapado = mensajeTardanzas.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+    
     modal.innerHTML = `
         <div class="modal-content" style="max-width:500px;">
             <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
@@ -1643,9 +1647,9 @@ CENSA`;
             <hr style="margin:20px 0;">
             <p style="margin-bottom:15px;"><strong>Seleccione el número al que desea enviar:</strong></p>
             <div style="display:flex;flex-direction:column;gap:10px;">
-                ${telPadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telPadre}', \`${mensajeTardanzas}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Padre: ${telPadre}</button>` : ''}
-                ${telMadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telMadre}', \`${mensajeTardanzas}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Madre: ${telMadre}</button>` : ''}
-                ${telEmergencia ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telEmergencia}', \`${mensajeTardanzas}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Emergencia: ${telEmergencia}</button>` : ''}
+                ${telPadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telPadre}', \`${mensajeEscapado}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Padre: ${telPadre}</button>` : ''}
+                ${telMadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telMadre}', \`${mensajeEscapado}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Madre: ${telMadre}</button>` : ''}
+                ${telEmergencia ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telEmergencia}', \`${mensajeEscapado}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Emergencia: ${telEmergencia}</button>` : ''}
             </div>
             <button class="btn" onclick="this.closest('.modal').remove()" style="margin-top:15px;background:#6c757d;">Cancelar</button>
         </div>
