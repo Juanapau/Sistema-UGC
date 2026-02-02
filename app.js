@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
@@ -1201,11 +1201,17 @@ function cargarTablaTardanzas() {
         if (g.total === 3) {
             colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
             icono = '⚠️';
-            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">📄 Circular</button>`;
+            botonCircular = `
+                <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">📄 Circular</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+            `;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
-            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">⚠️ Circular</button>`;
+            botonCircular = `
+                <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">⚠️ Circular</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+            `;
         } else {
             botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
         }
@@ -1233,6 +1239,17 @@ function cargarTablaTardanzas() {
                 const mes = this.dataset.mes;
                 const año = this.dataset.año;
                 generarCircular(estudiante, curso, total, mes, año);
+            });
+        });
+        
+        // Event listeners para botones de WhatsApp
+        document.querySelectorAll('.btn-whatsapp-tardanza').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const estudiante = this.dataset.estudiante;
+                const total = this.dataset.total;
+                const mes = this.dataset.mes;
+                enviarWhatsAppTardanzas(estudiante, total, mes);
             });
         });
     }, 100);
@@ -1319,11 +1336,17 @@ function buscarTardanzas() {
         if (g.total === 3) {
             colorFondo = 'style="background-color:#fff3cd;"'; // Amarillo
             icono = '⚠️';
-            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">📄 Circular</button>`;
+            botonCircular = `
+                <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">📄 Circular</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+            `;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
-            botonCircular = `<button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 12px;font-size:0.85em;border-radius:6px;">⚠️ Circular</button>`;
+            botonCircular = `
+                <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">⚠️ Circular</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+            `;
         } else {
             botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
         }
@@ -1351,6 +1374,17 @@ function buscarTardanzas() {
                 const mes = this.dataset.mes;
                 const año = this.dataset.año;
                 generarCircular(estudiante, curso, total, mes, año);
+            });
+        });
+        
+        // Event listeners para botones de WhatsApp
+        document.querySelectorAll('.btn-whatsapp-tardanza').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const estudiante = this.dataset.estudiante;
+                const total = this.dataset.total;
+                const mes = this.dataset.mes;
+                enviarWhatsAppTardanzas(estudiante, total, mes);
             });
         });
     }, 100);
@@ -1556,6 +1590,87 @@ Nota: Todo este proceso deberá ser escrito y firmado por ambas partes para tene
     
     // Guardar PDF
     doc.save(`Circular_${estudiante.replace(/ /g, '_')}_${mes}_${año}.pdf`);
+}
+
+// ==========================================
+// ENVIAR WHATSAPP POR TARDANZAS
+// ==========================================
+function enviarWhatsAppTardanzas(estudiante, total, mes) {
+    // Buscar el contacto del estudiante en datosContactos
+    const contactoEstudiante = datosContactos.find(c => {
+        const nombreEnBD = (c['Nombre Estudiante'] || c.estudiante || '').trim().toLowerCase();
+        return nombreEnBD === estudiante.toLowerCase();
+    });
+    
+    if (!contactoEstudiante) {
+        alert(`⚠️ No se encontró contacto registrado para ${estudiante}.\n\nPor favor, registre primero el contacto del padre/madre en el módulo de Contactos.`);
+        return;
+    }
+    
+    // Obtener números de teléfono
+    const telPadre = contactoEstudiante['Contacto Padre'] || contactoEstudiante.contactoPadre || '';
+    const telMadre = contactoEstudiante['Contacto Madre'] || contactoEstudiante.contactoMadre || '';
+    const telEmergencia = contactoEstudiante['Contacto Emergencia'] || contactoEstudiante.contactoEmergencia || '';
+    
+    // Verificar que haya al menos un número
+    if (!telPadre && !telMadre && !telEmergencia) {
+        alert(`⚠️ ${estudiante} no tiene números de contacto registrados.\n\nPor favor, actualice la información en el módulo de Contactos.`);
+        return;
+    }
+    
+    // Crear mensaje personalizado
+    const mensajeTardanzas = `Estimado padre/madre de familia:
+
+Le informamos que su hijo/a *${estudiante}* ha acumulado *${total} tardanzas* durante el mes de *${mes}*, lo cual excede el límite permitido.
+
+Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.
+
+Por este motivo le solicitamos su presencia en el centro el día ___________ a las _____________, para dialogar sobre esta situación.
+
+Unidad de Gestión de Convivencia
+CENSA`;
+    
+    // Mostrar modal de selección de número
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width:500px;">
+            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <h2 style="color:#25D366;margin-bottom:20px;">💬 Enviar WhatsApp</h2>
+            <p><strong>Estudiante:</strong> ${estudiante}</p>
+            <p><strong>Tardanzas:</strong> ${total} en ${mes}</p>
+            <hr style="margin:20px 0;">
+            <p style="margin-bottom:15px;"><strong>Seleccione el número al que desea enviar:</strong></p>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                ${telPadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telPadre}', \`${mensajeTardanzas}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Padre: ${telPadre}</button>` : ''}
+                ${telMadre ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telMadre}', \`${mensajeTardanzas}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Madre: ${telMadre}</button>` : ''}
+                ${telEmergencia ? `<button class="btn btn-primary" onclick="abrirWhatsApp('${telEmergencia}', \`${mensajeTardanzas}\`); this.closest('.modal').remove();" style="background:#25D366;padding:12px;font-size:1em;">📱 Emergencia: ${telEmergencia}</button>` : ''}
+            </div>
+            <button class="btn" onclick="this.closest('.modal').remove()" style="margin-top:15px;background:#6c757d;">Cancelar</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function abrirWhatsApp(numero, mensaje) {
+    // Limpiar el número (quitar espacios, guiones, paréntesis)
+    const numeroLimpio = numero.replace(/[\s\-\(\)]/g, '');
+    
+    // Codificar el mensaje para URL
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    
+    // Crear URL de WhatsApp
+    // Si el número no tiene código de país, agregar +1 (República Dominicana usa +1)
+    const numeroCompleto = numeroLimpio.startsWith('+') ? numeroLimpio : `+1${numeroLimpio}`;
+    
+    const urlWhatsApp = `https://wa.me/${numeroCompleto.replace('+', '')}?text=${mensajeCodificado}`;
+    
+    // Abrir WhatsApp en nueva pestaña
+    window.open(urlWhatsApp, '_blank');
+    
+    console.log('✅ WhatsApp abierto para:', numeroCompleto);
 }
 
 // ==================
