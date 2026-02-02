@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
@@ -1622,8 +1622,9 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
     const mensajeTardanzas = 'Estimado padre/madre de familia:\n\n' +
         'Le informamos que su hijo/a *' + estudiante + '* ha acumulado *' + total + ' tardanzas* durante el mes de *' + mes + '*, lo cual excede el límite permitido.\n\n' +
         'Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.\n\n' +
-        'Por este motivo le solicitamos su presencia en el centro el día ___________ a las _____________, para dialogar sobre esta situación.\n\n' +
-        'Unidad de Gestión de Convivencia\n' +
+        'Por este motivo le solicitamos su presencia en el centro el día __________ de ___________ a las __________, para dialogar sobre esta situación.\n\n' +
+        'Favor confirmar su asistencia por esta misma vía.\n\n' +
+        'Tania Paulino-Unidad de Gestión de Convivencia\n' +
         'CENSA';
     
     // Mostrar modal de selección de número
@@ -1634,27 +1635,28 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
     // Crear botones según números disponibles
     let botonesHTML = '';
     if (telPadre) {
-        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telPadre + '" data-label="Padre" style="background:#25D366;padding:12px;font-size:1em;margin-bottom:10px;width:100%;">📱 Padre: ' + telPadre + '</button>';
+        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telPadre + '" data-label="Padre" style="background:#25D366;color:white;padding:12px 20px;font-size:1em;margin-bottom:10px;width:100%;border:none;border-radius:8px;cursor:pointer;transition:background 0.3s;">📱 Padre: ' + telPadre + '</button>';
     }
     if (telMadre) {
-        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telMadre + '" data-label="Madre" style="background:#25D366;padding:12px;font-size:1em;margin-bottom:10px;width:100%;">📱 Madre: ' + telMadre + '</button>';
+        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telMadre + '" data-label="Madre" style="background:#25D366;color:white;padding:12px 20px;font-size:1em;margin-bottom:10px;width:100%;border:none;border-radius:8px;cursor:pointer;transition:background 0.3s;">📱 Madre: ' + telMadre + '</button>';
     }
     if (telEmergencia) {
-        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telEmergencia + '" data-label="Emergencia" style="background:#25D366;padding:12px;font-size:1em;margin-bottom:10px;width:100%;">📱 Emergencia: ' + telEmergencia + '</button>';
+        botonesHTML += '<button class="btn btn-primary btn-whatsapp-numero" data-numero="' + telEmergencia + '" data-label="Emergencia" style="background:#25D366;color:white;padding:12px 20px;font-size:1em;margin-bottom:10px;width:100%;border:none;border-radius:8px;cursor:pointer;transition:background 0.3s;">📱 Emergencia: ' + telEmergencia + '</button>';
     }
     
     modal.innerHTML = 
-        '<div class="modal-content" style="max-width:500px;">' +
-            '<span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>' +
-            '<h2 style="color:#25D366;margin-bottom:20px;">💬 Enviar WhatsApp</h2>' +
-            '<p><strong>Estudiante:</strong> ' + estudiante + '</p>' +
-            '<p><strong>Tardanzas:</strong> ' + total + ' en ' + mes + '</p>' +
-            '<hr style="margin:20px 0;">' +
-            '<p style="margin-bottom:15px;"><strong>Seleccione el número al que desea enviar:</strong></p>' +
-            '<div style="display:flex;flex-direction:column;gap:10px;">' +
+        '<div class="modal-content" style="max-width:500px;padding:30px;border-radius:12px;">' +
+            '<span class="close" onclick="this.parentElement.parentElement.remove()" style="font-size:28px;font-weight:bold;color:#999;cursor:pointer;position:absolute;top:15px;right:20px;">&times;</span>' +
+            '<h2 style="color:#25D366;margin-bottom:25px;margin-top:0;font-size:1.5em;">💬 Enviar WhatsApp</h2>' +
+            '<div style="background:#f8f9fa;padding:15px;border-radius:8px;margin-bottom:20px;">' +
+                '<p style="margin:5px 0;"><strong>Estudiante:</strong> ' + estudiante + '</p>' +
+                '<p style="margin:5px 0;"><strong>Tardanzas:</strong> ' + total + ' en ' + mes + '</p>' +
+            '</div>' +
+            '<p style="margin-bottom:15px;font-weight:600;color:#333;">Seleccione el número al que desea enviar:</p>' +
+            '<div style="margin-bottom:20px;">' +
                 botonesHTML +
             '</div>' +
-            '<button class="btn" onclick="this.closest(\'.modal\').remove()" style="margin-top:15px;background:#6c757d;">Cancelar</button>' +
+            '<button class="btn" onclick="this.closest(\'.modal\').remove()" style="width:100%;padding:12px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1em;">Cancelar</button>' +
         '</div>';
     
     document.body.appendChild(modal);
@@ -1665,6 +1667,14 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
             const numero = this.dataset.numero;
             abrirWhatsApp(numero, mensajeTardanzas);
             modal.remove();
+        });
+        
+        // Efecto hover
+        btn.addEventListener('mouseenter', function() {
+            this.style.background = '#128C7E';
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.style.background = '#25D366';
         });
     });
 }
