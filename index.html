@@ -812,48 +812,55 @@
 
         .alerts-button {
             position: relative;
-            background: #fef3c7;
-            border: 2px solid #f59e0b;
-            padding: 10px 20px;
-            border-radius: 50px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             gap: 8px;
             font-weight: 600;
-            color: #92400e;
+            color: white;
+            font-size: 1.3em;
         }
 
         .alerts-button:hover {
-            background: #fde68a;
-            transform: translateY(-2px);
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
         }
 
         .alerts-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
             background: #dc2626;
             color: white;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            min-width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 0.65em;
             font-weight: bold;
+            padding: 2px 6px;
         }
 
         .alerts-panel {
             position: fixed;
             top: 0;
-            right: -400px;
-            width: 400px;
+            right: -450px;
+            width: 450px;
             height: 100vh;
             background: white;
             box-shadow: -5px 0 20px rgba(0,0,0,0.3);
             transition: right 0.3s;
             z-index: 2000;
-            overflow-y: auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .alerts-panel.open {
@@ -861,16 +868,42 @@
         }
 
         .alerts-header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: white;
             padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .alerts-header h2 {
-            font-size: 1.5em;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alerts-header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .mark-all-read {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+
+        .mark-all-read:hover {
+            background: rgba(255,255,255,0.3);
         }
 
         .close-alerts {
@@ -884,8 +917,36 @@
             height: 30px;
         }
 
+        .alerts-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+
+        .alerts-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+        }
+
+        .alerts-tab.active {
+            background: white;
+            color: #059669;
+            border-bottom: 3px solid #059669;
+        }
+
         .alerts-content {
             padding: 20px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .alert-card {
@@ -896,6 +957,7 @@
             margin-bottom: 15px;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
 
         .alert-card:hover {
@@ -903,9 +965,18 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .alert-card.unread {
+            background: #f0fdf4;
+            border-left-width: 5px;
+        }
+
         .alert-card.critical {
             border-left-color: #dc2626;
             background: linear-gradient(to right, #fef2f2, #f9fafb);
+        }
+
+        .alert-card.critical.unread {
+            background: linear-gradient(to right, #fef2f2, #fef2f2);
         }
 
         .alert-card.warning {
@@ -913,21 +984,111 @@
             background: linear-gradient(to right, #fffbeb, #f9fafb);
         }
 
+        .alert-card.warning.unread {
+            background: linear-gradient(to right, #fffbeb, #fffbeb);
+        }
+
         .alert-card.info {
             border-left-color: #3b82f6;
             background: linear-gradient(to right, #eff6ff, #f9fafb);
+        }
+
+        .alert-card.success {
+            border-left-color: #059669;
+            background: linear-gradient(to right, #f0fdf4, #f9fafb);
+        }
+
+        .alert-card-header {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .alert-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .alert-icon.critical {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .alert-icon.warning {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .alert-icon.info {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .alert-icon.success {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .alert-card-content {
+            flex: 1;
         }
 
         .alert-card-title {
             font-weight: bold;
             color: #1f2937;
             margin-bottom: 8px;
+            font-size: 0.95em;
         }
 
         .alert-card-description {
-            font-size: 14px;
+            font-size: 0.85em;
             color: #6b7280;
             margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .alert-card-time {
+            font-size: 0.75em;
+            color: #9ca3af;
+        }
+
+        .alert-card-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .alert-btn {
+            padding: 6px 12px;
+            font-size: 0.8em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .alert-btn-primary {
+            background: #059669;
+            color: white;
+        }
+
+        .alert-btn-secondary {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .alert-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .alert-card-action {
@@ -938,16 +1099,22 @@
 
         .alert-empty {
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px;
             color: #9ca3af;
         }
 
         .alert-empty-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+            font-size: 4em;
+            margin-bottom: 15px;
+            opacity: 0.5;
         }
 
         @media (max-width: 768px) {
+            .alerts-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
             header h1 {
                 font-size: 1.8em;
             }
@@ -1949,21 +2116,30 @@
             
             <div class="alerts-button" onclick="toggleAlertsPanel()">
                 <span>🔔</span>
-                <span>Alertas</span>
-                <span class="alerts-badge" id="alertsCount">0</span>
+                <span class="alerts-badge" id="alertsCount" style="display:none;">0</span>
             </div>
         </div>
 
-        <!-- Panel de Alertas (lateral derecho) -->
+        <!-- Panel de Notificaciones (lateral derecho) -->
         <div class="alerts-panel" id="alertsPanel">
             <div class="alerts-header">
-                <h2>🚨 Alertas</h2>
-                <button class="close-alerts" onclick="toggleAlertsPanel()">✕</button>
+                <h2>🔔 Notificaciones</h2>
+                <div class="alerts-header-actions">
+                    <button class="mark-all-read" onclick="marcarTodasComoLeidas()">Marcar como leídas</button>
+                    <button class="close-alerts" onclick="toggleAlertsPanel()">✕</button>
+                </div>
             </div>
+            
+            <div class="alerts-tabs">
+                <button class="alerts-tab active" onclick="filtrarNotificaciones('todas')">Todas <span id="countTodas">(0)</span></button>
+                <button class="alerts-tab" onclick="filtrarNotificaciones('sin-leer')">Sin leer <span id="countSinLeer">(0)</span></button>
+                <button class="alerts-tab" onclick="filtrarNotificaciones('urgentes')">Urgentes <span id="countUrgentes">(0)</span></button>
+            </div>
+            
             <div class="alerts-content" id="alertsContent">
                 <div class="alert-empty">
                     <div class="alert-empty-icon">✓</div>
-                    <div>No hay alertas pendientes</div>
+                    <div>No hay notificaciones pendientes</div>
                 </div>
             </div>
         </div>
