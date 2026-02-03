@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
@@ -2094,6 +2094,7 @@ function toggleFiltroSinContactos() {
     const alerta = document.getElementById('alertaSinContactos');
     const contador = document.getElementById('contadorSinContactos');
     const thAcciones = document.getElementById('thAcciones');
+    const table = document.querySelector('#modalContactos table');
     
     filtroSinContactosActivo = !filtroSinContactosActivo;
     
@@ -2108,7 +2109,14 @@ function toggleFiltroSinContactos() {
         // Mostrar alerta
         alerta.style.display = 'block';
         contador.textContent = estudiantesSinContactos.length;
-        thAcciones.style.display = '';
+        
+        // Cambiar encabezados de la tabla
+        table.querySelector('thead tr').innerHTML = `
+            <th>Estudiante</th>
+            <th>Curso</th>
+            <th>Contacto</th>
+            <th>Acción</th>
+        `;
         
         // Mostrar en tabla
         mostrarEstudiantesSinContactos(estudiantesSinContactos);
@@ -2117,7 +2125,17 @@ function toggleFiltroSinContactos() {
         btn.style.background = '#dc2626';
         btn.innerHTML = '🚨 Sin Contactos';
         alerta.style.display = 'none';
-        thAcciones.style.display = 'none';
+        
+        // Restaurar encabezados originales
+        table.querySelector('thead tr').innerHTML = `
+            <th>Estudiante</th>
+            <th>Padre</th>
+            <th>Tel. Padre</th>
+            <th>Madre</th>
+            <th>Tel. Madre</th>
+            <th>Emergencia</th>
+            <th id="thAcciones" style="display:none;">Acción</th>
+        `;
         
         // Volver a mostrar todos los contactos
         cargarTablaContactos();
@@ -2158,7 +2176,7 @@ function mostrarEstudiantesSinContactos(estudiantes) {
     if (estudiantes.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align:center;padding:40px;color:#059669;">
+                <td colspan="4" style="text-align:center;padding:40px;color:#059669;">
                     <div style="font-size:3em;margin-bottom:15px;">✅</div>
                     <strong style="font-size:1.2em;">¡Excelente!</strong>
                     <p style="margin-top:10px;color:#666;">Todos los estudiantes tienen contactos registrados</p>
@@ -2176,8 +2194,8 @@ function mostrarEstudiantesSinContactos(estudiantes) {
         <tr style="background:#fef2f2;">
             <td><strong style="color:#991b1b;">${nombre}</strong></td>
             <td><span style="color:#7f1d1d;font-weight:600;">${curso}</span></td>
-            <td colspan="4" style="color:#7f1d1d;font-style:italic;">Sin contactos registrados</td>
-            <td>
+            <td style="color:#7f1d1d;font-style:italic;">Sin contacto registrado</td>
+            <td style="text-align:center;">
                 <button class="btn btn-sm" onclick="agregarContactoRapido('${nombre.replace(/'/g, "\\'")}', '${curso}')" 
                         style="background:#059669;color:white;padding:5px 12px;font-size:0.85em;">
                     ➕ Agregar
@@ -2216,32 +2234,8 @@ function exportarPDFSinContactos() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Encabezado
-    doc.setFillColor(220, 38, 38);
-    doc.rect(0, 0, 210, 35, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    doc.text('REPORTE DE ESTUDIANTES', 105, 15, { align: 'center' });
-    doc.text('SIN CONTACTOS REGISTRADOS', 105, 25, { align: 'center' });
-    
-    // Información del reporte
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    const fecha = new Date().toLocaleDateString('es-DO', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    });
-    doc.text(`Fecha de generación: ${fecha}`, 20, 45);
-    doc.text(`Total de estudiantes sin contactos: ${estudiantesSinContactos.length}`, 20, 52);
-    
-    // Línea separadora
-    doc.setDrawColor(220, 38, 38);
-    doc.setLineWidth(0.5);
-    doc.line(20, 57, 190, 57);
+    // Usar el encabezado estándar de CENSA
+    const startY = agregarEncabezadoCENSA(doc, 'Estudiantes sin Contactos Registrados');
     
     // Preparar datos para la tabla
     const datosTabla = estudiantesSinContactos.map((est, index) => {
@@ -2252,22 +2246,24 @@ function exportarPDFSinContactos() {
         ];
     });
     
-    // Crear tabla
+    // Crear tabla con el estilo estándar
     doc.autoTable({
-        startY: 62,
+        startY: startY,
         head: [['#', 'Nombre del Estudiante', 'Curso']],
         body: datosTabla,
-        headStyles: {
-            fillColor: [220, 38, 38],
+        theme: 'grid',
+        headStyles: { 
+            fillColor: [220, 38, 38],  // Rojo para destacar la alerta
             textColor: 255,
             fontStyle: 'bold',
             halign: 'center'
         },
         bodyStyles: {
-            textColor: 50
+            textColor: 50,
+            fontSize: 10
         },
         alternateRowStyles: {
-            fillColor: [254, 242, 242]
+            fillColor: [254, 242, 242]  // Rosa claro
         },
         columnStyles: {
             0: { halign: 'center', cellWidth: 15 },
@@ -2277,17 +2273,19 @@ function exportarPDFSinContactos() {
         margin: { left: 20, right: 20 }
     });
     
-    // Pie de página con instrucciones
-    const yFinal = doc.lastAutoTable.finalY + 15;
+    // Información al pie
+    const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.setFont('helvetica', 'italic');
-    doc.text('Es necesario registrar los contactos de estos estudiantes para completar la base de datos.', 105, yFinal, { align: 'center', maxWidth: 170 });
+    doc.text('Es necesario registrar los contactos de estos estudiantes para completar la base de datos.', 105, finalY, { align: 'center', maxWidth: 170 });
     
-    // Información del pie
-    doc.setFontSize(7);
+    // Totales
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Generado el ${new Date().toLocaleString('es-DO')} | Unidad de Gestión de Convivencia - CENSA`, 105, 285, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Total de estudiantes sin contactos: ${estudiantesSinContactos.length}`, 14, finalY + 10);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 15);
     
     // Guardar PDF
     const nombreArchivo = `Estudiantes_Sin_Contactos_${new Date().toISOString().split('T')[0]}.pdf`;
