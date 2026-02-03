@@ -9,13 +9,15 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
     urlReuniones: 'https://script.google.com/macros/s/AKfycbxjky9LnAAqElohVjgLESUA2nh-ICXYWNDMGkVfGjwVEb1tc0HQAtg-sayrFMXH788aLA/exec',
     // 👉 URL de Notas Rápidas
-    urlNotasRapidas: 'https://script.google.com/macros/s/AKfycbz-Dka2Nj27ArjgQhR72s5wl8AohebgppDmnWux4rnLrEG5zQyOco9uwxlJqgAzJtW17Q/exec'
+    urlNotasRapidas: 'https://script.google.com/macros/s/AKfycbz-Dka2Nj27ArjgQhR72s5wl8AohebgppDmnWux4rnLrEG5zQyOco9uwxlJqgAzJtW17Q/exec',
+    // 👉 URL de Maestros
+    urlMaestros: 'https://script.google.com/macros/s/AKfycbxTKAwY9m_AuxV-d9IsOaa_IDv1ZAvWv26RdgiIzD2Y6ucX_CtKVjrWbnR5Fefd12uV/exec'
 };
 
 // Guardar URLs predeterminadas (las del código)
@@ -206,6 +208,7 @@ function openModule(moduleName) {
         'contactos': crearModalContactos,
         'estudiantes': crearModalEstudiantes,
         'reuniones': crearModalReuniones,
+        'maestros': crearModalMaestros,
         'configuracion': crearModalConfiguracion,
         'reportes': crearModalReportes
     };
@@ -2787,6 +2790,361 @@ function crearModalReuniones() {
 }
 
 // ==================
+// MODAL MAESTROS
+// ==================
+
+// Variable global para datos de maestros
+let datosMaestros = [];
+
+function crearModalMaestros() {
+    const html = `
+<div id="modalMaestros" class="modal" style="display:block;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>👨‍🏫 Gestión de Maestros</h2>
+            <span class="close" onclick="closeModal('modalMaestros')">&times;</span>
+        </div>
+        <div class="modal-body">
+            
+            <!-- SECCIÓN 1: REGISTRO DE DOCENTES -->
+            <div class="alert alert-success" id="alertMaestros" style="display:none;"></div>
+            
+            <h3>📝 Registro de Docentes</h3>
+            <p style="color:#666;font-size:0.9em;margin-bottom:20px;">Registra nuevos docentes en el sistema</p>
+            
+            <form id="formMaestro" onsubmit="registrarMaestro(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre del Docente *</label>
+                        <input type="text" id="nombreMaestro" placeholder="Ej: Ana María Pérez" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono *</label>
+                        <input type="tel" id="telefonoMaestro" placeholder="Ej: 809-555-1234" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">💾 Registrar Docente</button>
+            </form>
+            
+            <hr style="margin:40px 0;">
+            
+            <!-- SECCIÓN 2: MENSAJES PARA DOCENTES -->
+            <h3>💬 Mensajes para Docentes</h3>
+            <p style="color:#666;font-size:0.9em;margin-bottom:20px;">Envía comunicaciones oficiales por WhatsApp</p>
+            
+            <div class="alert alert-info" id="alertMensajeMaestro" style="display:none;"></div>
+            
+            <form id="formMensajeMaestro">
+                <div class="form-group">
+                    <label>Seleccionar Docente *</label>
+                    <div style="position:relative;">
+                        <input type="text" 
+                               id="docenteSeleccionado" 
+                               placeholder="Escribe el nombre del docente..."
+                               autocomplete="off"
+                               oninput="filtrarMaestros()"
+                               onfocus="mostrarSugerenciasMaestros()"
+                               required>
+                        <div id="sugerenciasMaestros" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                        <input type="hidden" id="telefonoDocenteSeleccionado">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tipo de Mensaje *</label>
+                    <select id="tipoMensajeMaestro" onchange="generarMensajeMaestro()" required>
+                        <option value="">-- Seleccione un tipo de mensaje --</option>
+                        <option value="oficina">El estudiante _________ estuvo conmigo en la oficina.</option>
+                        <option value="tenis">Por hoy el/la estudiante ___________ permanecerá en el aula con tenis.</option>
+                        <option value="sin_correa">Por hoy el/la estudiante ___________ permanecerá en el aula sin correa.</option>
+                        <option value="uniforme_ef">Por hoy el/la estudiante ___________ permanecerá en el aula con uniforme de Educación Física.</option>
+                        <option value="medias_color">Por hoy el/la estudiante ___________ permanecerá en el aula con medias de color __________.</option>
+                        <option value="traer_correa">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su correa.</option>
+                        <option value="traer_zapatos">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus zapatos.</option>
+                        <option value="traer_tenis">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus tenis.</option>
+                        <option value="traer_medias">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus medias blancas.</option>
+                        <option value="traer_uniforme">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su uniforme correcto.</option>
+                        <option value="salida">El/la estudiante _________ tiene salida ahora.</option>
+                        <option value="otro">Otro (escribir mensaje personalizado)</option>
+                    </select>
+                </div>
+                
+                <!-- CAMPO PARA MENSAJE PERSONALIZADO -->
+                <div id="campoMensajePersonalizado" style="display:none;" class="form-group">
+                    <label>Mensaje Personalizado *</label>
+                    <textarea id="mensajePersonalizado" rows="4" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:1em;font-family:inherit;" placeholder="Escriba aquí su mensaje personalizado..."></textarea>
+                </div>
+                
+                <!-- VISTA PREVIA DEL MENSAJE -->
+                <div id="vistaPreviaMensaje" style="display:none;background:#f8f9fa;border:2px solid #059669;border-radius:8px;padding:20px;margin-bottom:20px;">
+                    <strong style="color:#059669;display:block;margin-bottom:10px;">📱 Vista Previa del Mensaje:</strong>
+                    <div id="contenidoMensaje" style="color:#333;line-height:1.6;white-space:pre-line;font-size:0.95em;"></div>
+                </div>
+                
+                <button type="button" id="btnEnviarWhatsAppMaestro" onclick="enviarWhatsAppMaestro()" class="btn btn-success" style="background:#25D366;width:100%;font-size:1.1em;padding:15px;" disabled>
+                    💬 Enviar por WhatsApp
+                </button>
+            </form>
+            
+        </div>
+    </div>
+</div>`;
+    
+    document.getElementById('modalContainer').innerHTML = html;
+    
+    // Cargar datos de maestros desde Google Sheets
+    if (CONFIG.urlMaestros) {
+        cargarDatosDesdeGoogleSheets(CONFIG.urlMaestros).then(datos => {
+            datosMaestros = datos;
+            console.log('✅ Maestros cargados:', datosMaestros.length);
+        }).catch(err => {
+            console.error('Error al cargar maestros:', err);
+        });
+    }
+}
+
+// Registrar nuevo maestro
+function registrarMaestro(e) {
+    e.preventDefault();
+    
+    const maestro = {
+        'Nombre Docente': document.getElementById('nombreMaestro').value.trim(),
+        'Teléfono Docente': document.getElementById('telefonoMaestro').value.trim()
+    };
+    
+    // Enviar a Google Sheets
+    if (CONFIG.urlMaestros) {
+        enviarGoogleSheets(CONFIG.urlMaestros, maestro);
+        datosMaestros.push(maestro);
+    }
+    
+    mostrarAlerta('alertMaestros', '✅ Docente registrado correctamente');
+    document.getElementById('formMaestro').reset();
+}
+
+// Autocompletado de maestros
+function filtrarMaestros() {
+    const input = document.getElementById('docenteSeleccionado').value.toLowerCase();
+    const suggestions = document.getElementById('sugerenciasMaestros');
+    
+    if (input.length < 2) {
+        suggestions.style.display = 'none';
+        return;
+    }
+    
+    const filtrados = datosMaestros.filter(m => {
+        const nombre = (m['Nombre Docente'] || '').toLowerCase();
+        return nombre.includes(input);
+    });
+    
+    if (filtrados.length === 0) {
+        suggestions.style.display = 'none';
+        return;
+    }
+    
+    suggestions.innerHTML = filtrados.map(m => {
+        const nombre = m['Nombre Docente'] || '';
+        const telefono = m['Teléfono Docente'] || '';
+        return `
+            <div style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;" 
+                 onmouseover="this.style.background='#f0f0f0'" 
+                 onmouseout="this.style.background='white'"
+                 onclick="seleccionarMaestro('${nombre.replace(/'/g, "\\'")}', '${telefono}')">
+                <strong>${nombre}</strong><br>
+                <small style="color:#666;">${telefono}</small>
+            </div>
+        `;
+    }).join('');
+    
+    suggestions.style.display = 'block';
+}
+
+function mostrarSugerenciasMaestros() {
+    const input = document.getElementById('docenteSeleccionado').value;
+    if (input.length >= 2) {
+        filtrarMaestros();
+    }
+}
+
+function seleccionarMaestro(nombre, telefono) {
+    document.getElementById('docenteSeleccionado').value = nombre;
+    document.getElementById('telefonoDocenteSeleccionado').value = telefono;
+    document.getElementById('sugerenciasMaestros').style.display = 'none';
+    generarMensajeMaestro();
+}
+
+// Plantillas de mensajes
+const plantillasMensajesMaestros = {
+    oficina: (nombre) => `Estimado/a Prof. ${nombre}:
+
+El estudiante _________ estuvo conmigo en la oficina.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    tenis: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Por hoy el/la estudiante ___________ permanecerá en el aula con tenis.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    sin_correa: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Por hoy el/la estudiante ___________ permanecerá en el aula sin correa.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    uniforme_ef: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Por hoy el/la estudiante ___________ permanecerá en el aula con uniforme de Educación Física.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    medias_color: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Por hoy el/la estudiante ___________ permanecerá en el aula con medias de color __________.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_correa: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su correa.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_zapatos: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus zapatos.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_tenis: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus tenis.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_medias: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus medias blancas.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_uniforme: (nombre) => `Estimado/a Prof. ${nombre}:
+
+Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su uniforme correcto.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    salida: (nombre) => `Estimado/a Prof. ${nombre}:
+
+El/la estudiante _________ tiene salida ahora.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    otro: (nombre) => `Estimado/a Prof. ${nombre}:
+
+[Mensaje personalizado]
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`
+};
+
+// Generar mensaje según tipo
+function generarMensajeMaestro() {
+    const nombre = document.getElementById('docenteSeleccionado').value;
+    const tipo = document.getElementById('tipoMensajeMaestro').value;
+    const preview = document.getElementById('vistaPreviaMensaje');
+    const content = document.getElementById('contenidoMensaje');
+    const btnWhatsApp = document.getElementById('btnEnviarWhatsAppMaestro');
+    const campoPersonalizado = document.getElementById('campoMensajePersonalizado');
+    
+    // Mostrar/ocultar campo de mensaje personalizado
+    if (tipo === 'otro') {
+        campoPersonalizado.style.display = 'block';
+        preview.style.display = 'none';
+        btnWhatsApp.disabled = true;
+        
+        // Agregar evento al textarea para generar vista previa
+        const textarea = document.getElementById('mensajePersonalizado');
+        textarea.oninput = function() {
+            if (this.value.trim() && nombre) {
+                const mensajePersonalizado = `Estimado/a Prof. ${nombre}:\n\n${this.value.trim()}\n\nTania Paulino\nUnidad de Gestión de Convivencia\nCENSA`;
+                content.textContent = mensajePersonalizado;
+                preview.style.display = 'block';
+                btnWhatsApp.disabled = false;
+            } else {
+                preview.style.display = 'none';
+                btnWhatsApp.disabled = true;
+            }
+        };
+        return;
+    } else {
+        campoPersonalizado.style.display = 'none';
+        document.getElementById('mensajePersonalizado').value = '';
+    }
+    
+    if (!nombre || !tipo) {
+        preview.style.display = 'none';
+        btnWhatsApp.disabled = true;
+        return;
+    }
+    
+    const mensaje = plantillasMensajesMaestros[tipo](nombre);
+    content.textContent = mensaje;
+    preview.style.display = 'block';
+    btnWhatsApp.disabled = false;
+}
+
+// Enviar por WhatsApp
+function enviarWhatsAppMaestro() {
+    const telefono = document.getElementById('telefonoDocenteSeleccionado').value;
+    const mensaje = document.getElementById('contenidoMensaje').textContent;
+    
+    if (!telefono || !mensaje) {
+        alert('Por favor, complete todos los campos');
+        return;
+    }
+    
+    // Limpiar número
+    const numeroLimpio = telefono.replace(/[\s\-\(\)]/g, '');
+    const numeroCompleto = numeroLimpio.startsWith('+') ? numeroLimpio : '+1' + numeroLimpio;
+    
+    // Codificar mensaje
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    
+    // Abrir WhatsApp
+    const url = 'https://wa.me/' + numeroCompleto.replace('+', '') + '?text=' + mensajeCodificado;
+    window.open(url, '_blank');
+    
+    mostrarAlerta('alertMensajeMaestro', '✅ WhatsApp abierto. Complete los campos en blanco antes de enviar.', 'info');
+    
+    console.log('✅ WhatsApp abierto para:', numeroCompleto);
+}
+
+// ==================
 // MODAL CONFIGURACIÓN
 // ==================
 function crearModalConfiguracion() {
@@ -2955,6 +3313,15 @@ function crearModalConfiguracion() {
                                     <span class="label-text">Notas Rápidas</span>
                                 </label>
                                 <input type="url" id="urlNotas" value="${CONFIG.urlNotasRapidas || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">👨‍🏫</span>
+                                    <span class="label-text">Maestros</span>
+                                </label>
+                                <input type="url" id="urlMaestros" value="${CONFIG.urlMaestros || ''}" 
                                        placeholder="https://script.google.com/macros/s/...">
                             </div>
                         </div>
@@ -3545,6 +3912,7 @@ function guardarConfig(e) {
     CONFIG.urlEstudiantes = document.getElementById('urlEst').value;
     CONFIG.urlReuniones = document.getElementById('urlReun').value;
     CONFIG.urlNotasRapidas = document.getElementById('urlNotas').value;
+    CONFIG.urlMaestros = document.getElementById('urlMaestros').value;
     
     // Actualizar también la variable global de notas
     urlNotasRapidas = CONFIG.urlNotasRapidas;
@@ -3573,6 +3941,7 @@ function restaurarURLsPredeterminadas() {
     document.getElementById('urlEst').value = CONFIG.urlEstudiantes;
     document.getElementById('urlReun').value = CONFIG.urlReuniones;
     document.getElementById('urlNotas').value = CONFIG.urlNotasRapidas;
+    document.getElementById('urlMaestros').value = CONFIG.urlMaestros;
     
     // Guardar en localStorage
     localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
