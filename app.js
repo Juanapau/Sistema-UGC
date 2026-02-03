@@ -2903,7 +2903,7 @@ function crearModalMaestros() {
                     </p>
                 </div>
                 
-                <button type="button" id="btnEnviarWhatsAppMaestro" onclick="enviarWhatsAppMaestro()" class="btn btn-success" style="background:#25D366;font-size:1.1em;padding:15px 40px;" disabled>
+                <button type="button" id="btnEnviarWhatsAppMaestro" onclick="enviarWhatsAppMaestro()" class="btn btn-success" style="background:#25D366;" disabled>
                     💬 Enviar por WhatsApp
                 </button>
             </form>
