@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
