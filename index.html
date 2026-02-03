@@ -265,7 +265,9 @@
         .dashboard {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto auto;
             gap: 25px;
+            max-width: 100%;
         }
 
         .module-card {
@@ -1121,6 +1123,7 @@
 
             .dashboard {
                 grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: auto;
             }
 
             .modal-content {
@@ -1132,6 +1135,15 @@
         @media (max-width: 480px) {
             .dashboard {
                 grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+        }
+        
+        /* Para pantallas grandes asegurar 4 columnas */
+        @media (min-width: 1200px) {
+            .dashboard {
+                grid-template-columns: repeat(4, 1fr);
+                grid-template-rows: auto auto;
             }
 
             .form-row {
