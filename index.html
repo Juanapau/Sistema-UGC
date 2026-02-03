@@ -264,7 +264,7 @@
 
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 25px;
         }
 
@@ -1120,12 +1120,18 @@
             }
 
             .dashboard {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .modal-content {
                 margin: 10px;
                 width: calc(100% - 20px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard {
+                grid-template-columns: 1fr;
             }
 
             .form-row {
