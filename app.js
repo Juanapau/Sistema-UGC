@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
@@ -2875,10 +2875,15 @@ function crearModalMaestros() {
                     <textarea id="mensajePersonalizado" rows="4" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:1em;font-family:inherit;" placeholder="Escriba aquí su mensaje personalizado..."></textarea>
                 </div>
                 
-                <!-- VISTA PREVIA DEL MENSAJE -->
-                <div id="vistaPreviaMensaje" style="display:none;background:#f8f9fa;border:2px solid #059669;border-radius:8px;padding:20px;margin-bottom:20px;">
-                    <strong style="color:#059669;display:block;margin-bottom:10px;">📱 Vista Previa del Mensaje:</strong>
-                    <div id="contenidoMensaje" style="color:#333;line-height:1.6;white-space:pre-line;font-size:0.95em;"></div>
+                <!-- VISTA PREVIA DEL MENSAJE (EDITABLE) -->
+                <div id="vistaPreviaMensaje" style="display:none;margin-bottom:20px;">
+                    <label style="display:block;color:#555;font-weight:600;margin-bottom:8px;font-size:0.95em;">
+                        📱 Vista Previa del Mensaje (Editable):
+                    </label>
+                    <textarea id="contenidoMensaje" rows="12" style="width:100%;padding:15px;border:2px solid #059669;border-radius:8px;font-size:0.95em;font-family:inherit;line-height:1.6;resize:vertical;"></textarea>
+                    <p style="color:#666;font-size:0.85em;margin-top:8px;font-style:italic;">
+                        💡 Puedes editar el mensaje directamente antes de enviarlo
+                    </p>
                 </div>
                 
                 <button type="button" id="btnEnviarWhatsAppMaestro" onclick="enviarWhatsAppMaestro()" class="btn btn-success" style="background:#25D366;width:100%;font-size:1.1em;padding:15px;" disabled>
@@ -3092,7 +3097,7 @@ function generarMensajeMaestro() {
         textarea.oninput = function() {
             if (this.value.trim() && nombre) {
                 const mensajePersonalizado = `Estimado/a Prof. ${nombre}:\n\n${this.value.trim()}\n\nTania Paulino\nUnidad de Gestión de Convivencia\nCENSA`;
-                content.textContent = mensajePersonalizado;
+                content.value = mensajePersonalizado;
                 preview.style.display = 'block';
                 btnWhatsApp.disabled = false;
             } else {
@@ -3113,7 +3118,7 @@ function generarMensajeMaestro() {
     }
     
     const mensaje = plantillasMensajesMaestros[tipo](nombre);
-    content.textContent = mensaje;
+    content.value = mensaje;
     preview.style.display = 'block';
     btnWhatsApp.disabled = false;
 }
@@ -3121,7 +3126,7 @@ function generarMensajeMaestro() {
 // Enviar por WhatsApp
 function enviarWhatsAppMaestro() {
     const telefono = document.getElementById('telefonoDocenteSeleccionado').value;
-    const mensaje = document.getElementById('contenidoMensaje').textContent;
+    const mensaje = document.getElementById('contenidoMensaje').value;
     
     if (!telefono || !mensaje) {
         alert('Por favor, complete todos los campos');
@@ -3139,7 +3144,7 @@ function enviarWhatsAppMaestro() {
     const url = 'https://wa.me/' + numeroCompleto.replace('+', '') + '?text=' + mensajeCodificado;
     window.open(url, '_blank');
     
-    mostrarAlerta('alertMensajeMaestro', '✅ WhatsApp abierto. Complete los campos en blanco antes de enviar.', 'info');
+    mostrarAlerta('alertMensajeMaestro', '✅ WhatsApp abierto con el mensaje editado.', 'info');
     
     console.log('✅ WhatsApp abierto para:', numeroCompleto);
 }
