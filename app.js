@@ -9,7 +9,7 @@ let CONFIG = {
     // 👉 URL de Tardanzas
     urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
     // 👉 URL de Contactos
-    urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+    urlContactos: 'https://script.google.com/macros/s/AKfycbyE6Lh8vSQfW1twVYUMu4YMdHqzXdCeNDi8mYRHA6GXm7b6kNw91v2nkDp90FePXamg/exec',
     // 👉 URL de Estudiantes
     urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
     // 👉 URL de Reuniones
@@ -2835,18 +2835,34 @@ function crearModalMaestros() {
             <div class="alert alert-info" id="alertMensajeMaestro" style="display:none;"></div>
             
             <form id="formMensajeMaestro">
-                <div class="form-group">
-                    <label>Seleccionar Docente *</label>
-                    <div style="position:relative;">
-                        <input type="text" 
-                               id="docenteSeleccionado" 
-                               placeholder="Escribe el nombre del docente..."
-                               autocomplete="off"
-                               oninput="filtrarMaestros()"
-                               onfocus="mostrarSugerenciasMaestros()"
-                               required>
-                        <div id="sugerenciasMaestros" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
-                        <input type="hidden" id="telefonoDocenteSeleccionado">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Seleccionar Docente *</label>
+                        <div style="position:relative;">
+                            <input type="text" 
+                                   id="docenteSeleccionado" 
+                                   placeholder="Escribe el nombre del docente..."
+                                   autocomplete="off"
+                                   oninput="filtrarMaestros()"
+                                   onfocus="mostrarSugerenciasMaestros()"
+                                   required>
+                            <div id="sugerenciasMaestros" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                            <input type="hidden" id="telefonoDocenteSeleccionado">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Seleccionar Estudiante *</label>
+                        <div style="position:relative;">
+                            <input type="text" 
+                                   id="estudianteSeleccionado" 
+                                   placeholder="Escribe el nombre del estudiante..."
+                                   autocomplete="off"
+                                   oninput="filtrarEstudiantesMaestros()"
+                                   onfocus="mostrarSugerenciasEstudiantesMaestros()"
+                                   required>
+                            <div id="sugerenciasEstudiantesMaestros" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                        </div>
                     </div>
                 </div>
                 
@@ -2854,17 +2870,18 @@ function crearModalMaestros() {
                     <label>Tipo de Mensaje *</label>
                     <select id="tipoMensajeMaestro" onchange="generarMensajeMaestro()" required>
                         <option value="">-- Seleccione un tipo de mensaje --</option>
-                        <option value="oficina">El estudiante _________ estuvo conmigo en la oficina.</option>
-                        <option value="tenis">Por hoy el/la estudiante ___________ permanecerá en el aula con tenis.</option>
-                        <option value="sin_correa">Por hoy el/la estudiante ___________ permanecerá en el aula sin correa.</option>
-                        <option value="uniforme_ef">Por hoy el/la estudiante ___________ permanecerá en el aula con uniforme de Educación Física.</option>
-                        <option value="medias_color">Por hoy el/la estudiante ___________ permanecerá en el aula con medias de color __________.</option>
-                        <option value="traer_correa">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su correa.</option>
-                        <option value="traer_zapatos">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus zapatos.</option>
-                        <option value="traer_tenis">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus tenis.</option>
-                        <option value="traer_medias">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus medias blancas.</option>
-                        <option value="traer_uniforme">Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su uniforme correcto.</option>
-                        <option value="salida">El/la estudiante _________ tiene salida ahora.</option>
+                        <option value="oficina">El estudiante estuvo conmigo en la oficina.</option>
+                        <option value="tenis">Por hoy el/la estudiante permanecerá en el aula con tenis.</option>
+                        <option value="sin_correa">Por hoy el/la estudiante permanecerá en el aula sin correa.</option>
+                        <option value="uniforme_ef">Por hoy el/la estudiante permanecerá en el aula con uniforme de Educación Física.</option>
+                        <option value="medias_color">Por hoy el/la estudiante permanecerá en el aula con medias de color:</option>
+                        <option value="traer_correa">Enviado al aula el/la estudiante nos comunicamos con sus padres y traerán su correa.</option>
+                        <option value="traer_zapatos">Enviado al aula el/la estudiante nos comunicamos con sus padres y traerán sus zapatos.</option>
+                        <option value="traer_tenis">Enviado al aula el/la estudiante nos comunicamos con sus padres y traerán sus tenis.</option>
+                        <option value="traer_medias">Enviado al aula el/la estudiante nos comunicamos con sus padres y traerán sus medias blancas.</option>
+                        <option value="traer_uniforme">Enviado al aula el/la estudiante nos comunicamos con sus padres y traerán su uniforme correcto.</option>
+                        <option value="no_comunicamos">Llamamos a los padres del/la estudiante y no pudimos comunicarnos.</option>
+                        <option value="salida">El/la estudiante tiene salida ahora.</option>
                         <option value="otro">Otro (escribir mensaje personalizado)</option>
                     </select>
                 </div>
@@ -2886,7 +2903,7 @@ function crearModalMaestros() {
                     </p>
                 </div>
                 
-                <button type="button" id="btnEnviarWhatsAppMaestro" onclick="enviarWhatsAppMaestro()" class="btn btn-success" style="background:#25D366;width:100%;font-size:1.1em;padding:15px;" disabled>
+                <button type="button" id="btnEnviarWhatsAppMaestro" onclick="enviarWhatsAppMaestro()" class="btn btn-success" style="background:#25D366;font-size:1.1em;padding:15px 40px;" disabled>
                     💬 Enviar por WhatsApp
                 </button>
             </form>
@@ -2978,97 +2995,155 @@ function seleccionarMaestro(nombre, telefono) {
     generarMensajeMaestro();
 }
 
+// Autocompletado de estudiantes en módulo Maestros
+function filtrarEstudiantesMaestros() {
+    const input = document.getElementById('estudianteSeleccionado').value.toLowerCase();
+    const suggestions = document.getElementById('sugerenciasEstudiantesMaestros');
+    
+    if (input.length < 2) {
+        suggestions.style.display = 'none';
+        return;
+    }
+    
+    const filtrados = datosEstudiantes.filter(e => {
+        const nombre = (e['Nombre Completo'] || e.nombre || '').toLowerCase();
+        return nombre.includes(input);
+    });
+    
+    if (filtrados.length === 0) {
+        suggestions.style.display = 'none';
+        return;
+    }
+    
+    suggestions.innerHTML = filtrados.slice(0, 10).map(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        const curso = e.Curso || e.curso || '';
+        return `
+            <div style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;" 
+                 onmouseover="this.style.background='#f0f0f0'" 
+                 onmouseout="this.style.background='white'"
+                 onclick="seleccionarEstudianteMaestro('${nombre.replace(/'/g, "\\'")}')">
+                <strong>${nombre}</strong>
+                ${curso ? `<br><small style="color:#666;">${curso}</small>` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    suggestions.style.display = 'block';
+}
+
+function mostrarSugerenciasEstudiantesMaestros() {
+    const input = document.getElementById('estudianteSeleccionado').value;
+    if (input.length >= 2) {
+        filtrarEstudiantesMaestros();
+    }
+}
+
+function seleccionarEstudianteMaestro(nombre) {
+    document.getElementById('estudianteSeleccionado').value = nombre;
+    document.getElementById('sugerenciasEstudiantesMaestros').style.display = 'none';
+    generarMensajeMaestro();
+}
+
 // Plantillas de mensajes
 const plantillasMensajesMaestros = {
-    oficina: (nombre) => `Estimado/a Prof. ${nombre}:
+    oficina: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
 
-El estudiante _________ estuvo conmigo en la oficina.
-
-Tania Paulino
-Unidad de Gestión de Convivencia
-CENSA`,
-
-    tenis: (nombre) => `Estimado/a Prof. ${nombre}:
-
-Por hoy el/la estudiante ___________ permanecerá en el aula con tenis.
+El estudiante ${nombreEstudiante} estuvo conmigo en la oficina.
 
 Tania Paulino
 Unidad de Gestión de Convivencia
 CENSA`,
 
-    sin_correa: (nombre) => `Estimado/a Prof. ${nombre}:
+    tenis: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
 
-Por hoy el/la estudiante ___________ permanecerá en el aula sin correa.
-
-Tania Paulino
-Unidad de Gestión de Convivencia
-CENSA`,
-
-    uniforme_ef: (nombre) => `Estimado/a Prof. ${nombre}:
-
-Por hoy el/la estudiante ___________ permanecerá en el aula con uniforme de Educación Física.
+Por hoy el/la estudiante ${nombreEstudiante} permanecerá en el aula con tenis.
 
 Tania Paulino
 Unidad de Gestión de Convivencia
 CENSA`,
 
-    medias_color: (nombre) => `Estimado/a Prof. ${nombre}:
+    sin_correa: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
 
-Por hoy el/la estudiante ___________ permanecerá en el aula con medias de color __________.
-
-Tania Paulino
-Unidad de Gestión de Convivencia
-CENSA`,
-
-    traer_correa: (nombre) => `Estimado/a Prof. ${nombre}:
-
-Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su correa.
+Por hoy el/la estudiante ${nombreEstudiante} permanecerá en el aula sin correa.
 
 Tania Paulino
 Unidad de Gestión de Convivencia
 CENSA`,
 
-    traer_zapatos: (nombre) => `Estimado/a Prof. ${nombre}:
+    uniforme_ef: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
 
-Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus zapatos.
-
-Tania Paulino
-Unidad de Gestión de Convivencia
-CENSA`,
-
-    traer_tenis: (nombre) => `Estimado/a Prof. ${nombre}:
-
-Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus tenis.
+Por hoy el/la estudiante ${nombreEstudiante} permanecerá en el aula con uniforme de Educación Física.
 
 Tania Paulino
 Unidad de Gestión de Convivencia
 CENSA`,
 
-    traer_medias: (nombre) => `Estimado/a Prof. ${nombre}:
+    medias_color: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
 
-Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán sus medias blancas.
-
-Tania Paulino
-Unidad de Gestión de Convivencia
-CENSA`,
-
-    traer_uniforme: (nombre) => `Estimado/a Prof. ${nombre}:
-
-Enviado al aula el/la estudiante _________ nos comunicamos con sus padres y traerán su uniforme correcto.
+Por hoy el/la estudiante ${nombreEstudiante} permanecerá en el aula con medias de color:
 
 Tania Paulino
 Unidad de Gestión de Convivencia
 CENSA`,
 
-    salida: (nombre) => `Estimado/a Prof. ${nombre}:
+    traer_correa: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
 
-El/la estudiante _________ tiene salida ahora.
+Enviado al aula el/la estudiante ${nombreEstudiante} nos comunicamos con sus padres y traerán su correa.
 
 Tania Paulino
 Unidad de Gestión de Convivencia
 CENSA`,
 
-    otro: (nombre) => `Estimado/a Prof. ${nombre}:
+    traer_zapatos: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
+
+Enviado al aula el/la estudiante ${nombreEstudiante} nos comunicamos con sus padres y traerán sus zapatos.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_tenis: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
+
+Enviado al aula el/la estudiante ${nombreEstudiante} nos comunicamos con sus padres y traerán sus tenis.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_medias: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
+
+Enviado al aula el/la estudiante ${nombreEstudiante} nos comunicamos con sus padres y traerán sus medias blancas.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    traer_uniforme: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
+
+Enviado al aula el/la estudiante ${nombreEstudiante} nos comunicamos con sus padres y traerán su uniforme correcto.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    no_comunicamos: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
+
+Llamamos a los padres del/la estudiante ${nombreEstudiante} y no pudimos comunicarnos.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    salida: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
+
+El/la estudiante ${nombreEstudiante} tiene salida ahora.
+
+Tania Paulino
+Unidad de Gestión de Convivencia
+CENSA`,
+
+    otro: (nombreDocente, nombreEstudiante) => `Saludos ${nombreDocente}:
 
 [Mensaje personalizado]
 
@@ -3079,7 +3154,8 @@ CENSA`
 
 // Generar mensaje según tipo
 function generarMensajeMaestro() {
-    const nombre = document.getElementById('docenteSeleccionado').value;
+    const nombreDocente = document.getElementById('docenteSeleccionado').value;
+    const nombreEstudiante = document.getElementById('estudianteSeleccionado').value;
     const tipo = document.getElementById('tipoMensajeMaestro').value;
     const preview = document.getElementById('vistaPreviaMensaje');
     const content = document.getElementById('contenidoMensaje');
@@ -3095,8 +3171,8 @@ function generarMensajeMaestro() {
         // Agregar evento al textarea para generar vista previa
         const textarea = document.getElementById('mensajePersonalizado');
         textarea.oninput = function() {
-            if (this.value.trim() && nombre) {
-                const mensajePersonalizado = `Estimado/a Prof. ${nombre}:\n\n${this.value.trim()}\n\nTania Paulino\nUnidad de Gestión de Convivencia\nCENSA`;
+            if (this.value.trim() && nombreDocente && nombreEstudiante) {
+                const mensajePersonalizado = `Saludos ${nombreDocente}:\n\n${this.value.trim()}\n\nTania Paulino\nUnidad de Gestión de Convivencia\nCENSA`;
                 content.value = mensajePersonalizado;
                 preview.style.display = 'block';
                 btnWhatsApp.disabled = false;
@@ -3111,13 +3187,13 @@ function generarMensajeMaestro() {
         document.getElementById('mensajePersonalizado').value = '';
     }
     
-    if (!nombre || !tipo) {
+    if (!nombreDocente || !nombreEstudiante || !tipo) {
         preview.style.display = 'none';
         btnWhatsApp.disabled = true;
         return;
     }
     
-    const mensaje = plantillasMensajesMaestros[tipo](nombre);
+    const mensaje = plantillasMensajesMaestros[tipo](nombreDocente, nombreEstudiante);
     content.value = mensaje;
     preview.style.display = 'block';
     btnWhatsApp.disabled = false;
