@@ -245,6 +245,7 @@ function crearModalIncidencias() {
             
             <h3>Nueva Incidencia</h3>
             <form id="formIncidencia" onsubmit="registrarIncidencia(event)">
+                <!-- Primera fila: Fecha y Hora, Estudiante, Curso -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Fecha y Hora *</label>
@@ -258,11 +259,9 @@ function crearModalIncidencias() {
                                autocomplete="off"
                                oninput="filtrarEstudiantesIncidencia()"
                                onfocus="mostrarSugerenciasIncidencia()"
-                               placeholder="Escribe el nombre del estudiante...">
+                               placeholder="Escribe el nombre...">
                         <div id="sugerenciasIncidencia" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label>Curso *</label>
                         <select id="cursoIncidencia" required>
@@ -270,6 +269,9 @@ function crearModalIncidencias() {
                             ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                         </select>
                     </div>
+                </div>
+                <!-- Segunda fila: Tipo de Falta, Docente, Tipo de Conducta -->
+                <div class="form-row">
                     <div class="form-group">
                         <label>Tipo de Falta *</label>
                         <select id="tipoFalta" required>
@@ -279,10 +281,8 @@ function crearModalIncidencias() {
                             <option value="Muy Grave">Falta Muy Grave</option>
                         </select>
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
-                        <label>Docente que Reporta *</label>
+                        <label>Docente *</label>
                         <input type="text" id="docenteReporta" required>
                     </div>
                     <div class="form-group">
@@ -334,19 +334,21 @@ function crearModalIncidencias() {
                     <input type="text" id="buscarInc" data-sugerencias="sugerenciasBuscarInc" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarInc" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoInc">
+                <select id="filtrarCursoInc" style="flex:1;min-width:180px;">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarTipo">
+                <select id="filtrarTipo" style="flex:1;min-width:180px;">
                     <option value="">Todos los tipos</option>
                     <option value="Leve">Leve</option>
                     <option value="Grave">Grave</option>
                     <option value="Muy Grave">Muy Grave</option>
                 </select>
-                <button class="btn btn-primary" onclick="buscarIncidencias()">🔍 Buscar</button>
-                <button class="btn" onclick="recargarIncidencias()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
-                <button class="btn btn-success" onclick="exportarIncidenciasPDF()">📥 Exportar</button>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary btn-small" onclick="buscarIncidencias()">🔍 Buscar</button>
+                <button class="btn btn-small" onclick="recargarIncidencias()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
+                <button class="btn btn-success btn-small" onclick="exportarIncidenciasPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
                 <table id="tablaIncidencias">
