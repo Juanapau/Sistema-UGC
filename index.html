@@ -374,6 +374,10 @@
             margin-bottom: 20px;
         }
 
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -406,14 +410,14 @@
         }
 
         .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
             gap: 20px;
         }
         
         @media (max-width: 768px) {
             .form-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
             }
         }
 
