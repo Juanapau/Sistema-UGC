@@ -4643,13 +4643,6 @@ function exportarReporteEstudiante(estudiante) {
     XLSX.writeFile(wb, `Reporte_${nombreArchivo}_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
-function exportarTodo() {
-    const wb = XLSX.utils.book_new();
-    if (datosIncidencias.length > 0) {
-        const ws = XLSX.utils.json_to_sheet(datosIncidencias);
-        XLSX.utils.book_append_sheet(wb, ws, "Incidencias");
-    }
-
 // ==========================================
 // HISTORIAL COMPLETO DEL ESTUDIANTE
 // ==========================================
