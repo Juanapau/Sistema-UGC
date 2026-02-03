@@ -347,7 +347,7 @@ function crearModalIncidencias() {
             </div>
             <div class="search-buttons">
                 <button class="btn btn-primary btn-small" onclick="buscarIncidencias()">🔍 Buscar</button>
-                <button class="btn btn-small" onclick="recargarIncidencias()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
+                <button class="btn btn-info btn-small" onclick="recargarIncidencias()">🔄 Recargar</button>
                 <button class="btn btn-success btn-small" onclick="exportarIncidenciasPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
@@ -796,11 +796,11 @@ function crearModalTardanzas() {
                     <input type="text" id="buscarTard" data-sugerencias="sugerenciasBuscarTard" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarTard" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoTard">
+                <select id="filtrarCursoTard" style="flex:1;min-width:180px;">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarMesTard">
+                <select id="filtrarMesTard" style="flex:1;min-width:180px;">
                     <option value="">Todos los meses</option>
                     <option value="Enero">Enero</option>
                     <option value="Febrero">Febrero</option>
@@ -815,9 +815,12 @@ function crearModalTardanzas() {
                     <option value="Noviembre">Noviembre</option>
                     <option value="Diciembre">Diciembre</option>
                 </select>
-                <button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
-                <button class="btn" onclick="recargarTardanzas()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
-                <button class="btn btn-success" onclick="exportarTardanzasPDF()">📥 Exportar</button>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary btn-small" onclick="buscarTardanzas()">🔍 Buscar</button>
+                <button class="btn btn-info btn-small" onclick="recargarTardanzas()">🔄 Recargar</button>
+                <button class="btn btn-success btn-small" onclick="exportarTardanzasPDF()">📥 Exportar</button>
+            </div>
             </div>
             <div class="table-container">
                 <table>
@@ -1755,6 +1758,10 @@ function crearModalContactos() {
                         <label>Tel. Padre</label>
                         <input type="tel" id="telPadre">
                     </div>
+                    <div class="form-group">
+                        <label>Tel. Emergencia</label>
+                        <input type="tel" id="telEmergencia">
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -1765,10 +1772,9 @@ function crearModalContactos() {
                         <label>Tel. Madre</label>
                         <input type="tel" id="telMadre">
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Tel. Emergencia</label>
-                    <input type="tel" id="telEmergencia">
+                    <div class="form-group">
+                        <!-- Espacio vacío para mantener simetría -->
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary">💾 Registrar</button>
             </form>
@@ -1780,12 +1786,12 @@ function crearModalContactos() {
                     <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarCont" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <button class="btn" id="btnSinContactos" onclick="toggleFiltroSinContactos()" style="background:#dc2626;color:white;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,0.3);">
-                    🚨 Sin Contactos
-                </button>
-                <button class="btn btn-primary" onclick="buscarContactos()">🔍 Buscar</button>
-                <button class="btn" onclick="recargarContactos()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
-                <button class="btn btn-success" onclick="exportarContactosPDF()">📥 Exportar</button>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary btn-small" onclick="buscarContactos()">🔍 Buscar</button>
+                <button class="btn btn-info btn-small" onclick="recargarContactos()">🔄 Recargar</button>
+                <button class="btn btn-success btn-small" onclick="exportarContactosPDF()">📥 Exportar</button>
+                <button class="btn btn-secondary btn-small" id="btnSinContactos" onclick="toggleFiltroSinContactos()">🚨 Sin Contactos</button>
             </div>
             
             <!-- ALERTA DE ESTUDIANTES SIN CONTACTOS -->
@@ -2644,9 +2650,17 @@ function crearModalReuniones() {
                         <label>Nombre del Padre/Madre</label>
                         <input type="text" id="nombrePadreReunion" placeholder="Nombre completo">
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Personal UGC/Docente *</label>
                         <input type="text" id="docenteReunion" required>
+                    </div>
+                    <div class="form-group">
+                        <!-- Espacio vacío para simetría -->
+                    </div>
+                    <div class="form-group">
+                        <!-- Espacio vacío para simetría -->
                     </div>
                 </div>
                 <div class="form-group">
@@ -2685,6 +2699,9 @@ function crearModalReuniones() {
                             <option value="Parcialmente cumplido">Parcialmente cumplido</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <!-- Espacio vacío para simetría -->
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Observaciones Adicionales</label>
@@ -2700,20 +2717,22 @@ function crearModalReuniones() {
                     <input type="text" id="buscarReunion" data-sugerencias="sugerenciasBuscarReun" placeholder="🔍 Buscar por estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarReun" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoReunion">
+                <select id="filtrarCursoReunion" style="flex:1;min-width:180px;">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarEstadoReunion">
+                <select id="filtrarEstadoReunion" style="flex:1;min-width:180px;">
                     <option value="">Todos los estados</option>
                     <option value="En seguimiento">En seguimiento</option>
                     <option value="Cumplido">Cumplido</option>
                     <option value="No cumplido">No cumplido</option>
                     <option value="Parcialmente cumplido">Parcialmente cumplido</option>
                 </select>
-                <button class="btn btn-primary" onclick="buscarReuniones()">🔍 Buscar</button>
-                <button class="btn" onclick="recargarReuniones()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
-                <button class="btn btn-success" onclick="exportarReunionesPDF()">📥 Exportar</button>
+            </div>
+            <div class="search-buttons">
+                <button class="btn btn-primary btn-small" onclick="buscarReuniones()">🔍 Buscar</button>
+                <button class="btn btn-info btn-small" onclick="recargarReuniones()">🔄 Recargar</button>
+                <button class="btn btn-success btn-small" onclick="exportarReunionesPDF()">📥 Exportar</button>
             </div>
             <div class="table-container">
                 <table>
