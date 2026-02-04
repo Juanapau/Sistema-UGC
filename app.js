@@ -4572,6 +4572,312 @@ function exportarTodo() {
     XLSX.writeFile(wb, `Reporte_Completo_CENSA_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
+
+// ==========================================
+// HISTORIAL COMPLETO DEL ESTUDIANTE
+// ==========================================
+
+function abrirHistorialEstudiante(nombreEstudiante) {
+    // Buscar información del estudiante
+    const estudiante = datosEstudiantes.find(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    if (!estudiante) {
+        alert('Estudiante no encontrado');
+        return;
+    }
+    
+    const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
+    const curso = estudiante['Curso'] || estudiante.curso || '';
+    
+    // Recopilar toda la información
+    const incidencias = datosIncidencias.filter(i => {
+        const nom = i['Nombre Estudiante'] || i.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    const tardanzas = datosTardanzas.filter(t => {
+        const nom = t['Nombre Estudiante'] || t.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    const reuniones = datosReuniones.filter(r => {
+        const nom = r['Nombre Estudiante'] || r.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    const contacto = datosContactos.find(c => {
+        const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    // Contar incidencias por tipo
+    const incidenciasGraves = incidencias.filter(i => {
+        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        return tipo === 'Grave' || tipo === 'Muy Grave';
+    }).length;
+    
+    // Tardanzas del mes actual
+    const hoy = new Date();
+    const mesActual = hoy.getMonth();
+    const añoActual = hoy.getFullYear();
+    const tardanzasMes = tardanzas.filter(t => {
+        const fecha = new Date(t['Fecha'] || t.fecha || '');
+        return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+    }).length;
+    
+    // Determinar estado
+    let estadoColor = '#059669';
+    let estadoTexto = 'Normal';
+    let estadoIcono = '✅';
+    
+    if (incidenciasGraves >= 3 || tardanzasMes >= 5) {
+        estadoColor = '#dc2626';
+        estadoTexto = 'Requiere Atención Urgente';
+        estadoIcono = '🚨';
+    } else if (incidenciasGraves >= 1 || tardanzasMes >= 3) {
+        estadoColor = '#f59e0b';
+        estadoTexto = 'Requiere Atención';
+        estadoIcono = '⚠️';
+    }
+    
+    // Generar HTML de contactos
+    let htmlContactos = '';
+    if (contacto) {
+        const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || '';
+        const telPadre = contacto['Contacto Padre'] || contacto.telPadre || '';
+        const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || '';
+        const telMadre = contacto['Contacto Madre'] || contacto.telMadre || '';
+        const telEmergencia = contacto['Contacto Emergencia'] || contacto.telEmergencia || '';
+        
+        if (nombrePadre && telPadre) {
+            htmlContactos += `
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <h4 style="color:#333;margin-bottom:8px;">👨 Padre</h4>
+                    <p style="margin-bottom:10px;">${nombrePadre}<br>☎️ ${telPadre}</p>
+                    <button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telPadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+                </div>
+            `;
+        }
+        
+        if (nombreMadre && telMadre) {
+            htmlContactos += `
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <h4 style="color:#333;margin-bottom:8px;">👩 Madre</h4>
+                    <p style="margin-bottom:10px;">${nombreMadre}<br>☎️ ${telMadre}</p>
+                    <button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telMadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+                </div>
+            `;
+        }
+        
+        if (telEmergencia) {
+            htmlContactos += `
+                <div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+                    <h4 style="color:#333;margin-bottom:8px;">🚨 Emergencia</h4>
+                    <p style="margin-bottom:10px;">☎️ ${telEmergencia}</p>
+                    <button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telEmergencia}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+                </div>
+            `;
+        }
+    }
+    
+    if (!htmlContactos) {
+        htmlContactos = '<p style="color:#f59e0b;font-style:italic;">⚠️ Sin contactos registrados</p>';
+    }
+    
+    // Generar línea de tiempo combinando todo
+    let eventos = [];
+    
+    incidencias.forEach(inc => {
+        eventos.push({
+            fecha: new Date(inc['Fecha y Hora'] || inc.fecha || ''),
+            tipo: 'incidencia',
+            titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
+            descripcion: inc['Descripción'] || inc.descripcion || '',
+            gravedad: inc['Tipo de Falta'] || inc.tipoFalta || '',
+            docente: inc['Docente que Reporta'] || inc.docenteReporta || ''
+        });
+    });
+    
+    tardanzas.forEach(tard => {
+        eventos.push({
+            fecha: new Date(tard['Fecha'] || tard.fecha || ''),
+            tipo: 'tardanza',
+            titulo: 'Tardanza',
+            descripcion: 'Llegada tardía',
+            motivo: tard['Motivo'] || tard.motivo || ''
+        });
+    });
+    
+    reuniones.forEach(reun => {
+        eventos.push({
+            fecha: new Date(reun['Fecha'] || reun.fecha || ''),
+            tipo: 'reunion',
+            titulo: 'Reunión con Padres',
+            descripcion: reun['Motivo'] || reun.motivo || '',
+            asistio: reun['Asistió'] || reun.asistio || '',
+            acuerdos: reun['Acuerdos'] || reun.acuerdos || ''
+        });
+    });
+    
+    // Ordenar por fecha (más reciente primero)
+    eventos.sort((a, b) => b.fecha - a.fecha);
+    
+    // Generar HTML de línea de tiempo
+    let htmlTimeline = '';
+    if (eventos.length === 0) {
+        htmlTimeline = '<p style="color:#999;text-align:center;padding:40px;">No hay eventos registrados</p>';
+    } else {
+        eventos.slice(0, 15).forEach(evento => {
+            const fechaTexto = evento.fecha.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
+            const horaTexto = evento.fecha.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+            
+            let iconoTipo = '';
+            let colorBorde = '';
+            let labelTipo = '';
+            let detalles = '';
+            
+            if (evento.tipo === 'incidencia') {
+                iconoTipo = '📋';
+                colorBorde = evento.gravedad === 'Grave' || evento.gravedad === 'Muy Grave' ? '#dc2626' : '#f59e0b';
+                labelTipo = `<span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">📋 Incidencia</span>`;
+                detalles = `
+                    <strong>${evento.titulo}</strong><br>
+                    ${evento.descripcion}<br>
+                    <span style="color:#666;font-size:0.9em;">Falta: ${evento.gravedad} | Docente: ${evento.docente}</span>
+                `;
+            } else if (evento.tipo === 'tardanza') {
+                iconoTipo = '⏰';
+                colorBorde = '#f59e0b';
+                labelTipo = `<span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">⏰ Tardanza</span>`;
+                detalles = `<strong>${evento.titulo}</strong><br>${evento.descripcion}${evento.motivo ? '<br><span style="color:#666;font-size:0.9em;">Motivo: ' + evento.motivo + '</span>' : ''}`;
+            } else {
+                iconoTipo = '🤝';
+                colorBorde = '#3b82f6';
+                labelTipo = `<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">🤝 Reunión</span>`;
+                detalles = `
+                    <strong>${evento.titulo}</strong><br>
+                    ${evento.descripcion}<br>
+                    <span style="color:#666;font-size:0.9em;">Asistió: ${evento.asistio === 'Sí' ? '✅ Sí' : '❌ No'}</span>
+                    ${evento.acuerdos ? '<br><span style="color:#666;font-size:0.9em;">Acuerdos: ' + evento.acuerdos + '</span>' : ''}
+                `;
+            }
+            
+            htmlTimeline += `
+                <div style="position:relative;margin-bottom:25px;background:#f8f9fa;padding:15px;border-radius:8px;border-left:4px solid ${colorBorde};">
+                    <div style="color:#666;font-size:0.85em;margin-bottom:8px;">${fechaTexto} - ${horaTexto}</div>
+                    ${labelTipo}
+                    <div style="margin-top:10px;color:#333;line-height:1.6;">${detalles}</div>
+                </div>
+            `;
+        });
+        
+        if (eventos.length > 15) {
+            htmlTimeline += `<p style="text-align:center;color:#666;font-style:italic;">Mostrando los 15 eventos más recientes de ${eventos.length} totales</p>`;
+        }
+    }
+    
+    // Crear modal
+    const modalHTML = `
+<div id="modalHistorialEstudiante" class="modal" style="display:block;">
+    <div class="modal-content" style="max-width:1000px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>👤 ${nombre}</h2>
+            <span class="close" onclick="cerrarHistorialEstudiante()">&times;</span>
+        </div>
+        <div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;">
+            <p style="font-size:1.1em;opacity:0.9;">${curso}</p>
+        </div>
+        <div class="modal-body">
+            
+            <!-- RESUMEN GENERAL -->
+            <h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+                📊 Resumen General
+            </h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:15px;margin-bottom:30px;">
+                <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${incidencias.length}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Incidencias Totales</div>
+                </div>
+                <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:20px;border-radius:8px;">
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${tardanzasMes}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Tardanzas (Este Mes)</div>
+                </div>
+                <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;">
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${reuniones.length}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Reuniones con Padres</div>
+                </div>
+                <div style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;">
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${estadoIcono}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">${estadoTexto}</div>
+                </div>
+            </div>
+            
+            <!-- CONTACTOS -->
+            <h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+                📞 Información de Contacto
+            </h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:15px;margin-bottom:30px;">
+                ${htmlContactos}
+            </div>
+            
+            <!-- LÍNEA DE TIEMPO -->
+            <h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+                📅 Línea de Tiempo (Últimos eventos)
+            </h3>
+            <div style="position:relative;padding-left:40px;">
+                <div style="position:absolute;left:15px;top:0;bottom:0;width:2px;background:#e0e0e0;"></div>
+                ${htmlTimeline}
+            </div>
+            
+            <!-- BOTÓN EXPORTAR -->
+            <div style="margin-top:30px;text-align:center;">
+                <button class="btn btn-success" onclick="exportarHistorialPDF('${nombre.replace(/'/g, "\\'")}')">📄 Exportar Historial Completo a PDF</button>
+            </div>
+            
+        </div>
+    </div>
+</div>`;
+    
+    document.getElementById('modalContainer').innerHTML += modalHTML;
+}
+
+function cerrarHistorialEstudiante() {
+    const modal = document.getElementById('modalHistorialEstudiante');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function exportarHistorialPDF(nombreEstudiante) {
+    alert('Función de exportar PDF del historial completo - En desarrollo');
+    // Aquí puedes implementar la generación del PDF con jsPDF si lo necesitas
+}
+
+function exportarTodo() {
+    const wb = XLSX.utils.book_new();
+    if (datosIncidencias.length > 0) {
+        const ws = XLSX.utils.json_to_sheet(datosIncidencias);
+        XLSX.utils.book_append_sheet(wb, ws, "Incidencias");
+    }
+    if (datosTardanzas.length > 0) {
+        const ws = XLSX.utils.json_to_sheet(datosTardanzas);
+        XLSX.utils.book_append_sheet(wb, ws, "Tardanzas");
+    }
+    if (datosContactos.length > 0) {
+        const ws = XLSX.utils.json_to_sheet(datosContactos);
+        XLSX.utils.book_append_sheet(wb, ws, "Contactos");
+    }
+    if (datosEstudiantes.length > 0) {
+        const ws = XLSX.utils.json_to_sheet(datosEstudiantes);
+        XLSX.utils.book_append_sheet(wb, ws, "Estudiantes");
+    }
+    XLSX.writeFile(wb, `Reporte_Completo_CENSA_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+
 // ==================
 // FUNCIONES AUXILIARES
 // ==================
