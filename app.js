@@ -1715,6 +1715,118 @@ function abrirWhatsApp(numero, mensaje) {
     console.log('✅ WhatsApp abierto para:', numeroCompleto);
 }
 
+function abrirWhatsAppContacto(nombreEstudiante, telPadre, telMadre, telEmergencia) {
+    // Crear modal para seleccionar contacto y motivo
+    const modalHTML = `
+    <div id="modalWhatsAppContacto" class="modal" style="display:block;">
+        <div class="modal-content" style="max-width:600px;">
+            <div class="modal-header">
+                <h2>💬 Enviar Mensaje WhatsApp</h2>
+                <span class="close" onclick="cerrarModalWhatsAppContacto()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:20px;"><strong>Estudiante:</strong> ${nombreEstudiante}</p>
+                
+                <div class="form-group">
+                    <label>Enviar a:</label>
+                    <select id="selectDestinatario" class="form-control" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;">
+                        ${telPadre !== '-' && telPadre ? `<option value="${telPadre}">📱 Padre - ${telPadre}</option>` : ''}
+                        ${telMadre !== '-' && telMadre ? `<option value="${telMadre}">📱 Madre - ${telMadre}</option>` : ''}
+                        ${telEmergencia !== '-' && telEmergencia ? `<option value="${telEmergencia}">🚨 Emergencia - ${telEmergencia}</option>` : ''}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Motivo del mensaje:</label>
+                    <textarea id="motivoMensaje" 
+                        rows="3" 
+                        placeholder="Ej: ha acumulado 3 tardanzas este mes..."
+                        style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;resize:vertical;"></textarea>
+                    <small style="color:#666;display:block;margin-top:5px;">
+                        El mensaje se generará automáticamente con el formato institucional.
+                    </small>
+                </div>
+                
+                <div style="background:#f0f9ff;border-left:4px solid #3b82f6;padding:15px;border-radius:6px;margin:20px 0;">
+                    <p style="margin:0;font-size:0.9em;color:#1e40af;">
+                        <strong>Vista previa del mensaje:</strong>
+                    </p>
+                    <p id="vistaPreviaMensaje" style="margin-top:10px;font-size:0.85em;color:#334155;white-space:pre-line;"></p>
+                </div>
+                
+                <div style="display:flex;gap:10px;margin-top:20px;">
+                    <button class="btn btn-success" onclick="enviarMensajeWhatsAppContacto('${nombreEstudiante.replace(/'/g, "\\'")}')">
+                        💬 Enviar por WhatsApp
+                    </button>
+                    <button class="btn btn-secondary" onclick="cerrarModalWhatsAppContacto()">
+                        ✖ Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    // Agregar modal al DOM
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = modalHTML;
+    document.body.appendChild(modalContainer);
+    
+    // Actualizar vista previa cuando cambie el motivo
+    const motivoInput = document.getElementById('motivoMensaje');
+    motivoInput.addEventListener('input', () => actualizarVistaPreviaMensaje(nombreEstudiante));
+    
+    // Mostrar vista previa inicial
+    actualizarVistaPreviaMensaje(nombreEstudiante);
+}
+
+function actualizarVistaPreviaMensaje(nombreEstudiante) {
+    const motivo = document.getElementById('motivoMensaje').value.trim();
+    const vistaPrevia = document.getElementById('vistaPreviaMensaje');
+    
+    const mensaje = `Saludos cordiales estimado padre/madre de familia:
+
+Le informamos que su hijo/a *${nombreEstudiante}* ${motivo || '[Escriba el motivo del mensaje]'}
+
+Le pedimos de manera encarecida ajustarse a las normativas del centro, establecidas en el Manual de Convivencia, con el objetivo de seguir fortaleciendo el orden y la disciplina, proceso del cual ustedes son parte primordial dando seguimiento a su hijo/a.
+
+Tania Paulino - Unidad de Gestión de Convivencia
+CENSA`;
+    
+    vistaPrevia.textContent = mensaje;
+}
+
+function enviarMensajeWhatsAppContacto(nombreEstudiante) {
+    const destinatario = document.getElementById('selectDestinatario').value;
+    const motivo = document.getElementById('motivoMensaje').value.trim();
+    
+    if (!motivo) {
+        alert('Por favor escriba el motivo del mensaje');
+        return;
+    }
+    
+    const mensaje = `Saludos cordiales estimado padre/madre de familia:
+
+Le informamos que su hijo/a *${nombreEstudiante}* ${motivo}
+
+Le pedimos de manera encarecida ajustarse a las normativas del centro, establecidas en el Manual de Convivencia, con el objetivo de seguir fortaleciendo el orden y la disciplina, proceso del cual ustedes son parte primordial dando seguimiento a su hijo/a.
+
+Tania Paulino - Unidad de Gestión de Convivencia
+CENSA`;
+    
+    // Cerrar modal
+    cerrarModalWhatsAppContacto();
+    
+    // Abrir WhatsApp
+    abrirWhatsApp(destinatario, mensaje);
+}
+
+function cerrarModalWhatsAppContacto() {
+    const modal = document.getElementById('modalWhatsAppContacto');
+    if (modal) {
+        modal.closest('div').remove();
+    }
+}
+
 // ==================
 // MODAL CONTACTOS
 // ==================
@@ -1811,7 +1923,7 @@ function crearModalContactos() {
                             <th>Madre</th>
                             <th>Tel. Madre</th>
                             <th>Emergencia</th>
-                            <th id="thAcciones" style="display:none;">Acción</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody id="bodyContactos"></tbody>
@@ -1824,7 +1936,7 @@ function crearModalContactos() {
     
     // Mostrar mensaje de carga
     const tbody = document.getElementById('bodyContactos');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#666;">📥 Cargando contactos...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666;">📥 Cargando contactos...</td></tr>';
     
     // Cargar datos desde Google Sheets
     if (CONFIG.urlContactos) {
@@ -1843,7 +1955,7 @@ function crearModalContactos() {
             }
         }).catch(error => {
             console.error('Error:', error);
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos. Por favor recarga la página.</td></tr>';
         });
     } else {
         cargarTablaContactos();
@@ -2024,7 +2136,7 @@ function importarContactos(event) {
 function cargarTablaContactos() {
     const tbody = document.getElementById('bodyContactos');
     if (datosContactos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
         return;
     }
     tbody.innerHTML = datosContactos.map((c, i) => {
@@ -2035,6 +2147,24 @@ function cargarTablaContactos() {
         const telMadre = c['Contacto Madre'] || c.telMadre || '-';
         const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
         
+        // Botón de WhatsApp
+        let botonesWhatsApp = '<td style="text-align:center;">';
+        
+        // Verificar si hay al menos un número válido
+        const hayNumero = (telPadre !== '-' && telPadre) || (telMadre !== '-' && telMadre) || (telEmergencia !== '-' && telEmergencia);
+        
+        if (hayNumero) {
+            botonesWhatsApp += `<button class="btn btn-success" 
+                style="background:#25D366;padding:8px 12px;font-size:0.85em;" 
+                onclick="event.stopPropagation(); abrirWhatsAppContacto('${estudiante.replace(/'/g, "\\'")}', '${telPadre}', '${telMadre}', '${telEmergencia}')">
+                💬 WhatsApp
+            </button>`;
+        } else {
+            botonesWhatsApp += '<span style="color:#999;font-size:0.85em;">Sin números</span>';
+        }
+        
+        botonesWhatsApp += '</td>';
+        
         return `
         <tr onclick="editarContacto(${i})" style="cursor:pointer;" title="Click para editar">
             <td><strong>${estudiante}</strong></td>
@@ -2043,6 +2173,7 @@ function cargarTablaContactos() {
             <td>${nombreMadre}</td>
             <td>${telMadre}</td>
             <td>${telEmergencia}</td>
+            ${botonesWhatsApp}
         </tr>
     `;
     }).join('');
@@ -2061,7 +2192,7 @@ function buscarContactos() {
     
     const tbody = document.getElementById('bodyContactos');
     if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
     tbody.innerHTML = filtrados.map(c => {
@@ -2075,6 +2206,23 @@ function buscarContactos() {
         // Encontrar el índice real en datosContactos
         const indiceReal = datosContactos.findIndex(i => i === c);
         
+        // Botón de WhatsApp
+        let botonesWhatsApp = '<td style="text-align:center;">';
+        
+        const hayNumero = (telPadre !== '-' && telPadre) || (telMadre !== '-' && telMadre) || (telEmergencia !== '-' && telEmergencia);
+        
+        if (hayNumero) {
+            botonesWhatsApp += `<button class="btn btn-success" 
+                style="background:#25D366;padding:8px 12px;font-size:0.85em;" 
+                onclick="event.stopPropagation(); abrirWhatsAppContacto('${estudiante.replace(/'/g, "\\'")}', '${telPadre}', '${telMadre}', '${telEmergencia}')">
+                💬 WhatsApp
+            </button>`;
+        } else {
+            botonesWhatsApp += '<span style="color:#999;font-size:0.85em;">Sin números</span>';
+        }
+        
+        botonesWhatsApp += '</td>';
+        
         return `
         <tr onclick="editarContacto(${indiceReal})" style="cursor:pointer;" title="Click para editar">
             <td><strong>${estudiante}</strong></td>
@@ -2083,6 +2231,7 @@ function buscarContactos() {
             <td>${nombreMadre}</td>
             <td>${telMadre}</td>
             <td>${telEmergencia}</td>
+            ${botonesWhatsApp}
         </tr>
     `;
     }).join('');
@@ -2095,7 +2244,6 @@ function toggleFiltroSinContactos() {
     const btn = document.getElementById('btnSinContactos');
     const alerta = document.getElementById('alertaSinContactos');
     const contador = document.getElementById('contadorSinContactos');
-    const thAcciones = document.getElementById('thAcciones');
     
     filtroSinContactosActivo = !filtroSinContactosActivo;
     
@@ -2110,7 +2258,6 @@ function toggleFiltroSinContactos() {
         // Mostrar alerta
         alerta.style.display = 'block';
         contador.textContent = estudiantesSinContactos.length;
-        thAcciones.style.display = '';
         
         // Mostrar en tabla
         mostrarEstudiantesSinContactos(estudiantesSinContactos);
@@ -2119,7 +2266,6 @@ function toggleFiltroSinContactos() {
         btn.style.background = '#dc2626';
         btn.innerHTML = '🚨 Sin Contactos';
         alerta.style.display = 'none';
-        thAcciones.style.display = 'none';
         
         // Volver a mostrar todos los contactos
         cargarTablaContactos();
