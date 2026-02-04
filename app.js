@@ -3303,6 +3303,15 @@ function crearModalConfiguracion() {
                                 <input type="url" id="urlNotas" value="${CONFIG.urlNotasRapidas || ''}" 
                                        placeholder="https://script.google.com/macros/s/...">
                             </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">👨‍🏫</span>
+                                    <span class="label-text">Maestros</span>
+                                </label>
+                                <input type="url" id="urlMaestros" value="${CONFIG.urlMaestros || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
                         </div>
                         
                         <div style="margin-top:30px;display:flex;gap:10px;flex-wrap:wrap;">
@@ -3891,6 +3900,7 @@ function guardarConfig(e) {
     CONFIG.urlEstudiantes = document.getElementById('urlEst').value;
     CONFIG.urlReuniones = document.getElementById('urlReun').value;
     CONFIG.urlNotasRapidas = document.getElementById('urlNotas').value;
+    CONFIG.urlMaestros = document.getElementById('urlMaestros').value;
     
     // Actualizar también la variable global de notas
     urlNotasRapidas = CONFIG.urlNotasRapidas;
@@ -3919,6 +3929,7 @@ function restaurarURLsPredeterminadas() {
     document.getElementById('urlEst').value = CONFIG.urlEstudiantes;
     document.getElementById('urlReun').value = CONFIG.urlReuniones;
     document.getElementById('urlNotas').value = CONFIG.urlNotasRapidas;
+    document.getElementById('urlMaestros').value = CONFIG.urlMaestros;
     
     // Guardar en localStorage
     localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
@@ -3930,6 +3941,7 @@ function restaurarURLsPredeterminadas() {
     
     console.log('✅ URLs restauradas:', CONFIG);
 }
+
 
 // ==================
 // MODAL REPORTES
