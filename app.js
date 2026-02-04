@@ -2777,7 +2777,7 @@ function crearModalMaestros() {
                     <label>Tipo de Mensaje *</label>
                     <select id="tipoMensajeMaestro" onchange="generarMensajeMaestro()" required>
                         <option value="">-- Seleccione un tipo de mensaje --</option>
-                        <option value="oficina">El estudiante estuvo conmigo en la oficina.</option>
+                        <option value="oficina">El/la estudiante estuvo conmigo en la oficina.</option>
                         <option value="tenis">Por hoy el/la estudiante permanecerá en el aula con tenis.</option>
                         <option value="sin_correa">Por hoy el/la estudiante permanecerá en el aula sin correa.</option>
                         <option value="uniforme_ef">Por hoy el/la estudiante permanecerá en el aula con uniforme de Educación Física.</option>
@@ -2804,7 +2804,7 @@ function crearModalMaestros() {
                     <label style="display:block;color:#555;font-weight:600;margin-bottom:8px;font-size:0.95em;">
                         📱 Vista Previa del Mensaje (Editable):
                     </label>
-                    <textarea id="contenidoMensaje" rows="12" style="width:100%;padding:15px;border:2px solid #059669;border-radius:8px;font-size:0.95em;font-family:inherit;line-height:1.6;resize:vertical;"></textarea>
+                    <textarea id="contenidoMensaje" rows="6" style="width:100%;padding:15px;border:2px solid #059669;border-radius:8px;font-size:0.95em;font-family:inherit;line-height:1.6;resize:vertical;"></textarea>
                     <p style="color:#666;font-size:0.85em;margin-top:8px;font-style:italic;">
                         💡 Puedes editar el mensaje directamente antes de enviarlo
                     </p>
