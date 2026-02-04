@@ -4702,7 +4702,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
             tipo: 'incidencia',
             titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
             descripcion: inc['Descripción'] || inc.descripcion || '',
-            gravedad: inc['Tipo'] || inc['Tipo de falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
+            gravedad: inc['Tipo'] || inc['Tipo de Falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
             docente: inc['Docente'] || inc['Docente que Reporta'] || inc.docenteReporta || inc.docente || 'No especificado'
         });
     });
