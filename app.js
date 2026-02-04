@@ -209,7 +209,8 @@ function openModule(moduleName) {
         'estudiantes': crearModalEstudiantes,
         'reuniones': crearModalReuniones,
         'configuracion': crearModalConfiguracion,
-        'reportes': crearModalReportes
+        'reportes': crearModalReportes,
+        'maestros': crearModalMaestros
     };
     
     const modalContainer = document.getElementById('modalContainer');
