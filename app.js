@@ -2804,7 +2804,7 @@ function crearModalMaestros() {
                     <label style="display:block;color:#555;font-weight:600;margin-bottom:8px;font-size:0.95em;">
                         📱 Vista Previa del Mensaje (Editable):
                     </label>
-                    <textarea id="contenidoMensaje" rows="6" style="width:100%;padding:15px;border:2px solid #059669;border-radius:8px;font-size:0.95em;font-family:inherit;line-height:1.6;resize:vertical;"></textarea>
+                    <textarea id="contenidoMensaje" rows="8" style="width:100%;padding:15px;border:2px solid #059669;border-radius:8px;font-size:0.95em;font-family:inherit;line-height:1.6;resize:vertical;"></textarea>
                     <p style="color:#666;font-size:0.85em;margin-top:8px;font-style:italic;">
                         💡 Puedes editar el mensaje directamente antes de enviarlo
                     </p>
