@@ -223,11 +223,13 @@ function closeModal(modalId) {
     if (modal) modal.style.display = 'none';
 }
 
-window.onclick = function(event) {
-    if (event.target.classList.contains('modal')) {
-        event.target.style.display = 'none';
-    }
-};
+// Función eliminada - Los modales ahora solo se cierran con el botón X
+// window.onclick = function(event) {
+//     if (event.target.classList.contains('modal')) {
+//         event.target.style.display = 'none';
+//     }
+// };
+
 
 // ==================
 // MODAL INCIDENCIAS
@@ -4702,7 +4704,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
             tipo: 'incidencia',
             titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
             descripcion: inc['Descripción'] || inc.descripcion || '',
-            gravedad: inc['Tipo'] || inc['Tipo de Falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
+            gravedad: inc['Tipo'] || inc['Tipo de falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
             docente: inc['Docente'] || inc['Docente que Reporta'] || inc.docenteReporta || inc.docente || 'No especificado'
         });
     });
@@ -4788,15 +4790,15 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     // Crear modal
     const modalHTML = `
 <div id="modalHistorialEstudiante" class="modal" style="display:block;">
-    <div class="modal-content" style="max-width:1000px;">
-        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+    <div class="modal-content" style="max-width:1000px;max-height:90vh;display:flex;flex-direction:column;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;flex-shrink:0;">
             <h2>👤 ${nombre}</h2>
             <span class="close" onclick="cerrarHistorialEstudiante()">&times;</span>
         </div>
-        <div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;">
+        <div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;flex-shrink:0;">
             <p style="font-size:1.1em;opacity:0.9;">${curso}</p>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="overflow-y:auto;flex:1;max-height:calc(90vh - 180px);">
             
             <!-- RESUMEN GENERAL -->
             <h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
