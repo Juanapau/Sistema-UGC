@@ -4615,30 +4615,35 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     });
     
     // Contar incidencias por tipo
+    const incidenciasLeves = incidencias.filter(i => {
+        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        return tipo === 'Leve';
+    }).length;
+    
     const incidenciasGraves = incidencias.filter(i => {
         const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
-        return tipo === 'Grave' || tipo === 'Muy Grave';
+        return tipo === 'Grave';
     }).length;
     
-    // Tardanzas del mes actual
-    const hoy = new Date();
-    const mesActual = hoy.getMonth();
-    const añoActual = hoy.getFullYear();
-    const tardanzasMes = tardanzas.filter(t => {
-        const fecha = new Date(t['Fecha'] || t.fecha || '');
-        return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+    const incidenciasMuyGraves = incidencias.filter(i => {
+        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        return tipo === 'Muy Grave';
     }).length;
     
-    // Determinar estado
+    // Total de tardanzas (todas)
+    const tardanzasTotales = tardanzas.length;
+    
+    // Determinar estado basado en todas las tardanzas y faltas graves/muy graves
+    const faltasGravesYMuyGraves = incidenciasGraves + incidenciasMuyGraves;
     let estadoColor = '#059669';
     let estadoTexto = 'Normal';
     let estadoIcono = '✅';
     
-    if (incidenciasGraves >= 3 || tardanzasMes >= 5) {
+    if (faltasGravesYMuyGraves >= 3 || tardanzasTotales >= 10) {
         estadoColor = '#dc2626';
         estadoTexto = 'Requiere Atención Urgente';
         estadoIcono = '🚨';
-    } else if (incidenciasGraves >= 1 || tardanzasMes >= 3) {
+    } else if (faltasGravesYMuyGraves >= 1 || tardanzasTotales >= 5) {
         estadoColor = '#f59e0b';
         estadoTexto = 'Requiere Atención';
         estadoIcono = '⚠️';
@@ -4747,7 +4752,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
                 detalles = `
                     <strong>${evento.titulo}</strong><br>
                     ${evento.descripcion}<br>
-                    <span style="color:#666;font-size:0.9em;">Falta: ${evento.gravedad} | Docente: ${evento.docente}</span>
+                    <span style="color:#666;font-size:0.9em;">Tipo de Falta: ${evento.gravedad} | Docente: ${evento.docente}</span>
                 `;
             } else if (evento.tipo === 'tardanza') {
                 iconoTipo = '⏰';
@@ -4797,23 +4802,37 @@ function abrirHistorialEstudiante(nombreEstudiante) {
             <h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
                 📊 Resumen General
             </h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:15px;margin-bottom:30px;">
+            <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:15px;margin-bottom:30px;">
                 <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${incidencias.length}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Incidencias Totales</div>
                 </div>
                 <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:20px;border-radius:8px;">
-                    <div style="font-size:2em;font-weight:bold;color:#333;">${tardanzasMes}</div>
-                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Tardanzas (Este Mes)</div>
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${tardanzasTotales}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Tardanzas Totales</div>
                 </div>
                 <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${reuniones.length}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Reuniones con Padres</div>
                 </div>
-                <div style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;">
-                    <div style="font-size:2em;font-weight:bold;color:#333;">${estadoIcono}</div>
-                    <div style="color:#666;font-size:0.9em;margin-top:5px;">${estadoTexto}</div>
+                <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:20px;border-radius:8px;">
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasLeves}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Leves</div>
                 </div>
+                <div style="background:#fff7ed;border-left:4px solid #f97316;padding:20px;border-radius:8px;">
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasGraves}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Graves</div>
+                </div>
+                <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+                    <div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasMuyGraves}</div>
+                    <div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Muy Graves</div>
+                </div>
+            </div>
+            
+            <!-- ESTADO DEL ESTUDIANTE -->
+            <div style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;margin-bottom:30px;text-align:center;">
+                <div style="font-size:2.5em;font-weight:bold;color:#333;">${estadoIcono}</div>
+                <div style="color:#666;font-size:1.1em;margin-top:5px;font-weight:600;">${estadoTexto}</div>
             </div>
             
             <!-- CONTACTOS -->
@@ -4889,24 +4908,23 @@ function exportarHistorialPDF(nombreEstudiante) {
     });
     
     // Contar incidencias por tipo
-    const incidenciasGraves = incidencias.filter(i => {
-        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
-        return tipo === 'Grave' || tipo === 'Muy Grave';
-    }).length;
-    
     const incidenciasLeves = incidencias.filter(i => {
         const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
         return tipo === 'Leve';
     }).length;
     
-    // Tardanzas del mes actual
-    const hoy = new Date();
-    const mesActual = hoy.getMonth();
-    const añoActual = hoy.getFullYear();
-    const tardanzasMes = tardanzas.filter(t => {
-        const fecha = new Date(t['Fecha'] || t.fecha || '');
-        return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+    const incidenciasGraves = incidencias.filter(i => {
+        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        return tipo === 'Grave';
     }).length;
+    
+    const incidenciasMuyGraves = incidencias.filter(i => {
+        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        return tipo === 'Muy Grave';
+    }).length;
+    
+    // Total de tardanzas (todas)
+    const tardanzasTotales = tardanzas.length;
     
     // Inicializar PDF
     const { jsPDF } = window.jspdf;
@@ -4937,52 +4955,76 @@ function exportarHistorialPDF(nombreEstudiante) {
     doc.text('RESUMEN ESTADÍSTICO', 14, yPos);
     yPos += 6;
     
-    // Tarjetas de estadísticas (4 columnas)
-    const anchoTarjeta = 45;
+    // Configuración de tarjetas (3 columnas x 2 filas)
+    const anchoTarjeta = 62;
     const altoTarjeta = 18;
     const espacioEntreTarjetas = 3;
+    const inicioPrimeraFila = yPos;
+    const inicioSegundaFila = yPos + altoTarjeta + 4;
     
+    // PRIMERA FILA
     // Tarjeta 1: Incidencias Totales
     doc.setFillColor(220, 53, 69); // Rojo
-    doc.rect(14, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.rect(14, inicioPrimeraFila, anchoTarjeta, altoTarjeta, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
-    doc.text('Incidencias Totales', 14 + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.text('Incidencias Totales', 14 + anchoTarjeta/2, inicioPrimeraFila + 5, { align: 'center' });
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(String(incidencias.length), 14 + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    doc.text(String(incidencias.length), 14 + anchoTarjeta/2, inicioPrimeraFila + 13, { align: 'center' });
     
-    // Tarjeta 2: Tardanzas (Mes)
+    // Tarjeta 2: Tardanzas Totales
     doc.setFillColor(245, 158, 11); // Naranja
-    doc.rect(14 + anchoTarjeta + espacioEntreTarjetas, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.rect(14 + anchoTarjeta + espacioEntreTarjetas, inicioPrimeraFila, anchoTarjeta, altoTarjeta, 'F');
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Tardanzas (Este Mes)', 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.text('Tardanzas Totales', 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, inicioPrimeraFila + 5, { align: 'center' });
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(String(tardanzasMes), 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    doc.text(String(tardanzasTotales), 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, inicioPrimeraFila + 13, { align: 'center' });
     
-    // Tarjeta 3: Reuniones
+    // Tarjeta 3: Reuniones con Padres
     doc.setFillColor(59, 130, 246); // Azul
-    doc.rect(14 + (anchoTarjeta + espacioEntreTarjetas) * 2, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.rect(14 + (anchoTarjeta + espacioEntreTarjetas) * 2, inicioPrimeraFila, anchoTarjeta, altoTarjeta, 'F');
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Reuniones con Padres', 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.text('Reuniones con Padres', 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, inicioPrimeraFila + 5, { align: 'center' });
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(String(reuniones.length), 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    doc.text(String(reuniones.length), 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, inicioPrimeraFila + 13, { align: 'center' });
     
-    // Tarjeta 4: Faltas Graves
+    // SEGUNDA FILA
+    // Tarjeta 4: Faltas Leves
+    doc.setFillColor(34, 197, 94); // Verde
+    doc.rect(14, inicioSegundaFila, anchoTarjeta, altoTarjeta, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Faltas Leves', 14 + anchoTarjeta/2, inicioSegundaFila + 5, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(incidenciasLeves), 14 + anchoTarjeta/2, inicioSegundaFila + 13, { align: 'center' });
+    
+    // Tarjeta 5: Faltas Graves
+    doc.setFillColor(249, 115, 22); // Naranja oscuro
+    doc.rect(14 + anchoTarjeta + espacioEntreTarjetas, inicioSegundaFila, anchoTarjeta, altoTarjeta, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Faltas Graves', 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, inicioSegundaFila + 5, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(incidenciasGraves), 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, inicioSegundaFila + 13, { align: 'center' });
+    
+    // Tarjeta 6: Faltas Muy Graves
     doc.setFillColor(220, 38, 38); // Rojo oscuro
-    doc.rect(14 + (anchoTarjeta + espacioEntreTarjetas) * 3, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.rect(14 + (anchoTarjeta + espacioEntreTarjetas) * 2, inicioSegundaFila, anchoTarjeta, altoTarjeta, 'F');
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('Faltas Graves', 14 + (anchoTarjeta + espacioEntreTarjetas) * 3 + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.text('Faltas Muy Graves', 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, inicioSegundaFila + 5, { align: 'center' });
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(String(incidenciasGraves), 14 + (anchoTarjeta + espacioEntreTarjetas) * 3 + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    doc.text(String(incidenciasMuyGraves), 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, inicioSegundaFila + 13, { align: 'center' });
     
-    yPos += altoTarjeta + 10;
+    yPos = inicioSegundaFila + altoTarjeta + 10;
     doc.setTextColor(0, 0, 0);
     
     // SECCIÓN: INFORMACIÓN DE CONTACTO
@@ -5157,7 +5199,7 @@ function exportarHistorialPDF(nombreEstudiante) {
             // Detalles adicionales según tipo
             if (evento.tipo === 'incidencia') {
                 doc.setTextColor(100, 100, 100);
-                doc.text(`Falta: ${evento.gravedad} | Docente: ${evento.docente}`, 14, yPos);
+                doc.text(`Tipo de Falta: ${evento.gravedad} | Docente: ${evento.docente}`, 14, yPos);
                 yPos += 4;
             } else if (evento.tipo === 'tardanza' && evento.motivo) {
                 doc.setTextColor(100, 100, 100);
