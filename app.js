@@ -4517,8 +4517,9 @@ function generarReporteEstudiante() {
             
             ${htmlContacto}
             
-            <div style="margin-top:30px;">
+            <div style="margin-top:30px;display:flex;gap:15px;flex-wrap:wrap;">
                 <button class="btn btn-success" onclick="exportarReporteIndividualPDF()">📄 Exportar Reporte a PDF</button>
+                <button class="btn btn-primary" onclick="abrirHistorialEstudiante('${estudiante.replace(/'/g, "\\'")}')">📋 Ver Historial Completo</button>
             </div>
         </div>
     `;
