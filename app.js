@@ -4616,17 +4616,17 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     
     // Contar incidencias por tipo
     const incidenciasLeves = incidencias.filter(i => {
-        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Leve';
     }).length;
     
     const incidenciasGraves = incidencias.filter(i => {
-        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Grave';
     }).length;
     
     const incidenciasMuyGraves = incidencias.filter(i => {
-        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Muy Grave';
     }).length;
     
@@ -4698,12 +4698,12 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     
     incidencias.forEach(inc => {
         eventos.push({
-            fecha: new Date(inc['Fecha y Hora'] || inc.fecha || ''),
+            fecha: new Date(inc['Fecha y Hora'] || inc['Fecha'] || inc.fecha || ''),
             tipo: 'incidencia',
             titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
             descripcion: inc['Descripción'] || inc.descripcion || '',
-            gravedad: inc['Tipo de Falta'] || inc.tipoFalta || '',
-            docente: inc['Docente que Reporta'] || inc.docenteReporta || ''
+            gravedad: inc['Tipo'] || inc['Tipo de falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
+            docente: inc['Docente'] || inc['Docente que Reporta'] || inc.docenteReporta || inc.docente || 'No especificado'
         });
     });
     
@@ -4909,17 +4909,17 @@ function exportarHistorialPDF(nombreEstudiante) {
     
     // Contar incidencias por tipo
     const incidenciasLeves = incidencias.filter(i => {
-        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Leve';
     }).length;
     
     const incidenciasGraves = incidencias.filter(i => {
-        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Grave';
     }).length;
     
     const incidenciasMuyGraves = incidencias.filter(i => {
-        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Muy Grave';
     }).length;
     
@@ -5080,12 +5080,12 @@ function exportarHistorialPDF(nombreEstudiante) {
     
     incidencias.forEach(inc => {
         eventos.push({
-            fecha: new Date(inc['Fecha y Hora'] || inc.fecha || ''),
+            fecha: new Date(inc['Fecha y Hora'] || inc['Fecha'] || inc.fecha || ''),
             tipo: 'incidencia',
             titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
             descripcion: inc['Descripción'] || inc.descripcion || '',
-            gravedad: inc['Tipo de Falta'] || inc.tipoFalta || '',
-            docente: inc['Docente que Reporta'] || inc.docenteReporta || ''
+            gravedad: inc['Tipo'] || inc['Tipo de falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
+            docente: inc['Docente'] || inc['Docente que Reporta'] || inc.docenteReporta || inc.docente || 'No especificado'
         });
     });
     
