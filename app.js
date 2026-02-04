@@ -4853,8 +4853,355 @@ function cerrarHistorialEstudiante() {
 }
 
 function exportarHistorialPDF(nombreEstudiante) {
-    alert('Función de exportar PDF del historial completo - En desarrollo');
-    // Aquí puedes implementar la generación del PDF con jsPDF si lo necesitas
+    // Buscar información del estudiante
+    const estudiante = datosEstudiantes.find(e => {
+        const nombre = e['Nombre Completo'] || e.nombre || '';
+        return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    if (!estudiante) {
+        alert('Estudiante no encontrado');
+        return;
+    }
+    
+    const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
+    const curso = estudiante['Curso'] || estudiante.curso || '';
+    
+    // Recopilar toda la información
+    const incidencias = datosIncidencias.filter(i => {
+        const nom = i['Nombre Estudiante'] || i.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    const tardanzas = datosTardanzas.filter(t => {
+        const nom = t['Nombre Estudiante'] || t.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    const reuniones = datosReuniones.filter(r => {
+        const nom = r['Nombre Estudiante'] || r.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    const contacto = datosContactos.find(c => {
+        const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+    });
+    
+    // Contar incidencias por tipo
+    const incidenciasGraves = incidencias.filter(i => {
+        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        return tipo === 'Grave' || tipo === 'Muy Grave';
+    }).length;
+    
+    const incidenciasLeves = incidencias.filter(i => {
+        const tipo = i['Tipo de Falta'] || i.tipoFalta || '';
+        return tipo === 'Leve';
+    }).length;
+    
+    // Tardanzas del mes actual
+    const hoy = new Date();
+    const mesActual = hoy.getMonth();
+    const añoActual = hoy.getFullYear();
+    const tardanzasMes = tardanzas.filter(t => {
+        const fecha = new Date(t['Fecha'] || t.fecha || '');
+        return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+    }).length;
+    
+    // Inicializar PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Agregar encabezado institucional
+    const startY = agregarEncabezadoCENSA(doc, `Historial Completo del Estudiante`);
+    
+    let yPos = startY + 5;
+    
+    // Información del estudiante
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(5, 150, 105); // Verde institucional
+    doc.text(nombre, 14, yPos);
+    yPos += 6;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Curso: ${curso}`, 14, yPos);
+    yPos += 8;
+    
+    // SECCIÓN: RESUMEN ESTADÍSTICO
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 138); // Azul oscuro
+    doc.text('RESUMEN ESTADÍSTICO', 14, yPos);
+    yPos += 6;
+    
+    // Tarjetas de estadísticas (4 columnas)
+    const anchoTarjeta = 45;
+    const altoTarjeta = 18;
+    const espacioEntreTarjetas = 3;
+    
+    // Tarjeta 1: Incidencias Totales
+    doc.setFillColor(220, 53, 69); // Rojo
+    doc.rect(14, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.text('Incidencias Totales', 14 + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(incidencias.length), 14 + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    
+    // Tarjeta 2: Tardanzas (Mes)
+    doc.setFillColor(245, 158, 11); // Naranja
+    doc.rect(14 + anchoTarjeta + espacioEntreTarjetas, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Tardanzas (Este Mes)', 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(tardanzasMes), 14 + anchoTarjeta + espacioEntreTarjetas + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    
+    // Tarjeta 3: Reuniones
+    doc.setFillColor(59, 130, 246); // Azul
+    doc.rect(14 + (anchoTarjeta + espacioEntreTarjetas) * 2, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Reuniones con Padres', 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(reuniones.length), 14 + (anchoTarjeta + espacioEntreTarjetas) * 2 + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    
+    // Tarjeta 4: Faltas Graves
+    doc.setFillColor(220, 38, 38); // Rojo oscuro
+    doc.rect(14 + (anchoTarjeta + espacioEntreTarjetas) * 3, yPos, anchoTarjeta, altoTarjeta, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Faltas Graves', 14 + (anchoTarjeta + espacioEntreTarjetas) * 3 + anchoTarjeta/2, yPos + 5, { align: 'center' });
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(incidenciasGraves), 14 + (anchoTarjeta + espacioEntreTarjetas) * 3 + anchoTarjeta/2, yPos + 13, { align: 'center' });
+    
+    yPos += altoTarjeta + 10;
+    doc.setTextColor(0, 0, 0);
+    
+    // SECCIÓN: INFORMACIÓN DE CONTACTO
+    if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 138);
+    doc.text('INFORMACIÓN DE CONTACTO', 14, yPos);
+    yPos += 6;
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    
+    if (contacto) {
+        const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || 'No registrado';
+        const telPadre = contacto['Contacto Padre'] || contacto.telPadre || 'Sin teléfono';
+        const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || 'No registrado';
+        const telMadre = contacto['Contacto Madre'] || contacto.telMadre || 'Sin teléfono';
+        const telEmergencia = contacto['Contacto Emergencia'] || contacto.telEmergencia || 'No registrado';
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('Padre:', 14, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${nombrePadre} - Tel: ${telPadre}`, 28, yPos);
+        yPos += 5;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('Madre:', 14, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${nombreMadre} - Tel: ${telMadre}`, 28, yPos);
+        yPos += 5;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('Emergencia:', 14, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(telEmergencia, 38, yPos);
+        yPos += 8;
+    } else {
+        doc.setTextColor(245, 158, 11);
+        doc.text('Sin contactos registrados', 14, yPos);
+        yPos += 8;
+        doc.setTextColor(0, 0, 0);
+    }
+    
+    // SECCIÓN: LÍNEA DE TIEMPO
+    // Combinar todos los eventos
+    let eventos = [];
+    
+    incidencias.forEach(inc => {
+        eventos.push({
+            fecha: new Date(inc['Fecha y Hora'] || inc.fecha || ''),
+            tipo: 'incidencia',
+            titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
+            descripcion: inc['Descripción'] || inc.descripcion || '',
+            gravedad: inc['Tipo de Falta'] || inc.tipoFalta || '',
+            docente: inc['Docente que Reporta'] || inc.docenteReporta || ''
+        });
+    });
+    
+    tardanzas.forEach(tard => {
+        eventos.push({
+            fecha: new Date(tard['Fecha'] || tard.fecha || ''),
+            tipo: 'tardanza',
+            titulo: 'Tardanza',
+            descripcion: 'Llegada tardía',
+            motivo: tard['Motivo'] || tard.motivo || ''
+        });
+    });
+    
+    reuniones.forEach(reun => {
+        eventos.push({
+            fecha: new Date(reun['Fecha'] || reun.fecha || ''),
+            tipo: 'reunion',
+            titulo: 'Reunión con Padres',
+            descripcion: reun['Motivo'] || reun.motivo || '',
+            asistio: reun['Asistió'] || reun.asistio || '',
+            acuerdos: reun['Acuerdos'] || reun.acuerdos || ''
+        });
+    });
+    
+    // Ordenar por fecha (más reciente primero)
+    eventos.sort((a, b) => b.fecha - a.fecha);
+    
+    if (yPos > 230) {
+        doc.addPage();
+        yPos = 20;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 138);
+    doc.text('LÍNEA DE TIEMPO - HISTORIAL COMPLETO', 14, yPos);
+    yPos += 6;
+    
+    doc.setTextColor(0, 0, 0);
+    
+    if (eventos.length === 0) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('No hay eventos registrados', 14, yPos);
+    } else {
+        eventos.forEach((evento, index) => {
+            // Verificar espacio en página
+            if (yPos > 260) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            const fechaTexto = evento.fecha.toLocaleDateString('es-DO', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Icono y color según tipo
+            let icono = '';
+            let colorFondo = [0, 0, 0];
+            
+            if (evento.tipo === 'incidencia') {
+                icono = 'INCIDENCIA';
+                if (evento.gravedad === 'Grave' || evento.gravedad === 'Muy Grave') {
+                    colorFondo = [220, 38, 38]; // Rojo
+                } else {
+                    colorFondo = [245, 158, 11]; // Naranja
+                }
+            } else if (evento.tipo === 'tardanza') {
+                icono = 'TARDANZA';
+                colorFondo = [245, 158, 11]; // Naranja
+            } else {
+                icono = 'REUNIÓN';
+                colorFondo = [59, 130, 246]; // Azul
+            }
+            
+            // Fondo de la etiqueta
+            doc.setFillColor(colorFondo[0], colorFondo[1], colorFondo[2]);
+            doc.rect(14, yPos - 3, 30, 5, 'F');
+            
+            // Texto de la etiqueta
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'bold');
+            doc.text(icono, 29, yPos, { align: 'center' });
+            
+            // Fecha
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(fechaTexto, 46, yPos);
+            yPos += 5;
+            
+            // Título del evento
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            const tituloLineas = doc.splitTextToSize(evento.titulo, 180);
+            doc.text(tituloLineas, 14, yPos);
+            yPos += tituloLineas.length * 4;
+            
+            // Descripción
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            const descripcionLineas = doc.splitTextToSize(evento.descripcion, 180);
+            doc.text(descripcionLineas, 14, yPos);
+            yPos += descripcionLineas.length * 4;
+            
+            // Detalles adicionales según tipo
+            if (evento.tipo === 'incidencia') {
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Falta: ${evento.gravedad} | Docente: ${evento.docente}`, 14, yPos);
+                yPos += 4;
+            } else if (evento.tipo === 'tardanza' && evento.motivo) {
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Motivo: ${evento.motivo}`, 14, yPos);
+                yPos += 4;
+            } else if (evento.tipo === 'reunion') {
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Asistió: ${evento.asistio === 'Sí' ? 'Sí' : 'No'}`, 14, yPos);
+                yPos += 4;
+                if (evento.acuerdos) {
+                    const acuerdosLineas = doc.splitTextToSize(`Acuerdos: ${evento.acuerdos}`, 180);
+                    doc.text(acuerdosLineas, 14, yPos);
+                    yPos += acuerdosLineas.length * 4;
+                }
+            }
+            
+            // Línea separadora
+            doc.setDrawColor(220, 220, 220);
+            doc.setLineWidth(0.3);
+            doc.line(14, yPos + 1, 196, yPos + 1);
+            yPos += 6;
+            
+            doc.setTextColor(0, 0, 0);
+        });
+    }
+    
+    // Pie de página con fecha de generación
+    const totalPaginas = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPaginas; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text(
+            `Generado el ${new Date().toLocaleDateString('es-DO')} - Página ${i} de ${totalPaginas}`,
+            105,
+            285,
+            { align: 'center' }
+        );
+    }
+    
+    // Guardar PDF
+    const nombreArchivo = nombre.replace(/ /g, '_');
+    doc.save(`Historial_Completo_${nombreArchivo}_${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
 function exportarTodo() {
