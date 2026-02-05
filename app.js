@@ -7423,56 +7423,233 @@ document.addEventListener('click', function(e) {
 
 
 // ==========================================
-// SISTEMA DE ALERTAS
+// SISTEMA DE NOTIFICACIONES
 // ==========================================
 
-function toggleAlertsPanel() {
-    const panel = document.getElementById('alertsPanel');
-    panel.classList.toggle('open');
+// Array global para almacenar notificaciones
+let notificaciones = [];
+let notificacionIdCounter = 1;
+
+// Toggle del panel de notificaciones
+function toggleNotificaciones() {
+    const panel = document.getElementById('notifPanel');
+    const overlay = document.getElementById('notifOverlay');
     
-    // Actualizar alertas al abrir el panel
-    if (panel.classList.contains('open')) {
-        actualizarAlertas();
+    panel.classList.toggle('active');
+    overlay.classList.toggle('active');
+    
+    // Actualizar notificaciones al abrir el panel
+    if (panel.classList.contains('active')) {
+        mostrarNotificaciones();
     }
 }
 
-function actualizarAlertas() {
-    const alertsContent = document.getElementById('alertsContent');
-    const alertsCount = document.getElementById('alertsCount');
-    
-    let alertas = [];
-    
-    // Alerta crítica: 5+ reuniones con mismo estudiante
-    const reunionesPorEstudiante = {};
-    datosReuniones.forEach(r => {
-        const estudiante = r['Nombre Estudiante'] || r.estudiante;
-        if (!reunionesPorEstudiante[estudiante]) {
-            reunionesPorEstudiante[estudiante] = [];
+// Cerrar al presionar ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const panel = document.getElementById('notifPanel');
+        const overlay = document.getElementById('notifOverlay');
+        if (panel && panel.classList.contains('active')) {
+            panel.classList.remove('active');
+            overlay.classList.remove('active');
         }
-        reunionesPorEstudiante[estudiante].push(r);
+    }
+});
+
+// Agregar nueva notificación
+function agregarNotificacion(tipo, icono, titulo, mensaje, prioridad = 'info') {
+    const notif = {
+        id: notificacionIdCounter++,
+        tipo: tipo,
+        icono: icono,
+        titulo: titulo,
+        mensaje: mensaje,
+        prioridad: prioridad,
+        timestamp: new Date(),
+        leida: false
+    };
+    
+    notificaciones.unshift(notif);
+    actualizarContadorNotificaciones();
+    
+    // Guardar en localStorage
+    guardarNotificaciones();
+}
+
+// Mostrar notificaciones en el panel
+function mostrarNotificaciones(filtro = 'todas') {
+    const content = document.getElementById('notifContent');
+    if (!content) return;
+    
+    let notifsFiltradas = notificaciones;
+    
+    if (filtro === 'sin-leer') {
+        notifsFiltradas = notificaciones.filter(n => !n.leida);
+    } else if (filtro === 'leidas') {
+        notifsFiltradas = notificaciones.filter(n => n.leida);
+    }
+    
+    if (notifsFiltradas.length === 0) {
+        content.innerHTML = `
+            <div class="notif-empty">
+                <div class="notif-empty-icon">📭</div>
+                <p style="font-size:1.1em;font-weight:600;margin-bottom:5px;">No hay notificaciones</p>
+                <p style="font-size:0.9em;">Todas tus notificaciones aparecerán aquí</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    notifsFiltradas.forEach(notif => {
+        const tiempoTexto = obtenerTiempoRelativo(notif.timestamp);
+        const badgeClass = notif.prioridad === 'urgente' ? 'badge-urgente' : 
+                          notif.prioridad === 'importante' ? 'badge-importante' : 'badge-info';
+        const badgeTexto = notif.prioridad === 'urgente' ? 'Urgente' :
+                          notif.prioridad === 'importante' ? 'Importante' : 'Información';
+        
+        html += `
+            <div class="notif-item ${notif.leida ? '' : 'unread'}" onclick="marcarNotificacionLeida(${notif.id})">
+                <div class="notif-header-row">
+                    <div class="notif-title">
+                        <span class="notif-icon">${notif.icono}</span>
+                        <span>${notif.titulo}</span>
+                    </div>
+                </div>
+                <div class="notif-message">${notif.mensaje}</div>
+                <div class="notif-meta">
+                    <span class="notif-time">🕐 ${tiempoTexto}</span>
+                    <span class="notif-badge-type ${badgeClass}">${badgeTexto}</span>
+                </div>
+            </div>
+        `;
     });
     
-    Object.keys(reunionesPorEstudiante).forEach(estudiante => {
-        const reuniones = reunionesPorEstudiante[estudiante];
-        if (reuniones.length >= 5) {
-            const curso = reuniones[0]['Curso'] || reuniones[0].curso || '';
-            alertas.push({
-                tipo: 'critical',
-                titulo: `${estudiante} (${curso})`,
-                descripcion: `${reuniones.length} reuniones con padres - Caso requiere escalamiento a Dirección`,
-                accion: '→ Sugerencia: Reunión con equipo multidisciplinario'
+    content.innerHTML = html;
+}
+
+// Cambiar entre pestañas
+function cambiarTabNotif(tab) {
+    const tabs = document.querySelectorAll('.notif-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    mostrarNotificaciones(tab);
+}
+
+// Marcar notificación como leída
+function marcarNotificacionLeida(id) {
+    const notif = notificaciones.find(n => n.id === id);
+    if (notif && !notif.leida) {
+        notif.leida = true;
+        actualizarContadorNotificaciones();
+        guardarNotificaciones();
+        
+        // Re-renderizar
+        const tabActiva = document.querySelector('.notif-tab.active');
+        const filtro = tabActiva ? tabActiva.getAttribute('data-tab') : 'todas';
+        mostrarNotificaciones(filtro);
+    }
+}
+
+// Marcar todas como leídas
+function marcarTodasNotificacionesLeidas() {
+    notificaciones.forEach(n => n.leida = true);
+    actualizarContadorNotificaciones();
+    guardarNotificaciones();
+    
+    const tabActiva = document.querySelector('.notif-tab.active');
+    const filtro = tabActiva ? tabActiva.getAttribute('data-tab') : 'todas';
+    mostrarNotificaciones(filtro);
+}
+
+// Limpiar notificaciones leídas
+function limpiarNotificacionesLeidas() {
+    if (confirm('¿Deseas eliminar todas las notificaciones leídas?')) {
+        notificaciones = notificaciones.filter(n => !n.leida);
+        actualizarContadorNotificaciones();
+        guardarNotificaciones();
+        
+        const tabActiva = document.querySelector('.notif-tab.active');
+        const filtro = tabActiva ? tabActiva.getAttribute('data-tab') : 'todas';
+        mostrarNotificaciones(filtro);
+    }
+}
+
+// Actualizar contadores
+function actualizarContadorNotificaciones() {
+    const total = notificaciones.length;
+    const noLeidas = notificaciones.filter(n => !n.leida).length;
+    const leidas = total - noLeidas;
+    
+    const badge = document.getElementById('notifCounter');
+    if (badge) {
+        badge.textContent = noLeidas;
+        badge.style.display = noLeidas > 0 ? 'flex' : 'none';
+    }
+    
+    const countTodas = document.getElementById('countTodas');
+    const countSinLeer = document.getElementById('countSinLeer');
+    const countLeidas = document.getElementById('countLeidas');
+    
+    if (countTodas) countTodas.textContent = total;
+    if (countSinLeer) countSinLeer.textContent = noLeidas;
+    if (countLeidas) countLeidas.textContent = leidas;
+}
+
+// Obtener tiempo relativo
+function obtenerTiempoRelativo(fecha) {
+    const ahora = new Date();
+    const diff = ahora - fecha;
+    const minutos = Math.floor(diff / 60000);
+    const horas = Math.floor(diff / 3600000);
+    const dias = Math.floor(diff / 86400000);
+    
+    if (minutos < 1) return 'ahora mismo';
+    if (minutos < 60) return `hace ${minutos} min`;
+    if (horas < 24) return `hace ${horas} hora${horas > 1 ? 's' : ''}`;
+    if (dias < 7) return `hace ${dias} día${dias > 1 ? 's' : ''}`;
+    return fecha.toLocaleDateString('es-DO');
+}
+
+// Guardar notificaciones en localStorage
+function guardarNotificaciones() {
+    try {
+        localStorage.setItem('notificaciones_ugc', JSON.stringify(notificaciones));
+    } catch (e) {
+        console.error('Error al guardar notificaciones:', e);
+    }
+}
+
+// Cargar notificaciones desde localStorage
+function cargarNotificaciones() {
+    try {
+        const data = localStorage.getItem('notificaciones_ugc');
+        if (data) {
+            notificaciones = JSON.parse(data);
+            // Convertir timestamps de string a Date
+            notificaciones.forEach(n => {
+                n.timestamp = new Date(n.timestamp);
             });
+            actualizarContadorNotificaciones();
         }
-    });
-    
-    // Advertencia: 3+ tardanzas en las últimas 2 semanas
+    } catch (e) {
+        console.error('Error al cargar notificaciones:', e);
+        notificaciones = [];
+    }
+}
+
+// Generar notificaciones automáticas
+function generarNotificacionesAutomaticas() {
+    // 1. Estudiantes con 3+ tardanzas este mes
     const hoy = new Date();
-    const dosSemanasAtras = new Date(hoy.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const mesActual = hoy.getMonth();
+    const añoActual = hoy.getFullYear();
     
     const tardanzasPorEstudiante = {};
     datosTardanzas.forEach(t => {
         const fecha = new Date(t['Fecha'] || t.fecha || '');
-        if (fecha >= dosSemanasAtras) {
+        if (fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual) {
             const estudiante = t['Nombre Estudiante'] || t.estudiante;
             if (!tardanzasPorEstudiante[estudiante]) {
                 tardanzasPorEstudiante[estudiante] = 0;
@@ -7484,68 +7661,99 @@ function actualizarAlertas() {
     Object.keys(tardanzasPorEstudiante).forEach(estudiante => {
         const count = tardanzasPorEstudiante[estudiante];
         if (count >= 3) {
-            alertas.push({
-                tipo: 'warning',
-                titulo: `${estudiante}`,
-                descripcion: `${count} tardanzas en las últimas 2 semanas`,
-                accion: '→ Sugerencia: Reunión con padres / Circular'
-            });
-        }
-    });
-    
-    // Recordatorio: Seguimientos pendientes
-    datosReuniones.forEach(r => {
-        const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
-        const estado = r['Estado'] || r.estado || '';
-        if (fechaSeg && estado === 'En seguimiento') {
-            const fechaSeguimiento = new Date(fechaSeg);
-            if (fechaSeguimiento <= hoy) {
-                const estudiante = r['Nombre Estudiante'] || r.estudiante;
-                const curso = r['Curso'] || r.curso || '';
-                const diasPasados = Math.floor((hoy - fechaSeguimiento) / (24 * 60 * 60 * 1000));
-                alertas.push({
-                    tipo: 'info',
-                    titulo: `${estudiante} (${curso})`,
-                    descripcion: `Seguimiento de acuerdo ${diasPasados > 0 ? 'vencido hace ' + diasPasados + ' días' : 'programado para hoy'}`,
-                    accion: '→ Acción: Contactar a los padres'
-                });
+            // Verificar si ya existe esta notificación
+            const existe = notificaciones.some(n => 
+                n.tipo === 'tardanzas' && 
+                n.mensaje.includes(estudiante) &&
+                n.mensaje.includes(`${count} tardanzas`)
+            );
+            
+            if (!existe) {
+                agregarNotificacion(
+                    'tardanzas',
+                    '🚨',
+                    'Estudiante con 3 tardanzas',
+                    `<strong>${estudiante}</strong> ha alcanzado ${count} tardanzas este mes. Se requiere acción inmediata según el protocolo.`,
+                    'urgente'
+                );
             }
         }
     });
     
-    // Actualizar contador
-    alertsCount.textContent = alertas.length;
-    
-    if (alertas.length === 0) {
-        alertsContent.innerHTML = `
-            <div class="alert-empty">
-                <div class="alert-empty-icon">✓</div>
-                <div>No hay alertas pendientes</div>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = '';
-    alertas.forEach(alerta => {
-        html += `
-            <div class="alert-card ${alerta.tipo}">
-                <div class="alert-card-title">${alerta.titulo}</div>
-                <div class="alert-card-description">${alerta.descripcion}</div>
-                <div class="alert-card-action">${alerta.accion}</div>
-            </div>
-        `;
+    // 2. Reuniones programadas para hoy
+    const reunionesHoy = datosReuniones.filter(r => {
+        const fecha = new Date(r['Fecha'] || r.fecha || '');
+        return fecha.toDateString() === hoy.toDateString();
     });
     
-    alertsContent.innerHTML = html;
+    reunionesHoy.forEach(r => {
+        const estudiante = r['Nombre Estudiante'] || r.estudiante;
+        const hora = r['Hora'] || new Date(r['Fecha'] || r.fecha).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+        
+        const existe = notificaciones.some(n => 
+            n.tipo === 'reunion' && 
+            n.mensaje.includes(estudiante) &&
+            n.timestamp.toDateString() === hoy.toDateString()
+        );
+        
+        if (!existe) {
+            agregarNotificacion(
+                'reunion',
+                '📅',
+                'Reunión pendiente hoy',
+                `Tienes una reunión programada hoy a las ${hora} con los padres de <strong>${estudiante}</strong>.`,
+                'importante'
+            );
+        }
+    });
+    
+    // 3. Incidencias graves recientes (últimas 24 horas)
+    const ayer = new Date(hoy.getTime() - 24 * 60 * 60 * 1000);
+    const incidenciasRecientes = datosIncidencias.filter(inc => {
+        const fecha = new Date(inc['Fecha y Hora'] || inc.fecha || '');
+        const tipo = inc['Tipo'] || inc['Tipo de Falta'] || inc.tipoFalta || '';
+        return fecha >= ayer && (tipo === 'Grave' || tipo === 'Muy Grave');
+    });
+    
+    incidenciasRecientes.forEach(inc => {
+        const estudiante = inc['Nombre Estudiante'] || inc.estudiante;
+        const tipo = inc['Tipo'] || inc['Tipo de Falta'] || inc.tipoFalta;
+        const conducta = inc['Tipo de Conducta'] || inc.tipoConducta || 'conducta inapropiada';
+        
+        const existe = notificaciones.some(n => 
+            n.tipo === 'incidencia' && 
+            n.mensaje.includes(estudiante) &&
+            n.mensaje.includes(tipo)
+        );
+        
+        if (!existe) {
+            agregarNotificacion(
+                'incidencia',
+                '📋',
+                'Nueva incidencia registrada',
+                `Se ha registrado una <strong>Falta ${tipo}</strong> para <strong>${estudiante}</strong> por ${conducta}.`,
+                'importante'
+            );
+        }
+    });
 }
 
-// Actualizar alertas cada vez que se cargan datos
-const actualizarAlertasOriginal = setInterval(() => {
-    if (datosReuniones.length > 0 || datosTardanzas.length > 0) {
-        actualizarAlertas();
+// Cargar notificaciones al inicio
+cargarNotificaciones();
+
+// Generar notificaciones cada 30 segundos
+setInterval(() => {
+    if (datosIncidencias.length > 0 || datosTardanzas.length > 0 || datosReuniones.length > 0) {
+        generarNotificacionesAutomaticas();
     }
-}, 2000);
+}, 30000);
+
+// Generar notificaciones iniciales
+setTimeout(() => {
+    if (datosIncidencias.length > 0 || datosTardanzas.length > 0 || datosReuniones.length > 0) {
+        generarNotificacionesAutomaticas();
+    }
+}, 3000);
 
 
 
