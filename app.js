@@ -7440,7 +7440,19 @@ function toggleNotificaciones() {
     
     // Actualizar notificaciones al abrir el panel
     if (panel.classList.contains('active')) {
-        mostrarNotificaciones();
+        // Resetear a la pestaña "Todas"
+        const tabs = document.querySelectorAll('.notif-tab');
+        tabs.forEach(t => t.classList.remove('active'));
+        const tabTodas = document.querySelector('.notif-tab[data-tab="todas"]');
+        if (tabTodas) {
+            tabTodas.classList.add('active');
+        }
+        
+        // Recargar notificaciones desde localStorage por si hubo cambios
+        cargarNotificaciones();
+        
+        // Mostrar todas las notificaciones
+        mostrarNotificaciones('todas');
     }
 }
 
