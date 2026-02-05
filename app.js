@@ -7481,7 +7481,7 @@ function mostrarNotificaciones(filtro = 'todas') {
     const content = document.getElementById('notifContent');
     if (!content) return;
     
-    let notifsFiltradas = notificaciones;
+    let notifsFiltradas = notificacionesData;
     
     if (filtro === 'sin-leer') {
         notifsFiltradas = notificacionesData.filter(n => !n.leida);
