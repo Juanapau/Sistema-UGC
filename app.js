@@ -7427,7 +7427,7 @@ document.addEventListener('click', function(e) {
 // ==========================================
 
 // Array global para almacenar notificaciones
-let notificaciones = [];
+let notificacionesData = [];
 let notificacionIdCounter = 1;
 
 // Toggle del panel de notificaciones
@@ -7469,7 +7469,7 @@ function agregarNotificacion(tipo, icono, titulo, mensaje, prioridad = 'info') {
         leida: false
     };
     
-    notificaciones.unshift(notif);
+    notificacionesData.unshift(notif);
     actualizarContadorNotificaciones();
     
     // Guardar en localStorage
@@ -7484,9 +7484,9 @@ function mostrarNotificaciones(filtro = 'todas') {
     let notifsFiltradas = notificaciones;
     
     if (filtro === 'sin-leer') {
-        notifsFiltradas = notificaciones.filter(n => !n.leida);
+        notifsFiltradas = notificacionesData.filter(n => !n.leida);
     } else if (filtro === 'leidas') {
-        notifsFiltradas = notificaciones.filter(n => n.leida);
+        notifsFiltradas = notificacionesData.filter(n => n.leida);
     }
     
     if (notifsFiltradas.length === 0) {
@@ -7539,7 +7539,7 @@ function cambiarTabNotif(tab) {
 
 // Marcar notificación como leída
 function marcarNotificacionLeida(id) {
-    const notif = notificaciones.find(n => n.id === id);
+    const notif = notificacionesData.find(n => n.id === id);
     if (notif && !notif.leida) {
         notif.leida = true;
         actualizarContadorNotificaciones();
@@ -7554,7 +7554,7 @@ function marcarNotificacionLeida(id) {
 
 // Marcar todas como leídas
 function marcarTodasNotificacionesLeidas() {
-    notificaciones.forEach(n => n.leida = true);
+    notificacionesData.forEach(n => n.leida = true);
     actualizarContadorNotificaciones();
     guardarNotificaciones();
     
@@ -7566,7 +7566,7 @@ function marcarTodasNotificacionesLeidas() {
 // Limpiar notificaciones leídas
 function limpiarNotificacionesLeidas() {
     if (confirm('¿Deseas eliminar todas las notificaciones leídas?')) {
-        notificaciones = notificaciones.filter(n => !n.leida);
+        notificacionesData = notificacionesDataData.filter(n => !n.leida);
         actualizarContadorNotificaciones();
         guardarNotificaciones();
         
@@ -7578,8 +7578,8 @@ function limpiarNotificacionesLeidas() {
 
 // Actualizar contadores
 function actualizarContadorNotificaciones() {
-    const total = notificaciones.length;
-    const noLeidas = notificaciones.filter(n => !n.leida).length;
+    const total = notificacionesData.length;
+    const noLeidas = notificacionesData.filter(n => !n.leida).length;
     const leidas = total - noLeidas;
     
     const badge = document.getElementById('notifCounter');
@@ -7626,9 +7626,9 @@ function cargarNotificaciones() {
     try {
         const data = localStorage.getItem('notificaciones_ugc');
         if (data) {
-            notificaciones = JSON.parse(data);
+            notificacionesData = JSON.parse(data);
             // Convertir timestamps de string a Date
-            notificaciones.forEach(n => {
+            notificacionesData.forEach(n => {
                 n.timestamp = new Date(n.timestamp);
             });
             actualizarContadorNotificaciones();
@@ -7662,7 +7662,7 @@ function generarNotificacionesAutomaticas() {
         const count = tardanzasPorEstudiante[estudiante];
         if (count >= 3) {
             // Verificar si ya existe esta notificación
-            const existe = notificaciones.some(n => 
+            const existe = notificacionesData.some(n => 
                 n.tipo === 'tardanzas' && 
                 n.mensaje.includes(estudiante) &&
                 n.mensaje.includes(`${count} tardanzas`)
@@ -7690,7 +7690,7 @@ function generarNotificacionesAutomaticas() {
         const estudiante = r['Nombre Estudiante'] || r.estudiante;
         const hora = r['Hora'] || new Date(r['Fecha'] || r.fecha).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
         
-        const existe = notificaciones.some(n => 
+        const existe = notificacionesData.some(n => 
             n.tipo === 'reunion' && 
             n.mensaje.includes(estudiante) &&
             n.timestamp.toDateString() === hoy.toDateString()
@@ -7720,7 +7720,7 @@ function generarNotificacionesAutomaticas() {
         const tipo = inc['Tipo'] || inc['Tipo de Falta'] || inc.tipoFalta;
         const conducta = inc['Tipo de Conducta'] || inc.tipoConducta || 'conducta inapropiada';
         
-        const existe = notificaciones.some(n => 
+        const existe = notificacionesData.some(n => 
             n.tipo === 'incidencia' && 
             n.mensaje.includes(estudiante) &&
             n.mensaje.includes(tipo)
