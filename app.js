@@ -7615,7 +7615,7 @@ function obtenerTiempoRelativo(fecha) {
 // Guardar notificaciones en localStorage
 function guardarNotificaciones() {
     try {
-        localStorage.setItem('notificaciones_ugc', JSON.stringify(notificaciones));
+        localStorage.setItem('notificaciones_ugc', JSON.stringify(notificacionesData));
     } catch (e) {
         console.error('Error al guardar notificaciones:', e);
     }
