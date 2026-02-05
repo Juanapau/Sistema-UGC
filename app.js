@@ -7600,15 +7600,213 @@ function marcarTodasNotificacionesLeidas() {
 
 // Limpiar notificaciones leídas
 function limpiarNotificacionesLeidas() {
-    if (confirm('¿Deseas eliminar todas las notificaciones leídas?')) {
-        notificacionesData = notificacionesDataData.filter(n => !n.leida);
-        actualizarContadorNotificaciones();
-        guardarNotificaciones();
-        
-        const tabActiva = document.querySelector('.notif-tab.active');
-        const filtro = tabActiva ? tabActiva.getAttribute('data-tab') : 'todas';
-        mostrarNotificaciones(filtro);
+    // Contar notificaciones leídas
+    const cantidadLeidas = notificacionesData.filter(n => n.leida).length;
+    
+    if (cantidadLeidas === 0) {
+        mostrarModalConfirmacion(
+            '📭 Sin notificaciones leídas',
+            'No hay notificaciones leídas para eliminar.',
+            false,
+            null,
+            'Entendido'
+        );
+        return;
     }
+    
+    mostrarModalConfirmacion(
+        '🗑️ Limpiar notificaciones',
+        `¿Estás seguro de que deseas eliminar <strong>${cantidadLeidas}</strong> notificación${cantidadLeidas > 1 ? 'es' : ''} leída${cantidadLeidas > 1 ? 's' : ''}?<br><br>Esta acción no se puede deshacer.`,
+        true,
+        function() {
+            // Filtrar solo las no leídas
+            notificacionesData = notificacionesData.filter(n => !n.leida);
+            actualizarContadorNotificaciones();
+            guardarNotificaciones();
+            
+            const tabActiva = document.querySelector('.notif-tab.active');
+            const filtro = tabActiva ? tabActiva.getAttribute('data-tab') : 'todas';
+            mostrarNotificaciones(filtro);
+            
+            // Mostrar mensaje de éxito
+            mostrarNotificacionToast('✅ Notificaciones eliminadas correctamente');
+        }
+    );
+}
+
+// Función para mostrar modal de confirmación bonito
+function mostrarModalConfirmacion(titulo, mensaje, mostrarCancelar, callbackConfirmar, textoConfirmar = 'Confirmar') {
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease;
+    `;
+    
+    // Crear modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: white;
+        border-radius: 16px;
+        padding: 0;
+        max-width: 450px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: slideUp 0.3s ease;
+        overflow: hidden;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; color: white;">
+            <h3 style="margin: 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
+                ${titulo}
+            </h3>
+        </div>
+        <div style="padding: 24px;">
+            <p style="margin: 0 0 24px 0; color: #374151; line-height: 1.6; font-size: 1em;">
+                ${mensaje}
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                ${mostrarCancelar ? `
+                    <button id="btnCancelarModal" style="
+                        padding: 12px 24px;
+                        border: 2px solid #e5e7eb;
+                        background: white;
+                        color: #6b7280;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        font-size: 0.95em;
+                    ">
+                        Cancelar
+                    </button>
+                ` : ''}
+                <button id="btnConfirmarModal" style="
+                    padding: 12px 24px;
+                    border: none;
+                    background: ${mostrarCancelar ? '#dc2626' : '#059669'};
+                    color: white;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 0.95em;
+                ">
+                    ${textoConfirmar}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    // Agregar animaciones CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        #btnCancelarModal:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        #btnConfirmarModal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Event listeners
+    const btnConfirmar = document.getElementById('btnConfirmarModal');
+    const btnCancelar = document.getElementById('btnCancelarModal');
+    
+    function cerrarModal() {
+        overlay.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            document.head.removeChild(style);
+        }, 200);
+    }
+    
+    btnConfirmar.addEventListener('click', () => {
+        cerrarModal();
+        if (callbackConfirmar) callbackConfirmar();
+    });
+    
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', cerrarModal);
+    }
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            cerrarModal();
+        }
+    });
+}
+
+// Función para mostrar notificación toast (pequeño mensaje temporal)
+function mostrarNotificacionToast(mensaje) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: #059669;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
+        z-index: 100000;
+        font-weight: 600;
+        animation: slideInRight 0.3s ease;
+    `;
+    toast.textContent = mensaje;
+    
+    const styleToast = document.createElement('style');
+    styleToast.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(styleToast);
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                document.body.removeChild(toast);
+                document.head.removeChild(styleToast);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // Actualizar contadores
