@@ -810,141 +810,337 @@
             color: #6b7280;
         }
 
-        .alerts-button {
+        /* SISTEMA DE NOTIFICACIONES */
+        .notificaciones-btn {
             position: relative;
-            background: #fef3c7;
-            border: 2px solid #f59e0b;
-            padding: 10px 20px;
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 12px 20px;
             border-radius: 50px;
             cursor: pointer;
-            transition: all 0.3s;
+            font-size: 1em;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
             font-weight: 600;
-            color: #92400e;
         }
 
-        .alerts-button:hover {
-            background: #fde68a;
+        .notificaciones-btn:hover {
+            background: #047857;
             transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
         }
 
-        .alerts-badge {
+        .notificaciones-btn:active {
+            transform: translateY(0);
+        }
+
+        .notif-badge {
             background: #dc2626;
             color: white;
             border-radius: 50%;
-            width: 24px;
+            min-width: 24px;
             height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 0.75em;
             font-weight: bold;
+            animation: pulse 2s infinite;
         }
 
-        .alerts-panel {
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .notif-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 9999;
+        }
+
+        .notif-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .notificaciones-panel {
             position: fixed;
             top: 0;
             right: -400px;
             width: 400px;
             height: 100vh;
             background: white;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.3);
-            transition: right 0.3s;
-            z-index: 2000;
-            overflow-y: auto;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+            transition: right 0.3s ease;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
         }
 
-        .alerts-panel.open {
+        .notificaciones-panel.active {
             right: 0;
         }
 
-        .alerts-header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        .notif-panel-header {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: white;
             padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
-        .alerts-header h2 {
-            font-size: 1.5em;
+        .notif-panel-header h2 {
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .close-alerts {
-            background: transparent;
+        .notif-close-btn {
+            background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            font-size: 28px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
 
-        .alerts-content {
-            padding: 20px;
+        .notif-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
         }
 
-        .alert-card {
-            background: #f9fafb;
-            border-left: 4px solid;
-            border-radius: 8px;
+        .notif-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .notif-tab {
+            flex: 1;
             padding: 15px;
-            margin-bottom: 15px;
+            background: transparent;
+            border: none;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .alert-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .alert-card.critical {
-            border-left-color: #dc2626;
-            background: linear-gradient(to right, #fef2f2, #f9fafb);
-        }
-
-        .alert-card.warning {
-            border-left-color: #f59e0b;
-            background: linear-gradient(to right, #fffbeb, #f9fafb);
-        }
-
-        .alert-card.info {
-            border-left-color: #3b82f6;
-            background: linear-gradient(to right, #eff6ff, #f9fafb);
-        }
-
-        .alert-card-title {
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-
-        .alert-card-description {
-            font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-
-        .alert-card-action {
-            font-size: 13px;
-            color: #2563eb;
+            font-size: 0.9em;
             font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
-        .alert-empty {
-            text-align: center;
-            padding: 40px 20px;
+        .notif-tab.active {
+            color: #059669;
+            background: white;
+        }
+
+        .notif-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #059669;
+        }
+
+        .notif-tab:hover:not(.active) {
+            background: #f3f4f6;
+        }
+
+        .tab-count {
+            background: #e5e7eb;
+            color: #6b7280;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin-left: 6px;
+        }
+
+        .notif-tab.active .tab-count {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .notif-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .notif-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .notif-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #059669;
+        }
+
+        .notif-item.unread {
+            background: #f0fdf4;
+            border-left: 4px solid #059669;
+        }
+
+        .notif-item.unread::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
+            background: #059669;
+            border-radius: 50%;
+        }
+
+        .notif-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .notif-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .notif-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notif-message {
+            color: #6b7280;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .notif-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8em;
             color: #9ca3af;
         }
 
-        .alert-empty-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+        .notif-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notif-badge-type {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .badge-urgente {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-importante {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .notif-actions {
+            display: flex;
+            gap: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .notif-action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-marcar-todas {
+            background: #059669;
+            color: white;
+        }
+
+        .btn-marcar-todas:hover {
+            background: #047857;
+        }
+
+        .btn-limpiar {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .btn-limpiar:hover {
+            background: #d1d5db;
+        }
+
+        .notif-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .notif-empty-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .notificaciones-panel {
+                width: 100%;
+                right: -100%;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1934,7 +2130,7 @@
             <p>Centro Educativo Nuestra Señora de la Altagracia (CENSA)</p>
         </header>
 
-        <!-- Barra Superior: Búsqueda Global y Alertas -->
+        <!-- Barra Superior: Búsqueda Global y Notificaciones -->
         <div class="top-bar">
             <div class="global-search">
                 <span class="search-icon">🔍</span>
@@ -1947,24 +2143,50 @@
                 <div class="global-search-results" id="globalSearchResults"></div>
             </div>
             
-            <div class="alerts-button" onclick="toggleAlertsPanel()">
-                <span>🔔</span>
-                <span>Alertas</span>
-                <span class="alerts-badge" id="alertsCount">0</span>
-            </div>
+            <button class="notificaciones-btn" onclick="toggleNotificaciones()">
+                🔔
+                <span>Notificaciones</span>
+                <span class="notif-badge" id="notifCounter" style="display:none;">0</span>
+            </button>
         </div>
 
-        <!-- Panel de Alertas (lateral derecho) -->
-        <div class="alerts-panel" id="alertsPanel">
-            <div class="alerts-header">
-                <h2>🚨 Alertas</h2>
-                <button class="close-alerts" onclick="toggleAlertsPanel()">✕</button>
+        <!-- Overlay de Notificaciones -->
+        <div class="notif-overlay" id="notifOverlay" onclick="toggleNotificaciones()"></div>
+
+        <!-- Panel de Notificaciones (lateral derecho) -->
+        <div class="notificaciones-panel" id="notifPanel">
+            <div class="notif-panel-header">
+                <h2>🔔 Notificaciones</h2>
+                <button class="notif-close-btn" onclick="toggleNotificaciones()">✕</button>
             </div>
-            <div class="alerts-content" id="alertsContent">
-                <div class="alert-empty">
-                    <div class="alert-empty-icon">✓</div>
-                    <div>No hay alertas pendientes</div>
+            
+            <div class="notif-tabs">
+                <button class="notif-tab active" data-tab="todas" onclick="cambiarTabNotif('todas')">
+                    Todas <span class="tab-count" id="countTodas">0</span>
+                </button>
+                <button class="notif-tab" data-tab="sin-leer" onclick="cambiarTabNotif('sin-leer')">
+                    Sin Leer <span class="tab-count" id="countSinLeer">0</span>
+                </button>
+                <button class="notif-tab" data-tab="leidas" onclick="cambiarTabNotif('leidas')">
+                    Leídas <span class="tab-count" id="countLeidas">0</span>
+                </button>
+            </div>
+            
+            <div class="notif-content" id="notifContent">
+                <div class="notif-empty">
+                    <div class="notif-empty-icon">📭</div>
+                    <p style="font-size:1.1em;font-weight:600;margin-bottom:5px;">No hay notificaciones</p>
+                    <p style="font-size:0.9em;">Todas tus notificaciones aparecerán aquí</p>
                 </div>
+            </div>
+            
+            <div class="notif-actions">
+                <button class="notif-action-btn btn-marcar-todas" onclick="marcarTodasNotificacionesLeidas()">
+                    ✓ Marcar todas como leídas
+                </button>
+                <button class="notif-action-btn btn-limpiar" onclick="limpiarNotificacionesLeidas()">
+                    🗑️ Limpiar
+                </button>
             </div>
         </div>
 
