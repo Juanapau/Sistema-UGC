@@ -7444,18 +7444,6 @@ function toggleNotificaciones() {
     }
 }
 
-// Cerrar al presionar ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const panel = document.getElementById('notifPanel');
-        const overlay = document.getElementById('notifOverlay');
-        if (panel && panel.classList.contains('active')) {
-            panel.classList.remove('active');
-            overlay.classList.remove('active');
-        }
-    }
-});
-
 // Agregar nueva notificación
 function agregarNotificacion(tipo, icono, titulo, mensaje, prioridad = 'info') {
     const notif = {
@@ -7635,7 +7623,7 @@ function cargarNotificaciones() {
         }
     } catch (e) {
         console.error('Error al cargar notificaciones:', e);
-        notificaciones = [];
+        notificacionesData = [];
     }
 }
 
