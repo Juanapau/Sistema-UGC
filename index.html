@@ -813,23 +813,24 @@
         /* SISTEMA DE NOTIFICACIONES */
         .notificaciones-btn {
             position: relative;
-            background: #059669;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
+            background: transparent;
+            color: #059669;
+            border: 2px solid #059669;
+            padding: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 1.4em;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-            font-weight: 600;
         }
 
         .notificaciones-btn:hover {
-            background: #047857;
+            background: #059669;
+            color: white;
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
         }
@@ -839,16 +840,20 @@
         }
 
         .notif-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
             background: #dc2626;
             color: white;
             border-radius: 50%;
-            min-width: 24px;
-            height: 24px;
+            min-width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75em;
+            font-size: 0.7em;
             font-weight: bold;
+            border: 2px solid white;
             animation: pulse 2s infinite;
         }
 
@@ -878,8 +883,8 @@
         .notificaciones-panel {
             position: fixed;
             top: 0;
-            right: -400px;
-            width: 400px;
+            right: -450px;
+            width: 450px;
             height: 100vh;
             background: white;
             box-shadow: -4px 0 20px rgba(0,0,0,0.15);
@@ -2143,15 +2148,14 @@
                 <div class="global-search-results" id="globalSearchResults"></div>
             </div>
             
-            <button class="notificaciones-btn" onclick="toggleNotificaciones()">
+            <button class="notificaciones-btn" onclick="toggleNotificaciones()" title="Notificaciones">
                 🔔
-                <span>Notificaciones</span>
                 <span class="notif-badge" id="notifCounter" style="display:none;">0</span>
             </button>
         </div>
 
         <!-- Overlay de Notificaciones -->
-        <div class="notif-overlay" id="notifOverlay" onclick="toggleNotificaciones()"></div>
+        <div class="notif-overlay" id="notifOverlay"></div>
 
         <!-- Panel de Notificaciones (lateral derecho) -->
         <div class="notificaciones-panel" id="notifPanel">
@@ -2393,7 +2397,7 @@
     </button>
 
     <!-- Panel Lateral de Notas -->
-    <div class="notas-overlay" id="notasOverlay" onclick="closeNotasPanel()"></div>
+    <div class="notas-overlay" id="notasOverlay"></div>
     <div class="notas-panel" id="notasPanel">
         <div class="notas-header">
             <h2>📝 Notas Rápidas</h2>
