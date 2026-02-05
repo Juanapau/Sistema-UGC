@@ -542,6 +542,20 @@ const inc = {
         datosIncidencias.push(inc);
         if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc);
         mostrarAlerta('alertIncidencias', '✅ Incidencia registrada');
+        
+        // Agregar notificación al sistema
+        const estudiante = inc['Nombre Estudiante'];
+        const tipoFalta = inc['Tipo de falta'];
+        const tipoConducta = inc['Tipo de Conducta'];
+        const prioridad = (tipoFalta === 'Grave' || tipoFalta === 'Muy Grave') ? 'importante' : 'info';
+        
+        agregarNotificacion(
+            'incidencia-nueva',
+            '📋',
+            'Nueva incidencia registrada',
+            `Se ha registrado una <strong>Falta ${tipoFalta}</strong> para <strong>${estudiante}</strong> por ${tipoConducta}.`,
+            prioridad
+        );
     }
     
     document.getElementById('formIncidencia').reset();
@@ -2005,6 +2019,27 @@ function registrarContacto(e) {
         datosContactos.push(contacto);
         if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
         mostrarAlerta('alertContactos', '✅ Contacto registrado');
+        
+        // Agregar notificación al sistema
+        const estudiante = contacto['Nombre Estudiante'];
+        const nombrePadre = contacto['Nombre Padre'];
+        const nombreMadre = contacto['Nombre Madre'];
+        
+        let contactosRegistrados = [];
+        if (nombrePadre) contactosRegistrados.push('Padre');
+        if (nombreMadre) contactosRegistrados.push('Madre');
+        
+        const textContactos = contactosRegistrados.length > 0 
+            ? contactosRegistrados.join(' y ') 
+            : 'Contacto de emergencia';
+        
+        agregarNotificacion(
+            'contacto-nuevo',
+            '📞',
+            'Nuevo contacto registrado',
+            `Se ha registrado el contacto de <strong>${textContactos}</strong> para el estudiante <strong>${estudiante}</strong>.`,
+            'info'
+        );
     }
     
     document.getElementById('formContacto').reset();
