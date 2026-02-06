@@ -47,14 +47,8 @@ class NotificacionesGoogleSheets {
         try {
             // 🆕 MEJORADO: Añadir timestamp para evitar caché
             const timestamp = new Date().getTime();
-            const response = await fetch(`${this.url}?action=leer&t=${timestamp}`, {
-                method: 'GET',
-                cache: 'no-cache', // 🆕 NUEVO: Evitar caché del navegador
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache'
-                }
-            });
+            // ✅ COMPATIBLE: Fetch simple sin headers especiales para evitar CORS preflight
+            const response = await fetch(`${this.url}?action=leer&t=${timestamp}`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -123,11 +117,8 @@ class NotificacionesGoogleSheets {
 
             const response = await fetch(this.url, {
                 method: 'POST',
-                // 🚫 ELIMINADO: mode: 'no-cors' - Esto causaba problemas en iOS
-                headers: { 
-                    'Content-Type': 'application/x-www-form-urlencoded' // 🆕 NUEVO: Header correcto
-                },
-                body: formData.toString()
+                mode: 'no-cors', // ✅ COMPATIBLE: Necesario para Apps Script actual
+                body: formData
             });
 
             // 🆕 MEJORADO: Recargar más rápido después de agregar
@@ -153,10 +144,8 @@ class NotificacionesGoogleSheets {
 
             const response = await fetch(this.url, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString()
+                mode: 'no-cors',
+                body: formData
             });
 
             // Actualizar localmente de inmediato
@@ -185,10 +174,8 @@ class NotificacionesGoogleSheets {
 
             const response = await fetch(this.url, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString()
+                mode: 'no-cors',
+                body: formData
             });
 
             // Actualizar localmente
@@ -214,10 +201,8 @@ class NotificacionesGoogleSheets {
 
             const response = await fetch(this.url, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString()
+                mode: 'no-cors',
+                body: formData
             });
 
             // Actualizar localmente
@@ -247,10 +232,8 @@ class NotificacionesGoogleSheets {
 
             const response = await fetch(this.url, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: formData.toString()
+                mode: 'no-cors',
+                body: formData
             });
 
             // Actualizar localmente
