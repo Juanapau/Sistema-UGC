@@ -545,13 +545,11 @@ const inc = {
         if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc);
         mostrarAlerta('alertIncidencias', '✅ Incidencia registrada');
         
-        // Crear notificación en Google Sheets
-        const estudiante = inc['Nombre Estudiante'];
-        const tipoFalta = inc['Tipo de falta'];
-        const tipoConducta = inc['Tipo de Conducta'];
-        const prioridad = (tipoFalta === 'Grave' || tipoFalta === 'Muy Grave') ? 'importante' : 'info';
-        
-        if (sistemaNotificacionesSheets) {
+        // Crear notificación en Google Sheets (si está disponible)
+        if (typeof notificarNuevaIncidencia === 'function') {
+            const estudiante = inc['Nombre Estudiante'];
+            const tipoFalta = inc['Tipo de falta'];
+            const tipoConducta = inc['Tipo de Conducta'];
             notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta);
         }
     }
@@ -2018,12 +2016,11 @@ function registrarContacto(e) {
         if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
         mostrarAlerta('alertContactos', '✅ Contacto registrado');
         
-        // Crear notificación en Google Sheets
-        const estudiante = contacto['Nombre Estudiante'];
-        const nombrePadre = contacto['Nombre Padre'];
-        const nombreMadre = contacto['Nombre Madre'];
-        
-        if (sistemaNotificacionesSheets) {
+        // Crear notificación en Google Sheets (si está disponible)
+        if (typeof notificarNuevoContacto === 'function') {
+            const estudiante = contacto['Nombre Estudiante'];
+            const nombrePadre = contacto['Nombre Padre'];
+            const nombreMadre = contacto['Nombre Madre'];
             notificarNuevoContacto(estudiante, nombrePadre, nombreMadre);
         }
     }
