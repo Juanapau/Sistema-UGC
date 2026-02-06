@@ -519,7 +519,11 @@ function inicializarSistemaNotificaciones() {
         
         if (urlNotificaciones) {
             sistemaNotificacionesSheets = new NotificacionesGoogleSheets();
-            sistemaNotificacionesSheets.cargarNotificaciones();
+            
+            // Cargar notificaciones de forma asíncrona sin bloquear
+            sistemaNotificacionesSheets.cargarNotificaciones().catch(error => {
+                console.log('Error al cargar notificaciones iniciales:', error);
+            });
             
             // Actualizar cada 30 segundos cuando el panel está abierto
             if (intervaloActualizacionNotificaciones) {
@@ -527,14 +531,24 @@ function inicializarSistemaNotificaciones() {
             }
             
             intervaloActualizacionNotificaciones = setInterval(() => {
-                const panel = document.getElementById('notifPanel');
-                if (panel && panel.classList.contains('active')) {
-                    sistemaNotificacionesSheets.cargarNotificaciones();
+                try {
+                    const panel = document.getElementById('notifPanel');
+                    if (panel && panel.classList.contains('active') && sistemaNotificacionesSheets) {
+                        sistemaNotificacionesSheets.cargarNotificaciones().catch(error => {
+                            console.log('Error al actualizar notificaciones:', error);
+                        });
+                    }
+                } catch (error) {
+                    console.log('Error en intervalo de notificaciones:', error);
                 }
             }, 30000);
+            
+            console.log('✅ Sistema de notificaciones inicializado correctamente');
+        } else {
+            console.log('⚠️ URL de notificaciones no configurada');
         }
     } catch (error) {
-        console.log('Sistema de notificaciones no inicializado:', error.message);
+        console.log('❌ Error al inicializar sistema de notificaciones:', error.message);
     }
 }
 
@@ -605,6 +619,8 @@ if (document.readyState === 'loading') {
 */
 
 // Actualizar notificaciones periódicamente (cada 2 minutos) - SOLO SI ESTÁ INICIALIZADO
+// NOTA: Deshabilitado para evitar bloqueos. El sistema se actualiza al abrir el panel.
+/*
 setInterval(() => {
     try {
         if (sistemaNotificacionesSheets && urlNotificaciones) {
@@ -614,5 +630,6 @@ setInterval(() => {
         // Ignorar errores silenciosamente
     }
 }, 120000); // 2 minutos
+*/
 
 console.log('✅ Sistema de notificaciones cargado (pendiente de configuración)');
