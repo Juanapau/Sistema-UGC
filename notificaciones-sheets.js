@@ -132,12 +132,11 @@ class NotificacionesGoogleSheets {
                 console.log('✅ [JS] Encontrada localmente');
                 notif.Leida = 'true';
                 actualizarPanelNotificaciones();
-                actualizarContadoresNotificaciones();
             } else {
                 console.warn('⚠️ [JS] No encontrada localmente');
             }
 
-            // 2. Enviar a Google Sheets
+            // 2. Enviar a Google Sheets (IGUAL QUE marcarTodasLeidas)
             const formData = new URLSearchParams();
             formData.append('action', 'marcarLeida');
             formData.append('idUnico', idUnico);
@@ -148,21 +147,16 @@ class NotificacionesGoogleSheets {
                 method: 'POST',
                 mode: 'no-cors',
                 body: formData
-            }).then(() => {
-                console.log('✅ [JS] Petición enviada');
             }).catch(error => {
-                console.error('❌ [JS] Error al enviar:', error);
+                console.log('Error al enviar:', error);
             });
 
             // 3. Recargar después de 3 segundos
-            setTimeout(() => {
-                console.log('🔄 [JS] Recargando para confirmar...');
-                this.cargarNotificaciones(true);
-            }, 3000);
+            setTimeout(() => this.cargarNotificaciones(true), 3000);
 
             return true;
         } catch (error) {
-            console.error('❌ [JS] Error general:', error);
+            console.error('Error al marcar como leída:', error);
             return false;
         }
     }
