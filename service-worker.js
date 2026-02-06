@@ -1,6 +1,6 @@
 // Service Worker para Sistema UGC PWA
 // Versión del caché - cambia este número cuando quieras forzar actualización
-const CACHE_VERSION = 'ugc-v1.0.0';
+const CACHE_VERSION = 'ugc-v1.0.1'; // ← Incrementada para forzar actualización
 const CACHE_NAME = `ugc-cache-${CACHE_VERSION}`;
 
 // Archivos críticos que se cachean para funcionar offline
@@ -17,7 +17,7 @@ const CRITICAL_FILES = [
 
 // Instalación del Service Worker
 self.addEventListener('install', (event) => {
-  console.log('📦 Service Worker: Instalando...');
+  console.log('📦 Service Worker: Instalando v1.0.1...');
   
   // Forzar que el nuevo service worker tome control inmediatamente
   self.skipWaiting();
@@ -32,7 +32,7 @@ self.addEventListener('install', (event) => {
 
 // Activación del Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('✅ Service Worker: Activando...');
+  console.log('✅ Service Worker: Activando v1.0.1...');
   
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -54,16 +54,19 @@ self.addEventListener('activate', (event) => {
 
 // Estrategia de caché: Network First con fallback a Cache
 self.addEventListener('fetch', (event) => {
-  // Ignorar solicitudes que no sean GET
+  // 🆕 CORREGIDO: Pasar peticiones POST sin interceptar
   if (event.request.method !== 'GET') {
-    return;
+    // Dejar que la petición pase directamente sin interceptar
+    return; // No hacemos event.respondWith(), el navegador la maneja
   }
   
-  // Ignorar solicitudes a Google Sheets API
+  // 🆕 CORREGIDO: Pasar peticiones a Google Sheets sin interceptar
   if (event.request.url.includes('script.google.com')) {
+    // Dejar que la petición pase directamente
     return;
   }
   
+  // Solo cachear peticiones GET que no sean a Google Sheets
   event.respondWith(
     fetch(event.request)
       .then((response) => {
@@ -98,3 +101,5 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
+console.log('✅ Service Worker v1.0.1 cargado - POST requests corregidas');
