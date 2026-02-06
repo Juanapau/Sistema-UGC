@@ -17,7 +17,9 @@ let CONFIG = {
     // 👉 URL de Notas Rápidas
     urlNotasRapidas: 'https://script.google.com/macros/s/AKfycbz-Dka2Nj27ArjgQhR72s5wl8AohebgppDmnWux4rnLrEG5zQyOco9uwxlJqgAzJtW17Q/exec',
      // 👉 URL de Maestros
-    urlMaestros: 'https://script.google.com/macros/s/AKfycbxTKAwY9m_AuxV-d9IsOaa_IDv1ZAvWv26RdgiIzD2Y6ucX_CtKVjrWbnR5Fefd12uV/exec'
+    urlMaestros: 'https://script.google.com/macros/s/AKfycbxTKAwY9m_AuxV-d9IsOaa_IDv1ZAvWv26RdgiIzD2Y6ucX_CtKVjrWbnR5Fefd12uV/exec',
+     // 👉 URL de Maestros
+    urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec'
 };
 
 // Guardar URLs predeterminadas (las del código)
@@ -543,19 +545,15 @@ const inc = {
         if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc);
         mostrarAlerta('alertIncidencias', '✅ Incidencia registrada');
         
-        // Agregar notificación al sistema
+        // Crear notificación en Google Sheets
         const estudiante = inc['Nombre Estudiante'];
         const tipoFalta = inc['Tipo de falta'];
         const tipoConducta = inc['Tipo de Conducta'];
         const prioridad = (tipoFalta === 'Grave' || tipoFalta === 'Muy Grave') ? 'importante' : 'info';
         
-        agregarNotificacion(
-            'incidencia-nueva',
-            '📋',
-            'Nueva incidencia registrada',
-            `Se ha registrado una <strong>Falta ${tipoFalta}</strong> para <strong>${estudiante}</strong> por ${tipoConducta}.`,
-            prioridad
-        );
+        if (sistemaNotificacionesSheets) {
+            notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta);
+        }
     }
     
     document.getElementById('formIncidencia').reset();
@@ -2020,26 +2018,14 @@ function registrarContacto(e) {
         if (CONFIG.urlContactos) enviarGoogleSheets(CONFIG.urlContactos, contacto);
         mostrarAlerta('alertContactos', '✅ Contacto registrado');
         
-        // Agregar notificación al sistema
+        // Crear notificación en Google Sheets
         const estudiante = contacto['Nombre Estudiante'];
         const nombrePadre = contacto['Nombre Padre'];
         const nombreMadre = contacto['Nombre Madre'];
         
-        let contactosRegistrados = [];
-        if (nombrePadre) contactosRegistrados.push('Padre');
-        if (nombreMadre) contactosRegistrados.push('Madre');
-        
-        const textContactos = contactosRegistrados.length > 0 
-            ? contactosRegistrados.join(' y ') 
-            : 'Contacto de emergencia';
-        
-        agregarNotificacion(
-            'contacto-nuevo',
-            '📞',
-            'Nuevo contacto registrado',
-            `Se ha registrado el contacto de <strong>${textContactos}</strong> para el estudiante <strong>${estudiante}</strong>.`,
-            'info'
-        );
+        if (sistemaNotificacionesSheets) {
+            notificarNuevoContacto(estudiante, nombrePadre, nombreMadre);
+        }
     }
     
     document.getElementById('formContacto').reset();
@@ -3489,6 +3475,15 @@ function crearModalConfiguracion() {
                             
                             <div class="url-input-group">
                                 <label>
+                                    <span class="label-icon">🔔</span>
+                                    <span class="label-text">Notificaciones</span>
+                                </label>
+                                <input type="url" id="urlNotificaciones" value="${CONFIG.urlNotificaciones || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
                                     <span class="label-icon">👨‍🏫</span>
                                     <span class="label-text">Maestros</span>
                                 </label>
@@ -4083,10 +4078,12 @@ function guardarConfig(e) {
     CONFIG.urlEstudiantes = document.getElementById('urlEst').value;
     CONFIG.urlReuniones = document.getElementById('urlReun').value;
     CONFIG.urlNotasRapidas = document.getElementById('urlNotas').value;
+    CONFIG.urlNotificaciones = document.getElementById('urlNotificaciones').value;
     CONFIG.urlMaestros = document.getElementById('urlMaestros').value;
     
-    // Actualizar también la variable global de notas
+    // Actualizar también las variables globales
     urlNotasRapidas = CONFIG.urlNotasRapidas;
+    urlNotificaciones = CONFIG.urlNotificaciones;
     
     localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
     mostrarAlerta('alertConfig', '✅ Configuración guardada correctamente');
@@ -4094,6 +4091,12 @@ function guardarConfig(e) {
     // Inicializar sistema de notas si se configuró la URL
     if (CONFIG.urlNotasRapidas && typeof inicializarSistemaNotas === 'function') {
         inicializarSistemaNotas();
+    }
+    
+    // Inicializar sistema de notificaciones si se configuró la URL
+    if (CONFIG.urlNotificaciones && typeof inicializarSistemaNotificaciones === 'function') {
+        inicializarSistemaNotificaciones();
+    }
     }
 }
 
