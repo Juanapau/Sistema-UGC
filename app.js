@@ -4094,7 +4094,6 @@ function guardarConfig(e) {
     if (CONFIG.urlNotificaciones && typeof inicializarSistemaNotificaciones === 'function') {
         inicializarSistemaNotificaciones();
     }
-    }
 }
 
 function restaurarURLsPredeterminadas() {
