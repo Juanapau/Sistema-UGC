@@ -2148,7 +2148,7 @@
                 <div class="global-search-results" id="globalSearchResults"></div>
             </div>
             
-            <button class="notificaciones-btn" onclick="toggleNotificaciones()" title="Notificaciones">
+            <button class="notificaciones-btn" onclick="toggleNotificacionesSheets()" title="Notificaciones">
                 🔔
                 <span class="notif-badge" id="notifCounter" style="display:none;">0</span>
             </button>
@@ -2161,17 +2161,17 @@
         <div class="notificaciones-panel" id="notifPanel">
             <div class="notif-panel-header">
                 <h2>🔔 Notificaciones</h2>
-                <button class="notif-close-btn" onclick="toggleNotificaciones()">✕</button>
+                <button class="notif-close-btn" onclick="toggleNotificacionesSheets()">✕</button>
             </div>
             
             <div class="notif-tabs">
-                <button class="notif-tab active" data-tab="todas" onclick="cambiarTabNotif('todas')">
+                <button class="notif-tab active" data-tab="todas" onclick="cambiarTabNotifSheets('todas')">
                     Todas <span class="tab-count" id="countTodas">0</span>
                 </button>
-                <button class="notif-tab" data-tab="sin-leer" onclick="cambiarTabNotif('sin-leer')">
+                <button class="notif-tab" data-tab="sin-leer" onclick="cambiarTabNotifSheets('sin-leer')">
                     Sin Leer <span class="tab-count" id="countSinLeer">0</span>
                 </button>
-                <button class="notif-tab" data-tab="leidas" onclick="cambiarTabNotif('leidas')">
+                <button class="notif-tab" data-tab="leidas" onclick="cambiarTabNotifSheets('leidas')">
                     Leídas <span class="tab-count" id="countLeidas">0</span>
                 </button>
             </div>
@@ -2185,10 +2185,10 @@
             </div>
             
             <div class="notif-actions">
-                <button class="notif-action-btn btn-marcar-todas" onclick="marcarTodasNotificacionesLeidas()">
+                <button class="notif-action-btn btn-marcar-todas" onclick="marcarTodasNotifLeidas()">
                     ✓ Marcar todas como leídas
                 </button>
-                <button class="notif-action-btn btn-limpiar" onclick="limpiarNotificacionesLeidas()">
+                <button class="notif-action-btn btn-limpiar" onclick="limpiarNotifLeidas()">
                     🗑️ Limpiar
                 </button>
             </div>
@@ -2491,6 +2491,7 @@
 
     <!-- Script del Sistema de Notas -->
     <script src="notas-rapidas.js"></script>
+    <script src="notificaciones-sheets.js"></script>
     
     <!-- PWA Service Worker Registration -->
     <script>
