@@ -463,20 +463,31 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
             'info': '#0d6efd'
         };
         
+        // 🆕 MEJORADO: Estilos diferentes para leídas
+        const estiloNotif = leida 
+            ? `background: #f8f9fa; opacity: 0.85; border-left: 4px solid #6c757d;`
+            : `border-left: 4px solid ${colorBorde[prioridad]};`;
+        
+        // 🆕 MEJORADO: Solo marcar si NO está leída
+        const accionClick = leida 
+            ? '' 
+            : `onclick="marcarNotifLeida('${notif.ID_Unico}')" style="cursor: pointer;"`;
+        
         return `
-            <div class="notif-item ${leida ? 'leida' : ''}" 
-                 onclick="marcarNotifLeida('${notif.ID_Unico}')" 
-                 style="border-left: 4px solid ${colorBorde[prioridad]};">
+            <div class="notif-item ${leida ? 'leida' : 'sin-leer'}" 
+                 ${accionClick}
+                 style="${estiloNotif}">
                 <div class="notif-header-item">
                     <span class="notif-badge-type badge-${prioridad}">
                         ${iconosPrioridad[prioridad]} ${prioridad.toUpperCase()}
                     </span>
                     <span class="notif-fecha">${fechaTexto}</span>
+                    ${leida ? '<span class="notif-estado-leida">✓ Leída</span>' : ''}
                 </div>
-                <h4 class="notif-titulo">${notif.Titulo}</h4>
-                <p class="notif-mensaje">${notif.Mensaje}</p>
+                <h4 class="notif-titulo" style="${leida ? 'color: #6c757d;' : ''}">${notif.Titulo}</h4>
+                <p class="notif-mensaje" style="${leida ? 'color: #868e96;' : ''}">${notif.Mensaje}</p>
                 <div class="notif-acciones">
-                    ${!leida ? '<span class="notif-nuevo">NUEVA</span>' : ''}
+                    ${!leida ? '<span class="notif-nuevo">🆕 NUEVA</span>' : '<span class="notif-archivada">📂 Archivada</span>'}
                     <button onclick="event.stopPropagation(); eliminarNotifSheets('${notif.ID_Unico}')" 
                             class="btn-eliminar-notif">
                         🗑️ Eliminar
@@ -774,12 +785,68 @@ if (typeof mostrarNotificacionToast === 'undefined') {
     }
 }
 
-// 🆕 NUEVO: Agregar estilos CSS para animación del badge
+// 🆕 NUEVO: Agregar estilos CSS para animación del badge y notificaciones
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
     @keyframes pulse {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.2); }
+    }
+    
+    /* Estilos para notificaciones sin leer */
+    .notif-item.sin-leer {
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .notif-item.sin-leer:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Estilos para notificaciones leídas */
+    .notif-item.leida {
+        transition: all 0.3s ease;
+    }
+    
+    .notif-item.leida:hover {
+        opacity: 1 !important;
+    }
+    
+    /* Badge de estado leída */
+    .notif-estado-leida {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    
+    /* Badge NUEVA mejorado */
+    .notif-nuevo {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    /* Badge ARCHIVADA */
+    .notif-archivada {
+        background: #6c757d;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 11px;
+        font-weight: 600;
+        opacity: 0.7;
     }
 `;
 document.head.appendChild(styleSheet);
