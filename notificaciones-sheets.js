@@ -4,7 +4,7 @@
 // ========================================
 
 // 👉 CONFIGURACIÓN DE URL - Esta URL se configura desde el módulo de Configuración
-let urlNotificaciones = '';
+let urlNotificaciones = 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec';
 
 // Variables globales
 let datosNotificaciones = [];
