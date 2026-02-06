@@ -1,5 +1,6 @@
 // ========================================
 // SISTEMA DE NOTIFICACIONES - GOOGLE SHEETS
+// ✨ VERSIÓN MEJORADA - Actualización rápida y compatible con iOS
 // Con sincronización en tiempo real entre dispositivos
 // ========================================
 
@@ -10,6 +11,8 @@ let urlNotificaciones = 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpW
 let datosNotificaciones = [];
 let sistemaNotificacionesSheets = null;
 let intervaloActualizacionNotificaciones = null;
+let intervaloActualizacionBackground = null; // 🆕 NUEVO: Para actualización en segundo plano
+let ultimaActualizacionBadge = 0; // 🆕 NUEVO: Para evitar actualizaciones excesivas del badge
 
 // ========================================
 // CLASE PRINCIPAL
@@ -20,6 +23,7 @@ class NotificacionesGoogleSheets {
         this.url = urlNotificaciones;
         this.ultimaActualizacion = null;
         this.usuarioActual = this.obtenerUsuario();
+        this.notificacionesAnteriores = 0; // 🆕 NUEVO: Para detectar nuevas notificaciones
     }
 
     // Obtener identificador del usuario (basado en dispositivo)
@@ -34,26 +38,59 @@ class NotificacionesGoogleSheets {
     }
 
     // Cargar todas las notificaciones desde Google Sheets
-    async cargarNotificaciones() {
+    async cargarNotificaciones(silencioso = false) {
         if (!this.url) {
             console.log('URL de notificaciones no configurada');
             return [];
         }
 
         try {
-            const response = await fetch(`${this.url}?action=leer`);
-            const data = await response.json();
+            // 🆕 MEJORADO: Añadir timestamp para evitar caché
+            const timestamp = new Date().getTime();
+            const response = await fetch(`${this.url}?action=leer&t=${timestamp}`, {
+                method: 'GET',
+                cache: 'no-cache', // 🆕 NUEVO: Evitar caché del navegador
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
             
-            if (data.success && Array.isArray(data.data)) {
-                datosNotificaciones = data.data;
-                this.ultimaActualizacion = new Date();
-                actualizarPanelNotificaciones();
-                return data.data;
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data.success && Array.isArray(data.data)) {
+                    const cantidadAnterior = datosNotificaciones.length;
+                    datosNotificaciones = data.data;
+                    this.ultimaActualizacion = new Date();
+                    
+                    // 🆕 NUEVO: Detectar si hay nuevas notificaciones
+                    if (!silencioso && datosNotificaciones.length > cantidadAnterior) {
+                        this.animarBadgeNuevas();
+                    }
+                    
+                    actualizarPanelNotificaciones();
+                    actualizarContadoresNotificaciones();
+                    return data.data;
+                }
             }
         } catch (error) {
-            console.error('Error al cargar notificaciones:', error);
+            if (!silencioso) {
+                console.error('Error al cargar notificaciones:', error);
+            }
         }
         return [];
+    }
+
+    // 🆕 NUEVO: Animación del badge cuando hay nuevas notificaciones
+    animarBadgeNuevas() {
+        const badge = document.getElementById('notifCounter');
+        if (badge && badge.style.display !== 'none') {
+            badge.style.animation = 'none';
+            setTimeout(() => {
+                badge.style.animation = 'pulse 0.5s ease-in-out 3';
+            }, 10);
+        }
     }
 
     // Crear nueva notificación
@@ -75,21 +112,31 @@ class NotificacionesGoogleSheets {
         };
 
         try {
+            // 🆕 MEJORADO: Usar URLSearchParams en lugar de JSON para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'agregar');
+            
+            // Agregar cada campo de la notificación
+            for (const key in notificacion) {
+                formData.append(key, notificacion[key]);
+            }
+
             const response = await fetch(this.url, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'agregar',
-                    data: notificacion
-                })
+                // 🚫 ELIMINADO: mode: 'no-cors' - Esto causaba problemas en iOS
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded' // 🆕 NUEVO: Header correcto
+                },
+                body: formData.toString()
             });
 
-            // Recargar notificaciones después de agregar
-            setTimeout(() => this.cargarNotificaciones(), 1000);
+            // 🆕 MEJORADO: Recargar más rápido después de agregar
+            setTimeout(() => this.cargarNotificaciones(true), 500);
             return true;
         } catch (error) {
             console.error('Error al crear notificación:', error);
+            // 🆕 NUEVO: Reintentar una vez más en caso de error
+            setTimeout(() => this.cargarNotificaciones(true), 2000);
             return false;
         }
     }
@@ -99,17 +146,20 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
+            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'marcarLeida');
+            formData.append('idUnico', idUnico);
+
             const response = await fetch(this.url, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'marcarLeida',
-                    idUnico: idUnico
-                })
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
             });
 
-            // Actualizar localmente
+            // Actualizar localmente de inmediato
             const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
             if (notif) {
                 notif.Leida = 'true';
@@ -128,14 +178,17 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
+            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'eliminar');
+            formData.append('idUnico', idUnico);
+
             const response = await fetch(this.url, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'eliminar',
-                    idUnico: idUnico
-                })
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
             });
 
             // Actualizar localmente
@@ -154,14 +207,17 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
+            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'marcarTodasLeidas');
+            formData.append('usuario', this.usuarioActual);
+
             const response = await fetch(this.url, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'marcarTodasLeidas',
-                    usuario: this.usuarioActual
-                })
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
             });
 
             // Actualizar localmente
@@ -184,14 +240,17 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
+            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'limpiarLeidas');
+            formData.append('usuario', this.usuarioActual);
+
             const response = await fetch(this.url, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'limpiarLeidas',
-                    usuario: this.usuarioActual
-                })
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
             });
 
             // Actualizar localmente
@@ -230,10 +289,9 @@ class NotificacionesGoogleSheets {
 }
 
 // ========================================
-// FUNCIONES DE INTERFAZ
+// INTERFAZ DE USUARIO - PANEL DE NOTIFICACIONES
 // ========================================
 
-// Toggle del panel de notificaciones
 function toggleNotificacionesSheets() {
     const panel = document.getElementById('notifPanel');
     const overlay = document.getElementById('notifOverlay');
@@ -267,8 +325,42 @@ function toggleNotificacionesSheets() {
         const tabTodas = document.querySelector('.notif-tab[data-tab="todas"]');
         if (tabTodas) tabTodas.classList.add('active');
         
+        // 🆕 MEJORADO: Mostrar indicador de carga
+        mostrarIndicadorActualizacion(true);
+        
         // Cargar notificaciones
-        sistemaNotificacionesSheets.cargarNotificaciones();
+        sistemaNotificacionesSheets.cargarNotificaciones().then(() => {
+            mostrarIndicadorActualizacion(false);
+        });
+    }
+}
+
+// 🆕 NUEVO: Indicador visual de actualización
+function mostrarIndicadorActualizacion(mostrar) {
+    const header = document.querySelector('.notif-header h3');
+    if (!header) return;
+    
+    let indicador = document.getElementById('indicadorActualizacion');
+    
+    if (mostrar) {
+        if (!indicador) {
+            indicador = document.createElement('span');
+            indicador.id = 'indicadorActualizacion';
+            indicador.style.cssText = `
+                display: inline-block;
+                margin-left: 10px;
+                color: #059669;
+                font-size: 14px;
+                animation: pulse 1s ease-in-out infinite;
+            `;
+            indicador.textContent = '🔄';
+            header.appendChild(indicador);
+        }
+        indicador.style.display = 'inline-block';
+    } else {
+        if (indicador) {
+            indicador.style.display = 'none';
+        }
     }
 }
 
@@ -278,90 +370,97 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
     if (!content) return;
     
     if (!sistemaNotificacionesSheets) {
-        content.innerHTML = '<div class="notif-empty"><p>Inicializando sistema...</p></div>';
-        return;
-    }
-    
-    let notifsFiltradas = sistemaNotificacionesSheets.obtenerMisNotificaciones();
-    
-    if (filtro === 'sin-leer') {
-        notifsFiltradas = notifsFiltradas.filter(n => n.Leida !== 'true');
-    } else if (filtro === 'leidas') {
-        notifsFiltradas = notifsFiltradas.filter(n => n.Leida === 'true');
-    }
-    
-    // Ordenar por timestamp (más recientes primero)
-    notifsFiltradas.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-    
-    if (notifsFiltradas.length === 0) {
         content.innerHTML = `
-            <div class="notif-empty">
-                <div class="notif-empty-icon">📭</div>
-                <p style="font-size:1.1em;font-weight:600;margin-bottom:5px;">No hay notificaciones</p>
-                <p style="font-size:0.9em;">Todas tus notificaciones aparecerán aquí</p>
+            <div style="text-align:center;padding:60px 20px;color:#999;">
+                <div style="font-size:64px;margin-bottom:20px;">⚙️</div>
+                <p style="font-size:18px;margin-bottom:10px;">Sistema no inicializado</p>
+                <p style="font-size:14px;">Configura la URL en Configuración del Sistema</p>
             </div>
         `;
         return;
     }
     
-    let html = '';
-    notifsFiltradas.forEach(notif => {
-        const tiempoTexto = obtenerTiempoRelativoNotif(new Date(notif.Timestamp));
-        const badgeClass = notif.Prioridad === 'urgente' ? 'badge-urgente' : 
-                          notif.Prioridad === 'importante' ? 'badge-importante' : 'badge-info';
-        const badgeTexto = notif.Prioridad === 'urgente' ? 'Urgente' :
-                          notif.Prioridad === 'importante' ? 'Importante' : 'Información';
+    const misNotificaciones = sistemaNotificacionesSheets.obtenerMisNotificaciones();
+    
+    let notifFiltradas = misNotificaciones;
+    if (filtro === 'sin-leer') {
+        notifFiltradas = misNotificaciones.filter(n => n.Leida !== 'true');
+    } else if (filtro === 'leidas') {
+        notifFiltradas = misNotificaciones.filter(n => n.Leida === 'true');
+    }
+    
+    if (notifFiltradas.length === 0) {
+        const mensajes = {
+            'todas': { emoji: '📭', texto: 'No hay notificaciones' },
+            'sin-leer': { emoji: '✅', texto: 'No hay notificaciones sin leer' },
+            'leidas': { emoji: '📭', texto: 'No hay notificaciones leídas' }
+        };
+        const msg = mensajes[filtro] || mensajes['todas'];
         
-        const icono = obtenerIconoNotificacion(notif.Tipo);
-        
-        html += `
-            <div class="notif-item ${notif.Leida !== 'true' ? 'unread' : ''}" onclick="marcarNotifLeida('${notif.ID_Unico}')">
-                <div class="notif-header-row">
-                    <div class="notif-title">
-                        <span class="notif-icon">${icono}</span>
-                        <span>${notif.Titulo}</span>
-                    </div>
-                </div>
-                <div class="notif-message">${notif.Mensaje}</div>
-                <div class="notif-meta">
-                    <span class="notif-time">🕐 ${tiempoTexto}</span>
-                    <span class="notif-badge-type ${badgeClass}">${badgeTexto}</span>
-                </div>
+        content.innerHTML = `
+            <div style="text-align:center;padding:60px 20px;color:#999;">
+                <div style="font-size:64px;margin-bottom:20px;">${msg.emoji}</div>
+                <p style="font-size:18px;">${msg.texto}</p>
             </div>
         `;
+        return;
+    }
+    
+    // Ordenar por fecha (más recientes primero)
+    notifFiltradas.sort((a, b) => {
+        const fechaA = new Date(a.Timestamp || 0);
+        const fechaB = new Date(b.Timestamp || 0);
+        return fechaB - fechaA;
     });
     
-    content.innerHTML = html;
+    content.innerHTML = notifFiltradas.map(notif => {
+        const prioridad = notif.Prioridad || 'info';
+        const leida = notif.Leida === 'true';
+        const fecha = new Date(notif.Timestamp);
+        const fechaTexto = fecha.toLocaleDateString('es-DO', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const iconosPrioridad = {
+            'urgente': '🚨',
+            'importante': '⚠️',
+            'info': 'ℹ️'
+        };
+        
+        const colorBorde = {
+            'urgente': '#dc3545',
+            'importante': '#ffc107',
+            'info': '#0d6efd'
+        };
+        
+        return `
+            <div class="notif-item ${leida ? 'leida' : ''}" 
+                 onclick="marcarNotifLeida('${notif.ID_Unico}')" 
+                 style="border-left: 4px solid ${colorBorde[prioridad]};">
+                <div class="notif-header-item">
+                    <span class="notif-badge-type badge-${prioridad}">
+                        ${iconosPrioridad[prioridad]} ${prioridad.toUpperCase()}
+                    </span>
+                    <span class="notif-fecha">${fechaTexto}</span>
+                </div>
+                <h4 class="notif-titulo">${notif.Titulo}</h4>
+                <p class="notif-mensaje">${notif.Mensaje}</p>
+                <div class="notif-acciones">
+                    ${!leida ? '<span class="notif-nuevo">NUEVA</span>' : ''}
+                    <button onclick="event.stopPropagation(); eliminarNotifSheets('${notif.ID_Unico}')" 
+                            class="btn-eliminar-notif">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
-// Obtener icono según tipo
-function obtenerIconoNotificacion(tipo) {
-    const iconos = {
-        'incidencia': '📋',
-        'contacto': '📞',
-        'tardanzas': '🚨',
-        'reunion': '📅',
-        'sistema': '⚙️'
-    };
-    return iconos[tipo] || 'ℹ️';
-}
-
-// Obtener tiempo relativo
-function obtenerTiempoRelativoNotif(fecha) {
-    const ahora = new Date();
-    const diff = ahora - fecha;
-    const minutos = Math.floor(diff / 60000);
-    const horas = Math.floor(diff / 3600000);
-    const dias = Math.floor(diff / 86400000);
-    
-    if (minutos < 1) return 'ahora mismo';
-    if (minutos < 60) return `hace ${minutos} min`;
-    if (horas < 24) return `hace ${horas} hora${horas > 1 ? 's' : ''}`;
-    if (dias < 7) return `hace ${dias} día${dias > 1 ? 's' : ''}`;
-    return fecha.toLocaleDateString('es-DO');
-}
-
-// Actualizar el panel completo
 function actualizarPanelNotificaciones() {
     const tabActiva = document.querySelector('.notif-tab.active');
     const filtro = tabActiva ? tabActiva.getAttribute('data-tab') : 'todas';
@@ -401,6 +500,24 @@ function cambiarTabNotifSheets(tab) {
     event.target.classList.add('active');
     
     mostrarNotificacionesSheets(tab);
+}
+
+// Eliminar notificación individual
+async function eliminarNotifSheets(idUnico) {
+    if (!sistemaNotificacionesSheets) return;
+    
+    const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
+    if (!notif) return;
+    
+    mostrarModalConfirmacion(
+        '🗑️ Eliminar notificación',
+        `¿Estás seguro de que deseas eliminar esta notificación?<br><br><strong>${notif.Titulo}</strong>`,
+        true,
+        async function() {
+            await sistemaNotificacionesSheets.eliminarNotificacion(idUnico);
+            mostrarNotificacionToast('✅ Notificación eliminada');
+        }
+    );
 }
 
 // Marcar notificación como leída
@@ -507,7 +624,7 @@ async function notificarTardanzasCriticas(estudiante, cantidad) {
 }
 
 // ========================================
-// INICIALIZACIÓN Y ACTUALIZACIÓN
+// 🆕 NUEVO: SISTEMA DE ACTUALIZACIÓN INTELIGENTE
 // ========================================
 
 function inicializarSistemaNotificaciones() {
@@ -521,29 +638,55 @@ function inicializarSistemaNotificaciones() {
             sistemaNotificacionesSheets = new NotificacionesGoogleSheets();
             
             // Cargar notificaciones de forma asíncrona sin bloquear
-            sistemaNotificacionesSheets.cargarNotificaciones().catch(error => {
+            sistemaNotificacionesSheets.cargarNotificaciones(true).catch(error => {
                 console.log('Error al cargar notificaciones iniciales:', error);
             });
             
-            // Actualizar cada 30 segundos cuando el panel está abierto
+            // 🆕 MEJORADO: Limpiar intervalos anteriores si existen
             if (intervaloActualizacionNotificaciones) {
                 clearInterval(intervaloActualizacionNotificaciones);
             }
+            if (intervaloActualizacionBackground) {
+                clearInterval(intervaloActualizacionBackground);
+            }
             
+            // 🆕 NUEVO: Actualización rápida cuando el panel está ABIERTO (cada 5 segundos)
             intervaloActualizacionNotificaciones = setInterval(() => {
                 try {
                     const panel = document.getElementById('notifPanel');
                     if (panel && panel.classList.contains('active') && sistemaNotificacionesSheets) {
-                        sistemaNotificacionesSheets.cargarNotificaciones().catch(error => {
+                        sistemaNotificacionesSheets.cargarNotificaciones(true).catch(error => {
                             console.log('Error al actualizar notificaciones:', error);
                         });
                     }
                 } catch (error) {
                     console.log('Error en intervalo de notificaciones:', error);
                 }
-            }, 30000);
+            }, 5000); // ⚡ 5 segundos cuando está abierto
+            
+            // 🆕 NUEVO: Actualización en segundo plano cuando el panel está CERRADO (cada 15 segundos)
+            intervaloActualizacionBackground = setInterval(() => {
+                try {
+                    const panel = document.getElementById('notifPanel');
+                    // Solo actualizar si el panel está CERRADO
+                    if ((!panel || !panel.classList.contains('active')) && sistemaNotificacionesSheets) {
+                        // Actualización silenciosa (solo badge, sin animaciones)
+                        const ahora = Date.now();
+                        // Evitar actualizaciones muy frecuentes del badge
+                        if (ahora - ultimaActualizacionBadge > 10000) {
+                            sistemaNotificacionesSheets.cargarNotificaciones(true).catch(error => {
+                                console.log('Error en actualización background:', error);
+                            });
+                            ultimaActualizacionBadge = ahora;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Error en actualización background:', error);
+                }
+            }, 15000); // ⚡ 15 segundos cuando está cerrado
             
             console.log('✅ Sistema de notificaciones inicializado correctamente');
+            console.log('⚡ Actualización: 5s (panel abierto) | 15s (segundo plano)');
         } else {
             console.log('⚠️ URL de notificaciones no configurada');
         }
@@ -600,36 +743,15 @@ if (typeof mostrarNotificacionToast === 'undefined') {
     }
 }
 
-// ========================================
-// INICIALIZACIÓN AL CARGAR LA PÁGINA
-// ========================================
-
-// NOTA: La inicialización automática está deshabilitada para evitar errores
-// Se inicializará solo cuando se configure la URL desde Configuración del Sistema
-
-// Inicializar cuando el DOM esté listo (sin causar errores si CONFIG no existe)
-/*
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(inicializarSistemaNotificaciones, 1000); // Esperar 1 segundo para que CONFIG cargue
-    });
-} else {
-    setTimeout(inicializarSistemaNotificaciones, 1000);
-}
-*/
-
-// Actualizar notificaciones periódicamente (cada 2 minutos) - SOLO SI ESTÁ INICIALIZADO
-// NOTA: Deshabilitado para evitar bloqueos. El sistema se actualiza al abrir el panel.
-/*
-setInterval(() => {
-    try {
-        if (sistemaNotificacionesSheets && urlNotificaciones) {
-            sistemaNotificacionesSheets.cargarNotificaciones();
-        }
-    } catch (error) {
-        // Ignorar errores silenciosamente
+// 🆕 NUEVO: Agregar estilos CSS para animación del badge
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
     }
-}, 120000); // 2 minutos
-*/
+`;
+document.head.appendChild(styleSheet);
 
-console.log('✅ Sistema de notificaciones cargado (pendiente de configuración)');
+console.log('✅ Sistema de notificaciones MEJORADO cargado');
+console.log('🚀 Características: Actualización rápida + Compatible con iOS');
