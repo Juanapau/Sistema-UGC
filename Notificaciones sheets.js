@@ -511,33 +511,37 @@ async function notificarTardanzasCriticas(estudiante, cantidad) {
 // ========================================
 
 function inicializarSistemaNotificaciones() {
-    // Cargar URL desde CONFIG si existe
-    if (CONFIG && CONFIG.urlNotificaciones) {
-        urlNotificaciones = CONFIG.urlNotificaciones;
-    }
-    
-    if (urlNotificaciones) {
-        sistemaNotificacionesSheets = new NotificacionesGoogleSheets();
-        sistemaNotificacionesSheets.cargarNotificaciones();
-        
-        // Actualizar cada 30 segundos cuando el panel está abierto
-        if (intervaloActualizacionNotificaciones) {
-            clearInterval(intervaloActualizacionNotificaciones);
+    try {
+        // Cargar URL desde CONFIG si existe
+        if (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.urlNotificaciones) {
+            urlNotificaciones = CONFIG.urlNotificaciones;
         }
         
-        intervaloActualizacionNotificaciones = setInterval(() => {
-            const panel = document.getElementById('notifPanel');
-            if (panel && panel.classList.contains('active')) {
-                sistemaNotificacionesSheets.cargarNotificaciones();
+        if (urlNotificaciones) {
+            sistemaNotificacionesSheets = new NotificacionesGoogleSheets();
+            sistemaNotificacionesSheets.cargarNotificaciones();
+            
+            // Actualizar cada 30 segundos cuando el panel está abierto
+            if (intervaloActualizacionNotificaciones) {
+                clearInterval(intervaloActualizacionNotificaciones);
             }
-        }, 30000);
+            
+            intervaloActualizacionNotificaciones = setInterval(() => {
+                const panel = document.getElementById('notifPanel');
+                if (panel && panel.classList.contains('active')) {
+                    sistemaNotificacionesSheets.cargarNotificaciones();
+                }
+            }, 30000);
+        }
+    } catch (error) {
+        console.log('Sistema de notificaciones no inicializado:', error.message);
     }
 }
 
 // Actualizar URL de configuración
 function actualizarURLNotificaciones(nuevaURL) {
     urlNotificaciones = nuevaURL;
-    if (CONFIG) {
+    if (typeof CONFIG !== 'undefined' && CONFIG) {
         CONFIG.urlNotificaciones = nuevaURL;
     }
     inicializarSistemaNotificaciones();
@@ -586,16 +590,29 @@ if (typeof mostrarNotificacionToast === 'undefined') {
 // INICIALIZACIÓN AL CARGAR LA PÁGINA
 // ========================================
 
-// Inicializar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializarSistemaNotificaciones);
-} else {
-    inicializarSistemaNotificaciones();
-}
+// NOTA: La inicialización automática está deshabilitada para evitar errores
+// Se inicializará solo cuando se configure la URL desde Configuración del Sistema
 
-// Actualizar notificaciones periódicamente (cada 2 minutos)
+// Inicializar cuando el DOM esté listo (sin causar errores si CONFIG no existe)
+/*
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(inicializarSistemaNotificaciones, 1000); // Esperar 1 segundo para que CONFIG cargue
+    });
+} else {
+    setTimeout(inicializarSistemaNotificaciones, 1000);
+}
+*/
+
+// Actualizar notificaciones periódicamente (cada 2 minutos) - SOLO SI ESTÁ INICIALIZADO
 setInterval(() => {
-    if (sistemaNotificacionesSheets && urlNotificaciones) {
-        sistemaNotificacionesSheets.cargarNotificaciones();
+    try {
+        if (sistemaNotificacionesSheets && urlNotificaciones) {
+            sistemaNotificacionesSheets.cargarNotificaciones();
+        }
+    } catch (error) {
+        // Ignorar errores silenciosamente
     }
 }, 120000); // 2 minutos
+
+console.log('✅ Sistema de notificaciones cargado (pendiente de configuración)');
