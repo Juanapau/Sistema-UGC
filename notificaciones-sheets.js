@@ -300,7 +300,11 @@ class NotificacionesGoogleSheets {
 
     // Obtener notificaciones no leídas
     obtenerNoLeidas() {
-        return this.obtenerMisNotificaciones().filter(n => n.Leida !== 'true');
+        return this.obtenerMisNotificaciones().filter(n => {
+            // ✅ COMPATIBLE: Aceptar 'true', 'TRUE', true (booleano)
+            const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
+            return !estaLeida;
+        });
     }
 }
 
@@ -400,9 +404,15 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
     
     let notifFiltradas = misNotificaciones;
     if (filtro === 'sin-leer') {
-        notifFiltradas = misNotificaciones.filter(n => n.Leida !== 'true');
+        notifFiltradas = misNotificaciones.filter(n => {
+            const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
+            return !estaLeida;
+        });
     } else if (filtro === 'leidas') {
-        notifFiltradas = misNotificaciones.filter(n => n.Leida === 'true');
+        notifFiltradas = misNotificaciones.filter(n => {
+            const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
+            return estaLeida;
+        });
     }
     
     if (notifFiltradas.length === 0) {
@@ -431,7 +441,7 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
     
     content.innerHTML = notifFiltradas.map(notif => {
         const prioridad = notif.Prioridad || 'info';
-        const leida = notif.Leida === 'true';
+        const leida = notif.Leida === 'true' || notif.Leida === 'TRUE' || notif.Leida === true;
         const fecha = new Date(notif.Timestamp);
         const fechaTexto = fecha.toLocaleDateString('es-DO', { 
             day: '2-digit', 
@@ -491,7 +501,10 @@ function actualizarContadoresNotificaciones() {
     
     const misNotificaciones = sistemaNotificacionesSheets.obtenerMisNotificaciones();
     const total = misNotificaciones.length;
-    const noLeidas = misNotificaciones.filter(n => n.Leida !== 'true').length;
+    const noLeidas = misNotificaciones.filter(n => {
+        const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
+        return !estaLeida;
+    }).length;
     const leidas = total - noLeidas;
     
     const badge = document.getElementById('notifCounter');
@@ -556,7 +569,9 @@ async function limpiarNotifLeidas() {
     if (!sistemaNotificacionesSheets) return;
     
     const misNotificaciones = sistemaNotificacionesSheets.obtenerMisNotificaciones();
-    const cantidadLeidas = misNotificaciones.filter(n => n.Leida === 'true').length;
+    const cantidadLeidas = misNotificaciones.filter(n => {
+        return n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
+    }).length;
     
     if (cantidadLeidas === 0) {
         mostrarModalConfirmacion(
