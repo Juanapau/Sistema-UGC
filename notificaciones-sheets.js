@@ -137,23 +137,32 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
-            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
-            const formData = new URLSearchParams();
-            formData.append('action', 'marcarLeida');
-            formData.append('idUnico', idUnico);
-
-            const response = await fetch(this.url, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: formData
-            });
-
-            // Actualizar localmente de inmediato
+            // 🆕 MEJORADO: Actualizar localmente PRIMERO
             const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
             if (notif) {
                 notif.Leida = 'true';
                 actualizarPanelNotificaciones();
             }
+
+            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'marcarLeida');
+            formData.append('idUnico', idUnico);
+
+            // Enviar a Google Sheets (modo no-cors no puede leer respuesta)
+            fetch(this.url, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            }).catch(error => {
+                console.log('Error al enviar (ignorado en no-cors):', error);
+            });
+
+            // 🆕 NUEVO: Esperar 3 segundos antes de recargar desde Sheets
+            // Esto le da tiempo a Google Sheets para procesar
+            setTimeout(() => {
+                this.cargarNotificaciones(true);
+            }, 3000);
 
             return true;
         } catch (error) {
@@ -167,20 +176,28 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
+            // 🆕 MEJORADO: Eliminar localmente PRIMERO
+            datosNotificaciones = datosNotificaciones.filter(n => n.ID_Unico !== idUnico);
+            actualizarPanelNotificaciones();
+
             // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
             const formData = new URLSearchParams();
             formData.append('action', 'eliminar');
             formData.append('idUnico', idUnico);
 
-            const response = await fetch(this.url, {
+            // Enviar a Google Sheets
+            fetch(this.url, {
                 method: 'POST',
                 mode: 'no-cors',
                 body: formData
+            }).catch(error => {
+                console.log('Error al enviar (ignorado en no-cors):', error);
             });
 
-            // Actualizar localmente
-            datosNotificaciones = datosNotificaciones.filter(n => n.ID_Unico !== idUnico);
-            actualizarPanelNotificaciones();
+            // 🆕 NUEVO: Recargar después de 3 segundos para confirmar
+            setTimeout(() => {
+                this.cargarNotificaciones(true);
+            }, 3000);
 
             return true;
         } catch (error) {
@@ -194,24 +211,32 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
-            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
-            const formData = new URLSearchParams();
-            formData.append('action', 'marcarTodasLeidas');
-            formData.append('usuario', this.usuarioActual);
-
-            const response = await fetch(this.url, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: formData
-            });
-
-            // Actualizar localmente
+            // 🆕 MEJORADO: Actualizar localmente PRIMERO
             datosNotificaciones.forEach(n => {
                 if (n.Usuario === 'todos' || n.Usuario === this.usuarioActual) {
                     n.Leida = 'true';
                 }
             });
             actualizarPanelNotificaciones();
+
+            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'marcarTodasLeidas');
+            formData.append('usuario', this.usuarioActual);
+
+            // Enviar a Google Sheets
+            fetch(this.url, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            }).catch(error => {
+                console.log('Error al enviar (ignorado en no-cors):', error);
+            });
+
+            // 🆕 NUEVO: Recargar después de 3 segundos
+            setTimeout(() => {
+                this.cargarNotificaciones(true);
+            }, 3000);
 
             return true;
         } catch (error) {
@@ -225,18 +250,7 @@ class NotificacionesGoogleSheets {
         if (!this.url) return false;
 
         try {
-            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
-            const formData = new URLSearchParams();
-            formData.append('action', 'limpiarLeidas');
-            formData.append('usuario', this.usuarioActual);
-
-            const response = await fetch(this.url, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: formData
-            });
-
-            // Actualizar localmente
+            // 🆕 MEJORADO: Eliminar localmente PRIMERO
             datosNotificaciones = datosNotificaciones.filter(n => {
                 if (n.Usuario === 'todos' || n.Usuario === this.usuarioActual) {
                     return n.Leida !== 'true';
@@ -244,6 +258,25 @@ class NotificacionesGoogleSheets {
                 return true;
             });
             actualizarPanelNotificaciones();
+
+            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            const formData = new URLSearchParams();
+            formData.append('action', 'limpiarLeidas');
+            formData.append('usuario', this.usuarioActual);
+
+            // Enviar a Google Sheets
+            fetch(this.url, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            }).catch(error => {
+                console.log('Error al enviar (ignorado en no-cors):', error);
+            });
+
+            // 🆕 NUEVO: Recargar después de 3 segundos
+            setTimeout(() => {
+                this.cargarNotificaciones(true);
+            }, 3000);
 
             return true;
         } catch (error) {
