@@ -1,18 +1,28 @@
 // ========================================
 // SISTEMA DE NOTIFICACIONES - GOOGLE SHEETS
-// ✨ VERSIÓN MEJORADA - Actualización rápida y compatible con iOS
-// Con sincronización en tiempo real entre dispositivos
+// ✨ VERSIÓN FINAL COMPLETA Y FUNCIONAL
+// Compatible con iOS/Android/Desktop
 // ========================================
 
-// 👉 CONFIGURACIÓN DE URL - Esta URL se configura desde el módulo de Configuración
+// 👉 CONFIGURACIÓN DE URL
 let urlNotificaciones = 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec';
 
 // Variables globales
 let datosNotificaciones = [];
 let sistemaNotificacionesSheets = null;
 let intervaloActualizacionNotificaciones = null;
-let intervaloActualizacionBackground = null; // 🆕 NUEVO: Para actualización en segundo plano
-let ultimaActualizacionBadge = 0; // 🆕 NUEVO: Para evitar actualizaciones excesivas del badge
+let intervaloActualizacionBackground = null;
+let ultimaActualizacionBadge = 0;
+
+// ========================================
+// FUNCIÓN AUXILIAR: Verificar si está leída
+// ========================================
+
+function esNotificacionLeida(notif) {
+    // Acepta cualquier formato: 'true', 'TRUE', true, 'false', 'FALSE', false
+    const valor = String(notif.Leida).toLowerCase();
+    return valor === 'true';
+}
 
 // ========================================
 // CLASE PRINCIPAL
@@ -23,21 +33,17 @@ class NotificacionesGoogleSheets {
         this.url = urlNotificaciones;
         this.ultimaActualizacion = null;
         this.usuarioActual = this.obtenerUsuario();
-        this.notificacionesAnteriores = 0; // 🆕 NUEVO: Para detectar nuevas notificaciones
     }
 
-    // Obtener identificador del usuario (basado en dispositivo)
     obtenerUsuario() {
         let usuario = localStorage.getItem('usuario_ugc');
         if (!usuario) {
-            // Generar un ID único para este dispositivo/usuario
             usuario = `Usuario_${Date.now()}_${Math.random().toString(36).substring(7)}`;
             localStorage.setItem('usuario_ugc', usuario);
         }
         return usuario;
     }
 
-    // Cargar todas las notificaciones desde Google Sheets
     async cargarNotificaciones(silencioso = false) {
         if (!this.url) {
             console.log('URL de notificaciones no configurada');
@@ -45,9 +51,7 @@ class NotificacionesGoogleSheets {
         }
 
         try {
-            // 🆕 MEJORADO: Añadir timestamp para evitar caché
             const timestamp = new Date().getTime();
-            // ✅ COMPATIBLE: Fetch simple sin headers especiales para evitar CORS preflight
             const response = await fetch(`${this.url}?action=leer&t=${timestamp}`);
             
             if (response.ok) {
@@ -58,7 +62,6 @@ class NotificacionesGoogleSheets {
                     datosNotificaciones = data.data;
                     this.ultimaActualizacion = new Date();
                     
-                    // 🆕 NUEVO: Detectar si hay nuevas notificaciones
                     if (!silencioso && datosNotificaciones.length > cantidadAnterior) {
                         this.animarBadgeNuevas();
                     }
@@ -76,7 +79,6 @@ class NotificacionesGoogleSheets {
         return [];
     }
 
-    // 🆕 NUEVO: Animación del badge cuando hay nuevas notificaciones
     animarBadgeNuevas() {
         const badge = document.getElementById('notifCounter');
         if (badge && badge.style.display !== 'none') {
@@ -87,7 +89,6 @@ class NotificacionesGoogleSheets {
         }
     }
 
-    // Crear nueva notificación
     async crearNotificacion(tipo, titulo, mensaje, prioridad = 'info', destinatario = 'todos') {
         if (!this.url) {
             console.warn('URL de notificaciones no configurada');
@@ -106,86 +107,83 @@ class NotificacionesGoogleSheets {
         };
 
         try {
-            // 🆕 MEJORADO: Usar URLSearchParams en lugar de JSON para compatibilidad con iOS
             const formData = new URLSearchParams();
             formData.append('action', 'agregar');
             
-            // Agregar cada campo de la notificación
             for (const key in notificacion) {
                 formData.append(key, notificacion[key]);
             }
 
-            const response = await fetch(this.url, {
+            fetch(this.url, {
                 method: 'POST',
-                mode: 'no-cors', // ✅ COMPATIBLE: Necesario para Apps Script actual
+                mode: 'no-cors',
                 body: formData
+            }).catch(error => {
+                console.log('Error al enviar (ignorado en no-cors):', error);
             });
 
-            // 🆕 MEJORADO: Recargar más rápido después de agregar
-            setTimeout(() => this.cargarNotificaciones(true), 500);
+            setTimeout(() => this.cargarNotificaciones(true), 1000);
             return true;
         } catch (error) {
             console.error('Error al crear notificación:', error);
-            // 🆕 NUEVO: Reintentar una vez más en caso de error
-            setTimeout(() => this.cargarNotificaciones(true), 2000);
             return false;
         }
     }
 
-    // Marcar notificación como leída
     async marcarComoLeida(idUnico) {
         if (!this.url) return false;
 
         try {
-            // 🆕 MEJORADO: Actualizar localmente PRIMERO
+            console.log('🔵 Marcando como leída:', idUnico);
+            
+            // 1. Actualizar localmente PRIMERO
             const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
             if (notif) {
                 notif.Leida = 'true';
+                console.log('✅ Actualizado localmente');
                 actualizarPanelNotificaciones();
+                actualizarContadoresNotificaciones();
             }
 
-            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
+            // 2. Enviar a Google Sheets
             const formData = new URLSearchParams();
             formData.append('action', 'marcarLeida');
             formData.append('idUnico', idUnico);
 
-            // Enviar a Google Sheets (modo no-cors no puede leer respuesta)
             fetch(this.url, {
                 method: 'POST',
                 mode: 'no-cors',
                 body: formData
+            }).then(() => {
+                console.log('📤 Enviado a Google Sheets');
             }).catch(error => {
                 console.log('Error al enviar (ignorado en no-cors):', error);
             });
 
-            // 🆕 NUEVO: Esperar 3 segundos antes de recargar desde Sheets
-            // Esto le da tiempo a Google Sheets para procesar
+            // 3. Recargar después de 3 segundos
             setTimeout(() => {
+                console.log('🔄 Recargando para confirmar...');
                 this.cargarNotificaciones(true);
             }, 3000);
 
             return true;
         } catch (error) {
-            console.error('Error al marcar como leída:', error);
+            console.error('❌ Error al marcar como leída:', error);
             return false;
         }
     }
 
-    // Eliminar notificación
     async eliminarNotificacion(idUnico) {
         if (!this.url) return false;
 
         try {
-            // 🆕 MEJORADO: Eliminar localmente PRIMERO
             datosNotificaciones = datosNotificaciones.filter(n => n.ID_Unico !== idUnico);
             actualizarPanelNotificaciones();
 
-            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
             const formData = new URLSearchParams();
             formData.append('action', 'eliminar');
             formData.append('idUnico', idUnico);
 
-            // Enviar a Google Sheets
             fetch(this.url, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -194,10 +192,7 @@ class NotificacionesGoogleSheets {
                 console.log('Error al enviar (ignorado en no-cors):', error);
             });
 
-            // 🆕 NUEVO: Recargar después de 3 segundos para confirmar
-            setTimeout(() => {
-                this.cargarNotificaciones(true);
-            }, 3000);
+            setTimeout(() => this.cargarNotificaciones(true), 3000);
 
             return true;
         } catch (error) {
@@ -206,12 +201,10 @@ class NotificacionesGoogleSheets {
         }
     }
 
-    // Marcar todas como leídas
     async marcarTodasLeidas() {
         if (!this.url) return false;
 
         try {
-            // 🆕 MEJORADO: Actualizar localmente PRIMERO
             datosNotificaciones.forEach(n => {
                 if (n.Usuario === 'todos' || n.Usuario === this.usuarioActual) {
                     n.Leida = 'true';
@@ -219,12 +212,10 @@ class NotificacionesGoogleSheets {
             });
             actualizarPanelNotificaciones();
 
-            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
             const formData = new URLSearchParams();
             formData.append('action', 'marcarTodasLeidas');
             formData.append('usuario', this.usuarioActual);
 
-            // Enviar a Google Sheets
             fetch(this.url, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -233,10 +224,7 @@ class NotificacionesGoogleSheets {
                 console.log('Error al enviar (ignorado en no-cors):', error);
             });
 
-            // 🆕 NUEVO: Recargar después de 3 segundos
-            setTimeout(() => {
-                this.cargarNotificaciones(true);
-            }, 3000);
+            setTimeout(() => this.cargarNotificaciones(true), 3000);
 
             return true;
         } catch (error) {
@@ -245,26 +233,22 @@ class NotificacionesGoogleSheets {
         }
     }
 
-    // Limpiar notificaciones leídas
     async limpiarLeidas() {
         if (!this.url) return false;
 
         try {
-            // 🆕 MEJORADO: Eliminar localmente PRIMERO
             datosNotificaciones = datosNotificaciones.filter(n => {
                 if (n.Usuario === 'todos' || n.Usuario === this.usuarioActual) {
-                    return n.Leida !== 'true';
+                    return !esNotificacionLeida(n);
                 }
                 return true;
             });
             actualizarPanelNotificaciones();
 
-            // 🆕 MEJORADO: Usar URLSearchParams para compatibilidad con iOS
             const formData = new URLSearchParams();
             formData.append('action', 'limpiarLeidas');
             formData.append('usuario', this.usuarioActual);
 
-            // Enviar a Google Sheets
             fetch(this.url, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -273,10 +257,7 @@ class NotificacionesGoogleSheets {
                 console.log('Error al enviar (ignorado en no-cors):', error);
             });
 
-            // 🆕 NUEVO: Recargar después de 3 segundos
-            setTimeout(() => {
-                this.cargarNotificaciones(true);
-            }, 3000);
+            setTimeout(() => this.cargarNotificaciones(true), 3000);
 
             return true;
         } catch (error) {
@@ -285,31 +266,24 @@ class NotificacionesGoogleSheets {
         }
     }
 
-    // Generar ID único
     generarIdUnico(tipo, contenido) {
         const texto = `${tipo}-${contenido}-${Date.now()}`;
         return texto.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 100);
     }
 
-    // Obtener notificaciones del usuario actual
     obtenerMisNotificaciones() {
         return datosNotificaciones.filter(n => 
             n.Usuario === 'todos' || n.Usuario === this.usuarioActual
         );
     }
 
-    // Obtener notificaciones no leídas
     obtenerNoLeidas() {
-        return this.obtenerMisNotificaciones().filter(n => {
-            // ✅ COMPATIBLE: Aceptar 'true', 'TRUE', true (booleano)
-            const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
-            return !estaLeida;
-        });
+        return this.obtenerMisNotificaciones().filter(n => !esNotificacionLeida(n));
     }
 }
 
 // ========================================
-// INTERFAZ DE USUARIO - PANEL DE NOTIFICACIONES
+// INTERFAZ DE USUARIO
 // ========================================
 
 function toggleNotificacionesSheets() {
@@ -320,12 +294,10 @@ function toggleNotificacionesSheets() {
     overlay.classList.toggle('active');
     
     if (panel.classList.contains('active')) {
-        // Inicializar sistema si no existe
         if (!sistemaNotificacionesSheets) {
             inicializarSistemaNotificaciones();
         }
         
-        // Verificar configuración
         if (!urlNotificaciones) {
             mostrarModalConfirmacion(
                 '⚙️ Configuración pendiente',
@@ -339,23 +311,19 @@ function toggleNotificacionesSheets() {
             return;
         }
         
-        // Resetear pestaña
         const tabs = document.querySelectorAll('.notif-tab');
         tabs.forEach(t => t.classList.remove('active'));
         const tabTodas = document.querySelector('.notif-tab[data-tab="todas"]');
         if (tabTodas) tabTodas.classList.add('active');
         
-        // 🆕 MEJORADO: Mostrar indicador de carga
         mostrarIndicadorActualizacion(true);
         
-        // Cargar notificaciones
         sistemaNotificacionesSheets.cargarNotificaciones().then(() => {
             mostrarIndicadorActualizacion(false);
         });
     }
 }
 
-// 🆕 NUEVO: Indicador visual de actualización
 function mostrarIndicadorActualizacion(mostrar) {
     const header = document.querySelector('.notif-header h3');
     if (!header) return;
@@ -384,7 +352,6 @@ function mostrarIndicadorActualizacion(mostrar) {
     }
 }
 
-// Mostrar notificaciones en el panel
 function mostrarNotificacionesSheets(filtro = 'todas') {
     const content = document.getElementById('notifContent');
     if (!content) return;
@@ -404,15 +371,9 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
     
     let notifFiltradas = misNotificaciones;
     if (filtro === 'sin-leer') {
-        notifFiltradas = misNotificaciones.filter(n => {
-            const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
-            return !estaLeida;
-        });
+        notifFiltradas = misNotificaciones.filter(n => !esNotificacionLeida(n));
     } else if (filtro === 'leidas') {
-        notifFiltradas = misNotificaciones.filter(n => {
-            const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
-            return estaLeida;
-        });
+        notifFiltradas = misNotificaciones.filter(n => esNotificacionLeida(n));
     }
     
     if (notifFiltradas.length === 0) {
@@ -432,7 +393,6 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
         return;
     }
     
-    // Ordenar por fecha (más recientes primero)
     notifFiltradas.sort((a, b) => {
         const fechaA = new Date(a.Timestamp || 0);
         const fechaB = new Date(b.Timestamp || 0);
@@ -441,7 +401,7 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
     
     content.innerHTML = notifFiltradas.map(notif => {
         const prioridad = notif.Prioridad || 'info';
-        const leida = notif.Leida === 'true' || notif.Leida === 'TRUE' || notif.Leida === true;
+        const leida = esNotificacionLeida(notif);
         const fecha = new Date(notif.Timestamp);
         const fechaTexto = fecha.toLocaleDateString('es-DO', { 
             day: '2-digit', 
@@ -463,12 +423,10 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
             'info': '#0d6efd'
         };
         
-        // 🆕 MEJORADO: Estilos diferentes para leídas
         const estiloNotif = leida 
             ? `background: #f8f9fa; opacity: 0.85; border-left: 4px solid #6c757d;`
-            : `border-left: 4px solid ${colorBorde[prioridad]};`;
+            : `background: white; border-left: 4px solid ${colorBorde[prioridad]};`;
         
-        // 🆕 MEJORADO: Solo marcar si NO está leída
         const accionClick = leida 
             ? '' 
             : `onclick="marcarNotifLeida('${notif.ID_Unico}')" style="cursor: pointer;"`;
@@ -506,16 +464,12 @@ function actualizarPanelNotificaciones() {
     actualizarContadoresNotificaciones();
 }
 
-// Actualizar contadores
 function actualizarContadoresNotificaciones() {
     if (!sistemaNotificacionesSheets) return;
     
     const misNotificaciones = sistemaNotificacionesSheets.obtenerMisNotificaciones();
     const total = misNotificaciones.length;
-    const noLeidas = misNotificaciones.filter(n => {
-        const estaLeida = n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
-        return !estaLeida;
-    }).length;
+    const noLeidas = misNotificaciones.filter(n => !esNotificacionLeida(n)).length;
     const leidas = total - noLeidas;
     
     const badge = document.getElementById('notifCounter');
@@ -533,7 +487,6 @@ function actualizarContadoresNotificaciones() {
     if (countLeidas) countLeidas.textContent = leidas;
 }
 
-// Cambiar pestaña
 function cambiarTabNotifSheets(tab) {
     const tabs = document.querySelectorAll('.notif-tab');
     tabs.forEach(t => t.classList.remove('active'));
@@ -542,7 +495,6 @@ function cambiarTabNotifSheets(tab) {
     mostrarNotificacionesSheets(tab);
 }
 
-// Eliminar notificación individual
 async function eliminarNotifSheets(idUnico) {
     if (!sistemaNotificacionesSheets) return;
     
@@ -560,14 +512,13 @@ async function eliminarNotifSheets(idUnico) {
     );
 }
 
-// Marcar notificación como leída
 async function marcarNotifLeida(idUnico) {
     if (!sistemaNotificacionesSheets) return;
     
+    console.log('👆 Click en notificación:', idUnico);
     await sistemaNotificacionesSheets.marcarComoLeida(idUnico);
 }
 
-// Marcar todas como leídas
 async function marcarTodasNotifLeidas() {
     if (!sistemaNotificacionesSheets) return;
     
@@ -575,14 +526,11 @@ async function marcarTodasNotifLeidas() {
     mostrarNotificacionToast('✅ Todas las notificaciones marcadas como leídas');
 }
 
-// Limpiar notificaciones leídas
 async function limpiarNotifLeidas() {
     if (!sistemaNotificacionesSheets) return;
     
     const misNotificaciones = sistemaNotificacionesSheets.obtenerMisNotificaciones();
-    const cantidadLeidas = misNotificaciones.filter(n => {
-        return n.Leida === 'true' || n.Leida === 'TRUE' || n.Leida === true;
-    }).length;
+    const cantidadLeidas = misNotificaciones.filter(n => esNotificacionLeida(n)).length;
     
     if (cantidadLeidas === 0) {
         mostrarModalConfirmacion(
@@ -610,7 +558,6 @@ async function limpiarNotifLeidas() {
 // FUNCIONES DE CREACIÓN DE NOTIFICACIONES
 // ========================================
 
-// Crear notificación cuando se registra una incidencia
 async function notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta) {
     if (!sistemaNotificacionesSheets) return;
     
@@ -621,11 +568,10 @@ async function notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta) {
         'Nueva incidencia registrada',
         `Se ha registrado una <strong>Falta ${tipoFalta}</strong> para <strong>${estudiante}</strong> por ${tipoConducta}.`,
         prioridad,
-        'todos'  // Visible para todos los usuarios
+        'todos'
     );
 }
 
-// Crear notificación cuando se registra un contacto
 async function notificarNuevoContacto(estudiante, nombrePadre, nombreMadre) {
     if (!sistemaNotificacionesSheets) return;
     
@@ -646,13 +592,11 @@ async function notificarNuevoContacto(estudiante, nombrePadre, nombreMadre) {
     );
 }
 
-// Crear notificación cuando un estudiante alcanza 3 tardanzas
 async function notificarTardanzasCriticas(estudiante, cantidad) {
     if (!sistemaNotificacionesSheets) return;
     
     const idUnico = `tardanzas-${estudiante}-${cantidad}-${new Date().getMonth()}-${new Date().getFullYear()}`;
     
-    // Verificar si ya existe esta notificación
     const existe = datosNotificaciones.some(n => n.ID_Unico === idUnico);
     if (existe) return;
     
@@ -666,12 +610,11 @@ async function notificarTardanzasCriticas(estudiante, cantidad) {
 }
 
 // ========================================
-// 🆕 NUEVO: SISTEMA DE ACTUALIZACIÓN INTELIGENTE
+// INICIALIZACIÓN
 // ========================================
 
 function inicializarSistemaNotificaciones() {
     try {
-        // Cargar URL desde CONFIG si existe
         if (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.urlNotificaciones) {
             urlNotificaciones = CONFIG.urlNotificaciones;
         }
@@ -679,12 +622,10 @@ function inicializarSistemaNotificaciones() {
         if (urlNotificaciones) {
             sistemaNotificacionesSheets = new NotificacionesGoogleSheets();
             
-            // Cargar notificaciones de forma asíncrona sin bloquear
             sistemaNotificacionesSheets.cargarNotificaciones(true).catch(error => {
                 console.log('Error al cargar notificaciones iniciales:', error);
             });
             
-            // 🆕 MEJORADO: Limpiar intervalos anteriores si existen
             if (intervaloActualizacionNotificaciones) {
                 clearInterval(intervaloActualizacionNotificaciones);
             }
@@ -692,7 +633,6 @@ function inicializarSistemaNotificaciones() {
                 clearInterval(intervaloActualizacionBackground);
             }
             
-            // 🆕 NUEVO: Actualización rápida cuando el panel está ABIERTO (cada 5 segundos)
             intervaloActualizacionNotificaciones = setInterval(() => {
                 try {
                     const panel = document.getElementById('notifPanel');
@@ -704,17 +644,13 @@ function inicializarSistemaNotificaciones() {
                 } catch (error) {
                     console.log('Error en intervalo de notificaciones:', error);
                 }
-            }, 5000); // ⚡ 5 segundos cuando está abierto
+            }, 5000);
             
-            // 🆕 NUEVO: Actualización en segundo plano cuando el panel está CERRADO (cada 15 segundos)
             intervaloActualizacionBackground = setInterval(() => {
                 try {
                     const panel = document.getElementById('notifPanel');
-                    // Solo actualizar si el panel está CERRADO
                     if ((!panel || !panel.classList.contains('active')) && sistemaNotificacionesSheets) {
-                        // Actualización silenciosa (solo badge, sin animaciones)
                         const ahora = Date.now();
-                        // Evitar actualizaciones muy frecuentes del badge
                         if (ahora - ultimaActualizacionBadge > 10000) {
                             sistemaNotificacionesSheets.cargarNotificaciones(true).catch(error => {
                                 console.log('Error en actualización background:', error);
@@ -725,7 +661,7 @@ function inicializarSistemaNotificaciones() {
                 } catch (error) {
                     console.log('Error en actualización background:', error);
                 }
-            }, 15000); // ⚡ 15 segundos cuando está cerrado
+            }, 15000);
             
             console.log('✅ Sistema de notificaciones inicializado correctamente');
             console.log('⚡ Actualización: 5s (panel abierto) | 15s (segundo plano)');
@@ -737,7 +673,6 @@ function inicializarSistemaNotificaciones() {
     }
 }
 
-// Actualizar URL de configuración
 function actualizarURLNotificaciones(nuevaURL) {
     urlNotificaciones = nuevaURL;
     if (typeof CONFIG !== 'undefined' && CONFIG) {
@@ -747,20 +682,17 @@ function actualizarURLNotificaciones(nuevaURL) {
 }
 
 // ========================================
-// FUNCIONES AUXILIARES (SI NO EXISTEN)
+// FUNCIONES AUXILIARES
 // ========================================
 
-// Función para mostrar modal de confirmación (reutiliza la del sistema principal)
 if (typeof mostrarModalConfirmacion === 'undefined') {
     function mostrarModalConfirmacion(titulo, mensaje, mostrarCancelar, callbackConfirmar, textoConfirmar = 'Confirmar') {
-        // [El código del modal ya existe en app.js, esta es solo un respaldo]
         if (confirm(mensaje.replace(/<[^>]*>/g, ''))) {
             if (callbackConfirmar) callbackConfirmar();
         }
     }
 }
 
-// Función para mostrar toast (reutiliza la del sistema principal)
 if (typeof mostrarNotificacionToast === 'undefined') {
     function mostrarNotificacionToast(mensaje) {
         const toast = document.createElement('div');
@@ -785,7 +717,10 @@ if (typeof mostrarNotificacionToast === 'undefined') {
     }
 }
 
-// 🆕 NUEVO: Agregar estilos CSS para animación del badge y notificaciones
+// ========================================
+// ESTILOS CSS
+// ========================================
+
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
     @keyframes pulse {
@@ -793,7 +728,6 @@ styleSheet.textContent = `
         50% { transform: scale(1.2); }
     }
     
-    /* Estilos para notificaciones sin leer */
     .notif-item.sin-leer {
         transition: all 0.3s ease;
         background: white;
@@ -804,7 +738,6 @@ styleSheet.textContent = `
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
-    /* Estilos para notificaciones leídas */
     .notif-item.leida {
         transition: all 0.3s ease;
     }
@@ -813,7 +746,6 @@ styleSheet.textContent = `
         opacity: 1 !important;
     }
     
-    /* Badge de estado leída */
     .notif-estado-leida {
         display: inline-block;
         background: #28a745;
@@ -825,7 +757,6 @@ styleSheet.textContent = `
         margin-left: 8px;
     }
     
-    /* Badge NUEVA mejorado */
     .notif-nuevo {
         background: linear-gradient(135deg, #059669 0%, #047857 100%);
         color: white;
@@ -838,7 +769,6 @@ styleSheet.textContent = `
         animation: pulse 2s ease-in-out infinite;
     }
     
-    /* Badge ARCHIVADA */
     .notif-archivada {
         background: #6c757d;
         color: white;
@@ -851,5 +781,5 @@ styleSheet.textContent = `
 `;
 document.head.appendChild(styleSheet);
 
-console.log('✅ Sistema de notificaciones MEJORADO cargado');
-console.log('🚀 Características: Actualización rápida + Compatible con iOS');
+console.log('✅ Sistema de notificaciones FINAL cargado');
+console.log('🚀 Totalmente funcional y compatible con iOS');
