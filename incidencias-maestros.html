@@ -249,7 +249,6 @@ to { transform: rotate(360deg); }
 </div>
 
 <div class="content">
-<!-- INSTRUCCIONES MEJORADAS -->
 <div style="background:#f0fdf4;border-left:4px solid #059669;padding:12px 15px;margin-bottom:25px;border-radius:8px;">
 <strong style="color:#059669;display:block;margin-bottom:6px;font-size:0.95em;">Instrucciones:</strong>
 <div style="color:#065f46;font-size:0.85em;line-height:1.6;">
@@ -379,18 +378,25 @@ Registrar Incidencia
 </div>
 </div>
 
+<!-- 🆕 CARGAR SISTEMA DE NOTIFICACIONES -->
+<script src="./notificaciones-sheets.js"></script>
+
 <script>
 // ==========================================
-// CONFIGURACIÓN (EN MEMORIA - NO localStorage)
+// CONFIGURACIÓN
 // ==========================================
 
 const CONFIG = {
 urlIncidencias: 'https://script.google.com/macros/s/AKfycbwnCHIHNum-8uCHLbuE5NvwJeVmVMF6hCLWOAQQRUOwsU5GK_vpkrxifDFlMat1tP-z/exec',
 urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
-urlAppsScript: 'https://script.google.com/macros/s/AKfycbyQ7veYDEtfslxTrulAYaXQvX0pgBhAhL0n5JmBgyQAeJUnaUzjZM-l4hRfiJ4GoBdp/exec'
+urlAppsScript: 'https://script.google.com/macros/s/AKfycbyQ7veYDEtfslxTrulAYaXQvX0pgBhAhL0n5JmBgyQAeJUnaUzjZM-l4hRfiJ4GoBdp/exec',
+// 🆕 URL de notificaciones
+urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec'
 };
 
-// Array de estudiantes
+// Hacer que urlNotificaciones esté disponible globalmente
+window.urlNotificaciones = CONFIG.urlNotificaciones;
+
 let estudiantes = [];
 
 // ==========================================
@@ -403,11 +409,7 @@ console.log('🔄 Cargando estudiantes...');
 const response = await fetch(CONFIG.urlEstudiantes);
 const data = await response.json();
 
-console.log('📦 Respuesta completa:', data);
-
-// Verificar diferentes formatos de respuesta
 if (data.values && data.values.length > 1) {
-// Formato: {values: [[header], [row1], [row2]...]}
 const headers = data.values[0];
 estudiantes = data.values.slice(1).map(row => {
 const obj = {};
@@ -416,25 +418,13 @@ obj[header] = row[index] || '';
 });
 return obj;
 });
-console.log(`✅ ${estudiantes.length} estudiantes cargados (formato values)`);
+console.log(`✅ ${estudiantes.length} estudiantes cargados`);
 } else if (Array.isArray(data) && data.length > 0) {
-// Formato: [{nombre: "...", curso: "..."}, ...]
 estudiantes = data;
-console.log(`✅ ${estudiantes.length} estudiantes cargados (formato array)`);
+console.log(`✅ ${estudiantes.length} estudiantes cargados`);
 } else if (data.data && Array.isArray(data.data)) {
-// Formato: {data: [{...}, {...}]}
 estudiantes = data.data;
-console.log(`✅ ${estudiantes.length} estudiantes cargados (formato data)`);
-} else {
-console.warn('⚠️ Formato de respuesta no reconocido');
-console.log('Estructura recibida:', Object.keys(data));
-}
-
-if (estudiantes.length > 0) {
-console.log('👤 Primer estudiante:', estudiantes[0]);
-console.log('🔑 Campos disponibles:', Object.keys(estudiantes[0]));
-} else {
-console.warn('⚠️ No se encontraron estudiantes en la respuesta');
+console.log(`✅ ${estudiantes.length} estudiantes cargados`);
 }
 } catch (error) {
 console.error('❌ Error cargando estudiantes:', error);
@@ -442,7 +432,7 @@ console.error('❌ Error cargando estudiantes:', error);
 }
 
 // ==========================================
-// AUTOCOMPLETADO DE ESTUDIANTES
+// AUTOCOMPLETADO
 // ==========================================
 
 const inputEstudiante = document.getElementById('nombreEstudiante');
@@ -456,23 +446,10 @@ suggestionsDiv.style.display = 'none';
 return;
 }
 
-console.log(`🔍 Buscando: "${texto}"`);
-
 const coincidencias = estudiantes.filter(e => {
-// Intentar diferentes posibles nombres de campos
-const nombre = (
-e['Nombre Completo'] || 
-e['nombre'] || 
-e['Nombre'] || 
-e['NOMBRE'] ||
-e['nombre_completo'] ||
-e['NombreCompleto'] ||
-''
-).toLowerCase();
+const nombre = (e['Nombre Completo'] || e['nombre'] || e['Nombre'] || '').toLowerCase();
 return nombre.includes(texto);
 }).slice(0, 15);
-
-console.log(`📋 Coincidencias encontradas: ${coincidencias.length}`);
 
 if (coincidencias.length === 0) {
 suggestionsDiv.style.display = 'none';
@@ -480,8 +457,8 @@ return;
 }
 
 suggestionsDiv.innerHTML = coincidencias.map((e, index) => {
-const nombre = e['Nombre Completo'] || e['nombre'] || e['Nombre'] || e['NOMBRE'] || e['nombre_completo'] || e['NombreCompleto'] || '';
-const curso = e['Curso'] || e['curso'] || e['CURSO'] || '';
+const nombre = e['Nombre Completo'] || e['nombre'] || e['Nombre'] || '';
+const curso = e['Curso'] || e['curso'] || '';
 return `
 <div class="suggestion-item" data-index="${index}">
 <span class="suggestion-name">${nombre}</span>
@@ -490,12 +467,11 @@ return `
 `;
 }).join('');
 
-// Agregar event listeners a cada sugerencia
 document.querySelectorAll('.suggestion-item').forEach((item, index) => {
 item.addEventListener('click', function() {
 const estudiante = coincidencias[index];
-const nombre = estudiante['Nombre Completo'] || estudiante['nombre'] || estudiante['Nombre'] || estudiante['NOMBRE'] || estudiante['nombre_completo'] || estudiante['NombreCompleto'] || '';
-const curso = estudiante['Curso'] || estudiante['curso'] || estudiante['CURSO'] || '';
+const nombre = estudiante['Nombre Completo'] || estudiante['nombre'] || estudiante['Nombre'] || '';
+const curso = estudiante['Curso'] || estudiante['curso'] || '';
 seleccionarEstudiante(nombre, curso);
 });
 });
@@ -507,10 +483,8 @@ function seleccionarEstudiante(nombre, curso) {
 inputEstudiante.value = nombre;
 document.getElementById('cursoIncidencia').value = curso;
 suggestionsDiv.style.display = 'none';
-console.log(`✅ Estudiante seleccionado: ${nombre} (${curso})`);
 }
 
-// Cerrar sugerencias al hacer clic fuera
 document.addEventListener('click', function(e) {
 if (!e.target.closest('.autocomplete-container')) {
 suggestionsDiv.style.display = 'none';
@@ -528,16 +502,13 @@ const btnSubmit = document.getElementById('btnSubmit');
 const alertSuccess = document.getElementById('alertSuccess');
 const alertError = document.getElementById('alertError');
 
-// Ocultar alertas
 alertSuccess.style.display = 'none';
 alertError.style.display = 'none';
 
-// Deshabilitar botón
 btnSubmit.disabled = true;
 btnSubmit.innerHTML = '<span class="loading"></span> Guardando...';
 
 try {
-// Obtener valores del formulario
 const datos = {
 'Fecha y Hora': document.getElementById('fechaIncidencia').value,
 'Curso': document.getElementById('cursoIncidencia').value,
@@ -549,24 +520,30 @@ const datos = {
 'Acciones Docente': document.getElementById('accionesDocente').value
 };
 
-// Enviar a Google Sheets
 await enviarAGoogleSheets(datos);
 
-// Mostrar éxito
-alertSuccess.style.display = 'block';
+// 🆕 ENVIAR NOTIFICACIÓN
+console.log('📢 Enviando notificación...');
+if (typeof notificarNuevaIncidencia === 'function') {
+await notificarNuevaIncidencia(
+datos['Nombre Estudiante'],
+datos['Tipo de falta'],
+datos['Tipo de Conducta']
+);
+console.log('✅ Notificación enviada');
+} else {
+console.warn('⚠️ Función notificarNuevaIncidencia no disponible');
+}
 
-// Limpiar formulario
+alertSuccess.style.display = 'block';
 this.reset();
 
-// Restablecer fecha actual
 const now = new Date();
 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
 document.getElementById('fechaIncidencia').value = now.toISOString().slice(0, 16);
 
-// Scroll al inicio
 window.scrollTo({ top: 0, behavior: 'smooth' });
 
-// Ocultar alerta después de 5 segundos
 setTimeout(() => {
 alertSuccess.style.display = 'none';
 }, 5000);
@@ -588,34 +565,26 @@ btnSubmit.innerHTML = 'Registrar Incidencia';
 
 async function enviarAGoogleSheets(datos) {
 try {
-// Convertir los datos a URLSearchParams (formato formulario)
 const formData = new URLSearchParams();
 for (const key in datos) {
 formData.append(key, datos[key]);
 }
 
 console.log('📤 Enviando datos a Google Sheets...');
-console.log('📋 Datos a enviar:', datos);
 
-// Enviar los datos
 const response = await fetch(CONFIG.urlAppsScript, {
 method: 'POST',
 body: formData,
 redirect: 'follow'
 });
 
-// No intentamos leer la respuesta en modo no-cors
-// Solo confirmamos que se envió
-console.log('✅ Datos enviados a Google Sheets');
-console.log('📋 INCIDENCIA REGISTRADA:');
-console.log(datos);
+console.log('✅ Datos enviados');
 
-// Pequeña pausa para asegurar que se procesó
 await new Promise(resolve => setTimeout(resolve, 1000));
 
 return true;
 } catch (error) {
-console.error('❌ Error enviando a Apps Script:', error);
+console.error('❌ Error enviando:', error);
 throw new Error('No se pudo conectar con Google Sheets');
 }
 }
@@ -625,16 +594,21 @@ throw new Error('No se pudo conectar con Google Sheets');
 // ==========================================
 
 window.addEventListener('DOMContentLoaded', () => {
-// Establecer fecha y hora actual
 const now = new Date();
 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
 document.getElementById('fechaIncidencia').value = now.toISOString().slice(0, 16);
 
-// Cargar estudiantes
 cargarEstudiantes();
 
-console.log('✅ Sistema de incidencias para maestros cargado');
-console.log('📝 Configuración:', CONFIG);
+// 🆕 INICIALIZAR SISTEMA DE NOTIFICACIONES
+if (typeof inicializarSistemaNotificaciones === 'function') {
+inicializarSistemaNotificaciones();
+console.log('✅ Sistema de notificaciones inicializado');
+} else {
+console.warn('⚠️ Sistema de notificaciones no disponible');
+}
+
+console.log('✅ Sistema de incidencias cargado');
 });
 </script>
 </body>
