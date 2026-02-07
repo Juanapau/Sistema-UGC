@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Sistema UGC</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+min-height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+}
+
+.login-container {
+background: white;
+border-radius: 20px;
+box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+max-width: 450px;
+width: 100%;
+overflow: hidden;
+animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+from {
+opacity: 0;
+transform: translateY(-50px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+
+.login-header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 40px 30px;
+text-align: center;
+}
+
+.login-header img {
+width: 80px;
+height: 80px;
+margin-bottom: 15px;
+border-radius: 50%;
+border: 3px solid #dc2626;
+}
+
+.login-header h1 {
+font-size: 1.8em;
+margin-bottom: 5px;
+}
+
+.login-header p {
+color: #4a9eff;
+font-size: 0.95em;
+}
+
+.login-body {
+padding: 40px 30px;
+}
+
+.alert {
+padding: 12px 15px;
+border-radius: 10px;
+margin-bottom: 20px;
+display: none;
+animation: shake 0.3s;
+}
+
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-10px); }
+75% { transform: translateX(10px); }
+}
+
+.alert-error {
+background: #fee2e2;
+color: #991b1b;
+border-left: 4px solid #dc2626;
+}
+
+.alert-success {
+background: #d1fae5;
+color: #065f46;
+border-left: 4px solid #10b981;
+}
+
+.form-group {
+margin-bottom: 25px;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 8px;
+color: #374151;
+font-weight: 600;
+font-size: 0.95em;
+}
+
+.form-group input {
+width: 100%;
+padding: 14px 18px;
+border: 2px solid #e5e7eb;
+border-radius: 10px;
+font-size: 1em;
+transition: all 0.3s;
+font-family: inherit;
+}
+
+.form-group input:focus {
+outline: none;
+border-color: #2a5298;
+box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+}
+
+.password-container {
+position: relative;
+}
+
+.toggle-password {
+position: absolute;
+right: 15px;
+top: 50%;
+transform: translateY(-50%);
+cursor: pointer;
+color: #6b7280;
+font-size: 1.2em;
+user-select: none;
+}
+
+.toggle-password:hover {
+color: #2a5298;
+}
+
+.btn-login {
+width: 100%;
+padding: 15px;
+background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+color: white;
+border: none;
+border-radius: 10px;
+font-size: 1.1em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+}
+
+.btn-login:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+}
+
+.btn-login:active {
+transform: translateY(0);
+}
+
+.btn-login:disabled {
+background: #9ca3af;
+cursor: not-allowed;
+transform: none;
+box-shadow: none;
+}
+
+.login-footer {
+text-align: center;
+padding: 20px;
+background: #f9fafb;
+border-top: 1px solid #e5e7eb;
+}
+
+.login-footer p {
+color: #6b7280;
+font-size: 0.85em;
+}
+
+.demo-credentials {
+background: #fffbeb;
+border: 2px solid #fbbf24;
+border-radius: 10px;
+padding: 15px;
+margin-top: 20px;
+}
+
+.demo-credentials h3 {
+color: #92400e;
+font-size: 0.9em;
+margin-bottom: 10px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.demo-item {
+background: white;
+padding: 10px;
+border-radius: 6px;
+margin-bottom: 8px;
+font-size: 0.85em;
+}
+
+.demo-item:last-child {
+margin-bottom: 0;
+}
+
+.demo-item strong {
+color: #1f2937;
+}
+
+.demo-item code {
+background: #f3f4f6;
+padding: 2px 6px;
+border-radius: 4px;
+color: #dc2626;
+font-family: 'Courier New', monospace;
+}
+
+.loading {
+display: inline-block;
+width: 20px;
+height: 20px;
+border: 3px solid rgba(255,255,255,.3);
+border-radius: 50%;
+border-top-color: white;
+animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+.login-header {
+padding: 30px 20px;
+}
+
+.login-header h1 {
+font-size: 1.5em;
+}
+
+.login-body {
+padding: 30px 20px;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="login-container">
+<div class="login-header">
+<img src="./logo.png" alt="Logo CENSA" onerror="this.style.display='none'">
+<h1>🔐 Inicio de Sesión</h1>
+<p>Sistema de Gestión de Convivencia</p>
+</div>
+
+<div class="login-body">
+<div class="alert alert-error" id="alertError">
+<strong>❌ Error:</strong> <span id="errorMessage"></span>
+</div>
+
+<div class="alert alert-success" id="alertSuccess">
+<strong>✅ Acceso concedido</strong>
+</div>
+
+<form id="loginForm">
+<div class="form-group">
+<label for="usuario">👤 Usuario</label>
+<input 
+type="text" 
+id="usuario" 
+placeholder="Ingrese su usuario"
+required
+autocomplete="username"
+>
+</div>
+
+<div class="form-group">
+<label for="password">🔑 Contraseña</label>
+<div class="password-container">
+<input 
+type="password" 
+id="password" 
+placeholder="Ingrese su contraseña"
+required
+autocomplete="current-password"
+>
+<span class="toggle-password" onclick="togglePassword()">👁️</span>
+</div>
+</div>
+
+<button type="submit" class="btn-login" id="btnLogin">
+Iniciar Sesión
+</button>
+</form>
+
+<!-- CREDENCIALES DE PRUEBA (SOLO PARA DEMO) -->
+<div class="demo-credentials">
+<h3>🔓 Credenciales de Prueba</h3>
+<div class="demo-item">
+<strong>Administrador:</strong><br>
+Usuario: <code>admin</code> | Contraseña: <code>admin123</code>
+</div>
+<div class="demo-item">
+<strong>Solo Consulta:</strong><br>
+Usuario: <code>consulta</code> | Contraseña: <code>consulta123</code>
+</div>
+</div>
+</div>
+
+<div class="login-footer">
+<p>© 2026 Centro Educativo Nuestra Sra. De la Altagracia</p>
+<p style="margin-top: 5px; font-size: 0.8em;">Sistema desarrollado por UGC</p>
+</div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURACIÓN DE USUARIOS
+// ==========================================
+
+const USUARIOS = {
+'admin': {
+password: 'admin123',
+rol: 'administrador',
+nombre: 'Administrador del Sistema'
+},
+'consulta': {
+password: 'consulta123',
+rol: 'consulta',
+nombre: 'Usuario de Consulta'
+}
+};
+
+// ==========================================
+// FUNCIÓN DE LOGIN
+// ==========================================
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+e.preventDefault();
+
+const usuario = document.getElementById('usuario').value.trim();
+const password = document.getElementById('password').value;
+
+const btnLogin = document.getElementById('btnLogin');
+const alertError = document.getElementById('alertError');
+const alertSuccess = document.getElementById('alertSuccess');
+
+// Ocultar alertas
+alertError.style.display = 'none';
+alertSuccess.style.display = 'none';
+
+// Validar campos vacíos
+if (!usuario || !password) {
+mostrarError('Por favor complete todos los campos');
+return;
+}
+
+// Deshabilitar botón
+btnLogin.disabled = true;
+btnLogin.innerHTML = '<span class="loading"></span> Verificando...';
+
+// Simular verificación (en producción sería una llamada a API)
+setTimeout(() => {
+// Verificar usuario
+if (!USUARIOS[usuario]) {
+mostrarError('Usuario no encontrado');
+btnLogin.disabled = false;
+btnLogin.innerHTML = 'Iniciar Sesión';
+return;
+}
+
+// Verificar contraseña
+if (USUARIOS[usuario].password !== password) {
+mostrarError('Contraseña incorrecta');
+btnLogin.disabled = false;
+btnLogin.innerHTML = 'Iniciar Sesión';
+return;
+}
+
+// Login exitoso
+const datosUsuario = {
+usuario: usuario,
+rol: USUARIOS[usuario].rol,
+nombre: USUARIOS[usuario].nombre,
+loginTime: new Date().toISOString()
+};
+
+// Guardar en localStorage
+localStorage.setItem('usuarioUGC', JSON.stringify(datosUsuario));
+
+// Mostrar éxito
+alertSuccess.style.display = 'block';
+btnLogin.innerHTML = '✅ Acceso concedido';
+
+console.log('✅ Login exitoso:', datosUsuario);
+
+// Redirigir según el rol
+setTimeout(() => {
+if (datosUsuario.rol === 'administrador') {
+window.location.href = 'index.html';
+} else if (datosUsuario.rol === 'consulta') {
+window.location.href = 'consulta.html';
+}
+}, 1000);
+
+}, 1000);
+});
+
+// ==========================================
+// FUNCIONES AUXILIARES
+// ==========================================
+
+function mostrarError(mensaje) {
+const alertError = document.getElementById('alertError');
+document.getElementById('errorMessage').textContent = mensaje;
+alertError.style.display = 'block';
+}
+
+function togglePassword() {
+const passwordInput = document.getElementById('password');
+const toggleIcon = document.querySelector('.toggle-password');
+
+if (passwordInput.type === 'password') {
+passwordInput.type = 'text';
+toggleIcon.textContent = '🙈';
+} else {
+passwordInput.type = 'password';
+toggleIcon.textContent = '👁️';
+}
+}
+
+// ==========================================
+// VERIFICAR SI YA HAY SESIÓN ACTIVA
+// ==========================================
+
+window.addEventListener('load', function() {
+const sesionActiva = localStorage.getItem('usuarioUGC');
+
+if (sesionActiva) {
+const usuario = JSON.parse(sesionActiva);
+console.log('⚠️ Ya hay una sesión activa:', usuario);
+
+// Opcional: Redirigir automáticamente
+// if (usuario.rol === 'administrador') {
+//     window.location.href = 'index.html';
+// } else {
+//     window.location.href = 'consulta.html';
+// }
+}
+});
+
+// ==========================================
+// PERMITIR ENTER PARA SUBMIT
+// ==========================================
+
+document.getElementById('password').addEventListener('keypress', function(e) {
+if (e.key === 'Enter') {
+document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+}
+});
+
+console.log('🔐 Sistema de login cargado');
+console.log('📝 Usuarios disponibles:', Object.keys(USUARIOS));
+</script>
+
+</body>
+</html>
