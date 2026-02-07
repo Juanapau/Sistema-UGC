@@ -130,7 +130,6 @@ min-height: 100px;
 resize: vertical;
 }
 
-/* Autocompletado */
 .autocomplete-container {
 position: relative;
 }
@@ -348,6 +347,9 @@ placeholder="Número de emergencia"
 </div>
 </div>
 
+<!-- 🆕 CARGAR SISTEMA DE NOTIFICACIONES -->
+<script src="./notificaciones-sheets.js"></script>
+
 <script>
 // ==========================================
 // CONFIGURACIÓN
@@ -356,13 +358,15 @@ placeholder="Número de emergencia"
 const CONFIG = {
 urlContactos: 'https://script.google.com/macros/s/AKfycbz2WK2rAH99oKd16ZBNjhPbWgBypMw7006Q497kpQrUW6ixvtJt0BTtORNCjOtzw43D/exec',
 urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
-urlAppsScript: 'https://script.google.com/macros/s/AKfycbz2WK2rAH99oKd16ZBNjhPbWgBypMw7006Q497kpQrUW6ixvtJt0BTtORNCjOtzw43D/exec'
+urlAppsScript: 'https://script.google.com/macros/s/AKfycbz2WK2rAH99oKd16ZBNjhPbWgBypMw7006Q497kpQrUW6ixvtJt0BTtORNCjOtzw43D/exec',
+// 🆕 URL de notificaciones
+urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec'
 };
 
-// Array de estudiantes
-let estudiantes = [];
+// Hacer que urlNotificaciones esté disponible globalmente
+window.urlNotificaciones = CONFIG.urlNotificaciones;
 
-// Array de contactos existentes
+let estudiantes = [];
 let contactosExistentes = [];
 
 // ==========================================
@@ -370,10 +374,7 @@ let contactosExistentes = [];
 // ==========================================
 
 async function cargarEstudiantes() {
-// Obtener referencia al input de estudiante
 const inputEstudiante = document.getElementById('estudiante');
-
-// Deshabilitar el campo sin cambiar el placeholder
 inputEstudiante.disabled = true;
 
 try {
@@ -410,7 +411,6 @@ console.log(`✅ ${contactosExistentes.length} contactos existentes cargados`);
 }
 } catch (error) {
 console.error('⚠️ No se pudieron cargar contactos existentes:', error);
-// No mostramos error al usuario, solo lo registramos
 }
 }
 
@@ -454,7 +454,6 @@ return `
 suggestionsDiv.style.display = 'block';
 });
 
-// Cerrar sugerencias al hacer click fuera
 document.addEventListener('click', function(e) {
 if (!e.target.closest('.autocomplete-container')) {
 suggestionsDiv.style.display = 'none';
@@ -477,37 +476,21 @@ e.preventDefault();
 const btnSubmit = document.getElementById('btnSubmit');
 const nombreEstudiante = document.getElementById('estudiante').value.trim();
 
-// Validar que se haya seleccionado un estudiante
 if (!nombreEstudiante) {
 mostrarAlerta('⚠️ Por favor, seleccione un estudiante de la lista.', 'error');
 return;
 }
 
-// Verificar si el contacto ya existe
-console.log('🔍 Verificando si existe contacto para:', nombreEstudiante);
-
 const contactoExistente = contactosExistentes.find(c => {
 const nombreEnBD = (c['Nombre Estudiante'] || c.estudiante || '').trim().toLowerCase();
-
-// Ignorar registros sin nombre de estudiante
 if (!nombreEnBD || nombreEnBD === '') {
 return false;
 }
-
-const coincide = nombreEnBD === nombreEstudiante.toLowerCase();
-
-// Log para debugging
-if (coincide) {
-console.log('✅ Contacto encontrado:', c);
-}
-
-return coincide;
+return nombreEnBD === nombreEstudiante.toLowerCase();
 });
 
-console.log('Resultado de búsqueda:', contactoExistente ? 'ENCONTRADO' : 'NO ENCONTRADO');
-
 if (contactoExistente) {
-mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información porque ha cambiado su número, por favor contacte a la Unidad de Gestión de Convivencia del colegio.', 'info');
+mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información, contacte a la Unidad de Gestión de Convivencia.', 'info');
 return;
 }
 
@@ -524,32 +507,39 @@ const contacto = {
 'Contacto Emergencia': document.getElementById('contactoEmergencia').value || ''
 };
 
-console.log('📤 Enviando contacto a Google Sheets...');
-console.log('📋 Datos:', contacto);
+console.log('📤 Enviando contacto...');
 
-// Crear FormData
 const formData = new FormData();
 formData.append('accion', 'guardarContacto');
 formData.append('datos', JSON.stringify(contacto));
 
-// Enviar a Apps Script
 const response = await fetch(CONFIG.urlAppsScript, {
 method: 'POST',
 body: formData,
 redirect: 'follow'
 });
 
-console.log('✅ Contacto enviado a Google Sheets');
+console.log('✅ Contacto enviado');
 
-// Pequeña pausa para asegurar procesamiento
 await new Promise(resolve => setTimeout(resolve, 1000));
 
-// Agregar el nuevo contacto al array local para futuras validaciones
+// 🆕 ENVIAR NOTIFICACIÓN
+console.log('📢 Enviando notificación...');
+if (typeof notificarNuevoContacto === 'function') {
+await notificarNuevoContacto(
+contacto['Nombre Estudiante'],
+contacto['Nombre Padre'],
+contacto['Nombre Madre']
+);
+console.log('✅ Notificación enviada');
+} else {
+console.warn('⚠️ Función notificarNuevoContacto no disponible');
+}
+
 contactosExistentes.push(contacto);
 
 mostrarAlerta('✅ ¡Contacto registrado exitosamente! Gracias por proporcionar su información.', 'success');
 
-// Limpiar formulario
 document.getElementById('formContacto').reset();
 document.getElementById('cursoHidden').value = '';
 
@@ -572,11 +562,7 @@ alert.textContent = mensaje;
 alert.className = 'alert alert-' + tipo;
 alert.style.display = 'block';
 
-// Scroll hacia arriba para asegurar que el mensaje sea visible
 window.scrollTo({ top: 0, behavior: 'smooth' });
-
-// El mensaje NO desaparece automáticamente
-// Solo se oculta cuando se envía otro mensaje o se recarga la página
 }
 
 // ==========================================
@@ -587,6 +573,14 @@ window.addEventListener('load', function() {
 console.log('🚀 Página de registro de contactos cargada');
 cargarEstudiantes();
 cargarContactosExistentes();
+
+// 🆕 INICIALIZAR SISTEMA DE NOTIFICACIONES
+if (typeof inicializarSistemaNotificaciones === 'function') {
+inicializarSistemaNotificaciones();
+console.log('✅ Sistema de notificaciones inicializado');
+} else {
+console.warn('⚠️ Sistema de notificaciones no disponible');
+}
 });
 </script>
 
