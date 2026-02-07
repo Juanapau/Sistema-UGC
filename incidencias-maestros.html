@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro de Incidencias - Maestros</title>
+<title>Registro de Contacto - Padres y Tutores</title>
 <link rel="icon" type="image/png" href="./logo.png">
 <style>
 * {
@@ -26,7 +26,7 @@ justify-content: center;
 background: white;
 border-radius: 20px;
 box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-max-width: 800px;
+max-width: 700px;
 width: 100%;
 overflow: hidden;
 }
@@ -80,25 +80,34 @@ border-left: 4px solid #10b981;
 .alert-error {
 background: #fee2e2;
 color: #991b1b;
-border-left: 4px solid #ef4444;
+border-left: 4px solid #dc2626;
+}
+
+.alert-info {
+background: #dbeafe;
+color: #1e40af;
+border-left: 4px solid #3b82f6;
 }
 
 .form-group {
 margin-bottom: 25px;
 }
 
-label {
+.form-group label {
 display: block;
 margin-bottom: 8px;
-color: #1f2937;
+color: #374151;
 font-weight: 600;
 font-size: 0.95em;
 }
 
-input[type="datetime-local"],
-input[type="text"],
-select,
-textarea {
+.required {
+color: #dc2626;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
 width: 100%;
 padding: 12px 15px;
 border: 2px solid #e5e7eb;
@@ -108,23 +117,17 @@ transition: all 0.3s;
 font-family: inherit;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
 outline: none;
 border-color: #2a5298;
 box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
 }
 
-select:disabled {
-background: #f3f4f6;
-color: #9ca3af;
-cursor: not-allowed;
-}
-
-textarea {
+.form-group textarea {
+min-height: 100px;
 resize: vertical;
-min-height: 120px;
 }
 
 .autocomplete-container {
@@ -137,12 +140,11 @@ top: 100%;
 left: 0;
 right: 0;
 background: white;
-border: 2px solid #e5e7eb;
+border: 2px solid #2a5298;
 border-top: none;
 border-radius: 0 0 10px 10px;
-max-height: 250px;
+max-height: 200px;
 overflow-y: auto;
-display: none;
 z-index: 1000;
 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
@@ -151,26 +153,14 @@ box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 padding: 12px 15px;
 cursor: pointer;
 transition: background 0.2s;
-border-bottom: 1px solid #f3f4f6;
-}
-
-.suggestion-item:last-child {
-border-bottom: none;
 }
 
 .suggestion-item:hover {
-background: #f3f4f6;
+background: #dbeafe;
 }
 
-.suggestion-name {
-font-weight: 600;
-color: #1f2937;
-}
-
-.suggestion-course {
-font-size: 0.85em;
-color: #6b7280;
-margin-left: 8px;
+.suggestion-item strong {
+color: #1e3c72;
 }
 
 .btn {
@@ -184,12 +174,12 @@ font-size: 1.1em;
 font-weight: 600;
 cursor: pointer;
 transition: all 0.3s;
-margin-top: 10px;
+box-shadow: 0 4px 6px rgba(30, 60, 114, 0.3);
 }
 
 .btn:hover {
 transform: translateY(-2px);
-box-shadow: 0 10px 20px rgba(42, 82, 152, 0.3);
+box-shadow: 0 6px 12px rgba(30, 60, 114, 0.4);
 }
 
 .btn:active {
@@ -202,177 +192,156 @@ cursor: not-allowed;
 transform: none;
 }
 
-.required {
-color: #dc2626;
+.info-box {
+background: #d1fae5;
+border: 2px solid #10b981;
+border-radius: 10px;
+padding: 20px;
+margin-bottom: 25px;
 }
 
-.form-row {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 20px;
+.info-box h3 {
+color: #065f46;
+margin-bottom: 10px;
 }
 
-@media (max-width: 768px) {
-.form-row {
-grid-template-columns: 1fr;
+.info-box ul {
+list-style: none;
+padding-left: 0;
 }
 
-.content {
-padding: 25px;
+.info-box li {
+padding: 5px 0;
+color: #374151;
+}
+
+.info-box li:before {
+content: "✓ ";
+color: #10b981;
+font-weight: bold;
+margin-right: 8px;
+}
+
+.loading {
+text-align: center;
+padding: 20px;
+color: #6b7280;
+}
+
+.spinner {
+border: 3px solid #f3f4f6;
+border-top: 3px solid #2a5298;
+border-radius: 50%;
+width: 40px;
+height: 40px;
+animation: spin 1s linear infinite;
+margin: 0 auto 15px;
+}
+
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+body {
+padding: 10px;
 }
 
 .header h1 {
 font-size: 1.5em;
 }
-}
 
-.loading {
-display: inline-block;
-width: 20px;
-height: 20px;
-border: 3px solid rgba(255,255,255,.3);
-border-radius: 50%;
-border-top-color: white;
-animation: spin 1s ease-in-out infinite;
+.content {
+padding: 25px;
 }
-
-@keyframes spin {
-to { transform: rotate(360deg); }
 }
 </style>
 </head>
 <body>
+
 <div class="container">
 <div class="header">
-<h1>📋 Registro de Incidencias</h1>
-<p>Sistema de Gestión de Convivencia - CENSA</p>
+<h1>📱 Registro de Contacto</h1>
+<p>Padres y Tutores - CENSA</p>
 </div>
 
 <div class="content">
-<div style="background:#f0fdf4;border-left:4px solid #059669;padding:12px 15px;margin-bottom:25px;border-radius:8px;">
-<strong style="color:#059669;display:block;margin-bottom:6px;font-size:0.95em;">Instrucciones:</strong>
-<div style="color:#065f46;font-size:0.85em;line-height:1.6;">
-<p style="margin:0 0 8px 0;">- Complete todos los campos marcados con <span style="color:#dc2626;font-weight:bold;">*</span>.</p>
-<p style="margin:0 0 8px 0;">- Al escribir el nombre del estudiante, verá sugerencias automáticas.</p>
-<p style="margin:0;">- Seleccione el nombre correcto y el curso se completará automáticamente.</p>
-</div>
-</div>
-
-<div class="alert alert-success" id="alertSuccess">
-✅ <strong>¡Incidencia registrada exitosamente!</strong>
+<div class="info-box">
+<h3>👋 Bienvenido/a</h3>
+<ul>
+<li>Escriba el nombre de su hijo/a y selecciónelo de la lista</li>
+<li>Complete los datos de contacto disponibles</li>
+<li>Clic en Registrar Contacto</li>
+</ul>
 </div>
 
-<div class="alert alert-error" id="alertError">
-❌ <strong>Error:</strong> <span id="errorMessage"></span>
+<div id="alert" class="alert"></div>
+<div id="loading" class="loading" style="display:none;">
+<div class="spinner"></div>
+<p>Cargando estudiantes...</p>
 </div>
 
-<form id="formIncidencia">
-<div class="form-group">
-<label for="fechaIncidencia">Fecha y Hora <span class="required">*</span></label>
-<input type="datetime-local" id="fechaIncidencia" required>
-</div>
-
+<form id="formContacto">
 <div class="form-group autocomplete-container">
-<label for="nombreEstudiante">Nombre del Estudiante <span class="required">*</span></label>
+<label for="estudiante">Nombre del Estudiante</label>
 <input 
 type="text" 
-id="nombreEstudiante" 
+id="estudiante" 
 placeholder="Escriba el nombre del estudiante..."
-required
 autocomplete="off"
 >
-<div class="suggestions" id="suggestions"></div>
+<div id="suggestions" class="suggestions" style="display:none;"></div>
+<input type="hidden" id="cursoHidden">
 </div>
 
 <div class="form-group">
-<label for="cursoIncidencia">Curso <span class="required">*</span></label>
-<select id="cursoIncidencia" required>
-<option value="">Seleccione un curso</option>
-<option value="1roA">1roA</option>
-<option value="1roB">1roB</option>
-<option value="1roC">1roC</option>
-<option value="2doA">2doA</option>
-<option value="2doB">2doB</option>
-<option value="2doC">2doC</option>
-<option value="3roA">3roA</option>
-<option value="3roB">3roB</option>
-<option value="3roC">3roC</option>
-<option value="4toA">4toA</option>
-<option value="4toB">4toB</option>
-<option value="4toC">4toC</option>
-<option value="5toA">5toA</option>
-<option value="5toB">5toB</option>
-<option value="5toC">5toC</option>
-<option value="6toA">6toA</option>
-<option value="6toB">6toB</option>
-<option value="6toC">6toC</option>
-</select>
-</div>
-
-<div class="form-group">
-<label for="tipoFalta">Tipo de Falta <span class="required">*</span></label>
-<select id="tipoFalta" required>
-<option value="">Seleccione el tipo</option>
-<option value="Leve">Leve</option>
-<option value="Grave">Grave</option>
-<option value="Muy Grave">Muy Grave</option>
-</select>
-</div>
-
-<div class="form-row">
-<div class="form-group">
-<label for="docenteReporta">Docente que Reporta <span class="required">*</span></label>
+<label for="nombrePadre">Nombre del Padre</label>
 <input 
 type="text" 
-id="docenteReporta" 
-placeholder="Su nombre completo"
-required
+id="nombrePadre" 
+placeholder="Nombre completo del padre"
 >
 </div>
 
 <div class="form-group">
-<label for="tipoConducta">Tipo de Conducta <span class="required">*</span></label>
-<select id="tipoConducta" required>
-<option value="">Seleccione el tipo</option>
-<option value="Agresión física">Agresión física</option>
-<option value="Agresión verbal">Agresión verbal</option>
-<option value="Bullying">Bullying</option>
-<option value="Cyber bullying">Cyber bullying</option>
-<option value="Indisciplina en el aula">Indisciplina en el aula</option>
-<option value="Llegada tarde al aula">Llegada tarde al aula</option>
-<option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
-<option value="Falta de respeto a compañeros">Falta de respeto a compañeros</option>
-<option value="Falta de respeto al maestro/a">Falta de respeto al maestro/a</option>
-<option value="Desafío de la autoridad">Desafío de la autoridad</option>
-<option value="Reincidencia por uniformidad">Reincidencia por uniformidad</option>
-<option value="Corte de pelo no permitido">Corte de pelo no permitido</option>
-<option value="Peinado no permitido">Peinado no permitido</option>
-<option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
-<option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
-<option value="Otros">Otros</option>
-</select>
-</div>
+<label for="contactoPadre">Contacto Padre</label>
+<input 
+type="tel" 
+id="contactoPadre" 
+placeholder="Teléfono del padre"
+>
 </div>
 
 <div class="form-group">
-<label for="descripcion">Descripción de la Incidencia <span class="required">*</span></label>
-<textarea 
-id="descripcion" 
-placeholder="Describa detalladamente lo sucedido..."
-required
-></textarea>
+<label for="nombreMadre">Nombre de la Madre</label>
+<input 
+type="text" 
+id="nombreMadre" 
+placeholder="Nombre completo de la madre"
+>
 </div>
 
 <div class="form-group">
-<label for="accionesDocente">Acciones Tomadas por el Docente <span class="required">*</span></label>
-<textarea 
-id="accionesDocente" 
-placeholder="Describa las acciones que tomó para manejar la situación..."
-></textarea>
+<label for="contactoMadre">Contacto Madre</label>
+<input 
+type="tel" 
+id="contactoMadre" 
+placeholder="Teléfono de la madre"
+>
+</div>
+
+<div class="form-group">
+<label for="contactoEmergencia">Contacto Emergencia</label>
+<input 
+type="tel" 
+id="contactoEmergencia" 
+placeholder="Número de emergencia"
+>
 </div>
 
 <button type="submit" class="btn" id="btnSubmit">
-Registrar Incidencia
+✅ Registrar Contacto
 </button>
 </form>
 </div>
@@ -387,9 +356,9 @@ Registrar Incidencia
 // ==========================================
 
 const CONFIG = {
-urlIncidencias: 'https://script.google.com/macros/s/AKfycbwnCHIHNum-8uCHLbuE5NvwJeVmVMF6hCLWOAQQRUOwsU5GK_vpkrxifDFlMat1tP-z/exec',
+urlContactos: 'https://script.google.com/macros/s/AKfycbz2WK2rAH99oKd16ZBNjhPbWgBypMw7006Q497kpQrUW6ixvtJt0BTtORNCjOtzw43D/exec',
 urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
-urlAppsScript: 'https://script.google.com/macros/s/AKfycbyQ7veYDEtfslxTrulAYaXQvX0pgBhAhL0n5JmBgyQAeJUnaUzjZM-l4hRfiJ4GoBdp/exec',
+urlAppsScript: 'https://script.google.com/macros/s/AKfycbz2WK2rAH99oKd16ZBNjhPbWgBypMw7006Q497kpQrUW6ixvtJt0BTtORNCjOtzw43D/exec',
 // 🆕 URL de notificaciones
 urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec'
 };
@@ -398,36 +367,50 @@ urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qr
 window.urlNotificaciones = CONFIG.urlNotificaciones;
 
 let estudiantes = [];
+let contactosExistentes = [];
 
 // ==========================================
 // CARGA DE ESTUDIANTES
 // ==========================================
 
 async function cargarEstudiantes() {
+const inputEstudiante = document.getElementById('estudiante');
+inputEstudiante.disabled = true;
+
 try {
-console.log('🔄 Cargando estudiantes...');
 const response = await fetch(CONFIG.urlEstudiantes);
 const data = await response.json();
 
-if (data.values && data.values.length > 1) {
-const headers = data.values[0];
-estudiantes = data.values.slice(1).map(row => {
-const obj = {};
-headers.forEach((header, index) => {
-obj[header] = row[index] || '';
-});
-return obj;
-});
-console.log(`✅ ${estudiantes.length} estudiantes cargados`);
-} else if (Array.isArray(data) && data.length > 0) {
+if (data && data.length > 0) {
 estudiantes = data;
+inputEstudiante.disabled = false;
 console.log(`✅ ${estudiantes.length} estudiantes cargados`);
-} else if (data.data && Array.isArray(data.data)) {
-estudiantes = data.data;
-console.log(`✅ ${estudiantes.length} estudiantes cargados`);
+} else {
+throw new Error('No se pudieron cargar los estudiantes');
 }
 } catch (error) {
-console.error('❌ Error cargando estudiantes:', error);
+console.error('Error al cargar estudiantes:', error);
+inputEstudiante.placeholder = '❌ Error al cargar estudiantes';
+inputEstudiante.disabled = true;
+mostrarAlerta('No se pudieron cargar los estudiantes. Por favor, recargue la página.', 'error');
+}
+}
+
+// ==========================================
+// CARGA DE CONTACTOS EXISTENTES
+// ==========================================
+
+async function cargarContactosExistentes() {
+try {
+const response = await fetch(CONFIG.urlContactos);
+const data = await response.json();
+
+if (data && Array.isArray(data)) {
+contactosExistentes = data;
+console.log(`✅ ${contactosExistentes.length} contactos existentes cargados`);
+}
+} catch (error) {
+console.error('⚠️ No se pudieron cargar contactos existentes:', error);
 }
 }
 
@@ -435,55 +418,41 @@ console.error('❌ Error cargando estudiantes:', error);
 // AUTOCOMPLETADO
 // ==========================================
 
-const inputEstudiante = document.getElementById('nombreEstudiante');
+const inputEstudiante = document.getElementById('estudiante');
 const suggestionsDiv = document.getElementById('suggestions');
+const cursoHidden = document.getElementById('cursoHidden');
 
 inputEstudiante.addEventListener('input', function() {
-const texto = this.value.toLowerCase().trim();
+const query = this.value.toLowerCase().trim();
 
-if (texto.length < 2) {
+if (query.length < 2) {
 suggestionsDiv.style.display = 'none';
 return;
 }
 
-const coincidencias = estudiantes.filter(e => {
-const nombre = (e['Nombre Completo'] || e['nombre'] || e['Nombre'] || '').toLowerCase();
-return nombre.includes(texto);
-}).slice(0, 15);
+const filtrados = estudiantes.filter(est => {
+const nombre = (est['Nombre Completo'] || est.nombre || '').toLowerCase();
+return nombre.includes(query);
+});
 
-if (coincidencias.length === 0) {
+if (filtrados.length === 0) {
 suggestionsDiv.style.display = 'none';
 return;
 }
 
-suggestionsDiv.innerHTML = coincidencias.map((e, index) => {
-const nombre = e['Nombre Completo'] || e['nombre'] || e['Nombre'] || '';
-const curso = e['Curso'] || e['curso'] || '';
+suggestionsDiv.innerHTML = filtrados.slice(0, 8).map(est => {
+const nombre = est['Nombre Completo'] || est.nombre || '';
+const curso = est['Curso'] || est.curso || '';
 return `
-<div class="suggestion-item" data-index="${index}">
-<span class="suggestion-name">${nombre}</span>
-<span class="suggestion-course">(${curso})</span>
+<div class="suggestion-item" onclick="seleccionarEstudiante('${nombre}', '${curso}')">
+<strong>${nombre}</strong><br>
+<small style="color:#6b7280;">${curso}</small>
 </div>
 `;
 }).join('');
 
-document.querySelectorAll('.suggestion-item').forEach((item, index) => {
-item.addEventListener('click', function() {
-const estudiante = coincidencias[index];
-const nombre = estudiante['Nombre Completo'] || estudiante['nombre'] || estudiante['Nombre'] || '';
-const curso = estudiante['Curso'] || estudiante['curso'] || '';
-seleccionarEstudiante(nombre, curso);
-});
-});
-
 suggestionsDiv.style.display = 'block';
 });
-
-function seleccionarEstudiante(nombre, curso) {
-inputEstudiante.value = nombre;
-document.getElementById('cursoIncidencia').value = curso;
-suggestionsDiv.style.display = 'none';
-}
 
 document.addEventListener('click', function(e) {
 if (!e.target.closest('.autocomplete-container')) {
@@ -491,86 +460,58 @@ suggestionsDiv.style.display = 'none';
 }
 });
 
+function seleccionarEstudiante(nombre, curso) {
+inputEstudiante.value = nombre;
+cursoHidden.value = curso;
+suggestionsDiv.style.display = 'none';
+}
+
 // ==========================================
 // ENVÍO DEL FORMULARIO
 // ==========================================
 
-document.getElementById('formIncidencia').addEventListener('submit', async function(e) {
+document.getElementById('formContacto').addEventListener('submit', async function(e) {
 e.preventDefault();
 
 const btnSubmit = document.getElementById('btnSubmit');
-const alertSuccess = document.getElementById('alertSuccess');
-const alertError = document.getElementById('alertError');
+const nombreEstudiante = document.getElementById('estudiante').value.trim();
 
-alertSuccess.style.display = 'none';
-alertError.style.display = 'none';
-
-btnSubmit.disabled = true;
-btnSubmit.innerHTML = '<span class="loading"></span> Guardando...';
-
-try {
-const datos = {
-'Fecha y Hora': document.getElementById('fechaIncidencia').value,
-'Curso': document.getElementById('cursoIncidencia').value,
-'Nombre Estudiante': document.getElementById('nombreEstudiante').value,
-'Tipo de falta': document.getElementById('tipoFalta').value,
-'Docente': document.getElementById('docenteReporta').value,
-'Tipo de Conducta': document.getElementById('tipoConducta').value,
-'Descripción': document.getElementById('descripcion').value,
-'Acciones Docente': document.getElementById('accionesDocente').value
-};
-
-await enviarAGoogleSheets(datos);
-
-// 🆕 ENVIAR NOTIFICACIÓN
-console.log('📢 Enviando notificación...');
-if (typeof notificarNuevaIncidencia === 'function') {
-await notificarNuevaIncidencia(
-datos['Nombre Estudiante'],
-datos['Tipo de falta'],
-datos['Tipo de Conducta']
-);
-console.log('✅ Notificación enviada');
-} else {
-console.warn('⚠️ Función notificarNuevaIncidencia no disponible');
+if (!nombreEstudiante) {
+mostrarAlerta('⚠️ Por favor, seleccione un estudiante de la lista.', 'error');
+return;
 }
 
-alertSuccess.style.display = 'block';
-this.reset();
-
-const now = new Date();
-now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-document.getElementById('fechaIncidencia').value = now.toISOString().slice(0, 16);
-
-window.scrollTo({ top: 0, behavior: 'smooth' });
-
-setTimeout(() => {
-alertSuccess.style.display = 'none';
-}, 5000);
-
-} catch (error) {
-console.error('Error:', error);
-document.getElementById('errorMessage').textContent = error.message;
-alertError.style.display = 'block';
-window.scrollTo({ top: 0, behavior: 'smooth' });
-} finally {
-btnSubmit.disabled = false;
-btnSubmit.innerHTML = 'Registrar Incidencia';
+const contactoExistente = contactosExistentes.find(c => {
+const nombreEnBD = (c['Nombre Estudiante'] || c.estudiante || '').trim().toLowerCase();
+if (!nombreEnBD || nombreEnBD === '') {
+return false;
 }
+return nombreEnBD === nombreEstudiante.toLowerCase();
 });
 
-// ==========================================
-// FUNCIÓN PARA ENVIAR A GOOGLE SHEETS
-// ==========================================
-
-async function enviarAGoogleSheets(datos) {
-try {
-const formData = new URLSearchParams();
-for (const key in datos) {
-formData.append(key, datos[key]);
+if (contactoExistente) {
+mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información, contacte a la Unidad de Gestión de Convivencia.', 'info');
+return;
 }
 
-console.log('📤 Enviando datos a Google Sheets...');
+btnSubmit.disabled = true;
+btnSubmit.textContent = '⏳ Registrando...';
+
+try {
+const contacto = {
+'Nombre Estudiante': nombreEstudiante,
+'Nombre Padre': document.getElementById('nombrePadre').value || '',
+'Contacto Padre': document.getElementById('contactoPadre').value || '',
+'Nombre Madre': document.getElementById('nombreMadre').value || '',
+'Contacto Madre': document.getElementById('contactoMadre').value || '',
+'Contacto Emergencia': document.getElementById('contactoEmergencia').value || ''
+};
+
+console.log('📤 Enviando contacto...');
+
+const formData = new FormData();
+formData.append('accion', 'guardarContacto');
+formData.append('datos', JSON.stringify(contacto));
 
 const response = await fetch(CONFIG.urlAppsScript, {
 method: 'POST',
@@ -578,27 +519,60 @@ body: formData,
 redirect: 'follow'
 });
 
-console.log('✅ Datos enviados');
+console.log('✅ Contacto enviado');
 
 await new Promise(resolve => setTimeout(resolve, 1000));
 
-return true;
-} catch (error) {
-console.error('❌ Error enviando:', error);
-throw new Error('No se pudo conectar con Google Sheets');
+// 🆕 ENVIAR NOTIFICACIÓN
+console.log('📢 Enviando notificación...');
+if (typeof notificarNuevoContacto === 'function') {
+await notificarNuevoContacto(
+contacto['Nombre Estudiante'],
+contacto['Nombre Padre'],
+contacto['Nombre Madre']
+);
+console.log('✅ Notificación enviada');
+} else {
+console.warn('⚠️ Función notificarNuevoContacto no disponible');
 }
+
+contactosExistentes.push(contacto);
+
+mostrarAlerta('✅ ¡Contacto registrado exitosamente! Gracias por proporcionar su información.', 'success');
+
+document.getElementById('formContacto').reset();
+document.getElementById('cursoHidden').value = '';
+
+} catch (error) {
+console.error('❌ Error:', error);
+mostrarAlerta('❌ Error al registrar el contacto. Por favor, intente nuevamente.', 'error');
+}
+
+btnSubmit.disabled = false;
+btnSubmit.textContent = '✅ Registrar Contacto';
+});
+
+// ==========================================
+// FUNCIONES AUXILIARES
+// ==========================================
+
+function mostrarAlerta(mensaje, tipo = 'info') {
+const alert = document.getElementById('alert');
+alert.textContent = mensaje;
+alert.className = 'alert alert-' + tipo;
+alert.style.display = 'block';
+
+window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ==========================================
 // INICIALIZACIÓN
 // ==========================================
 
-window.addEventListener('DOMContentLoaded', () => {
-const now = new Date();
-now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-document.getElementById('fechaIncidencia').value = now.toISOString().slice(0, 16);
-
+window.addEventListener('load', function() {
+console.log('🚀 Página de registro de contactos cargada');
 cargarEstudiantes();
+cargarContactosExistentes();
 
 // 🆕 INICIALIZAR SISTEMA DE NOTIFICACIONES
 if (typeof inicializarSistemaNotificaciones === 'function') {
@@ -607,9 +581,8 @@ console.log('✅ Sistema de notificaciones inicializado');
 } else {
 console.warn('⚠️ Sistema de notificaciones no disponible');
 }
-
-console.log('✅ Sistema de incidencias cargado');
 });
 </script>
+
 </body>
 </html>
