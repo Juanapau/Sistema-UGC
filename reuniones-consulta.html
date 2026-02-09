@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reuniones y Acuerdos - Consulta</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+min-height: 100vh;
+padding: 20px;
+}
+
+.container { max-width: 1600px; margin: 0 auto; }
+
+header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 30px;
+border-radius: 15px;
+margin-bottom: 25px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+
+.header-left { display: flex; align-items: center; gap: 15px; }
+.header-left img { width: 50px; height: 50px; }
+.header-title h1 { font-size: 1.6em; margin-bottom: 3px; }
+.header-title p { color: #4a9eff; font-size: 0.85em; }
+
+.btn-back {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.9em;
+font-weight: 600;
+transition: all 0.3s;
+text-decoration: none;
+display: inline-block;
+}
+
+.btn-back:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+.content-card {
+background: white;
+border-radius: 15px;
+padding: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.search-bar { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+
+.search-bar input,
+.search-bar select {
+flex: 1;
+min-width: 200px;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-size: 0.95em;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+outline: none;
+border-color: #2a5298;
+box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
+}
+
+/* Forzar que los filtros estén habilitados */
+.filter-select {
+pointer-events: auto !important;
+opacity: 1 !important;
+cursor: pointer !important;
+background: white !important;
+}
+
+.btn {
+padding: 12px 24px;
+border: none;
+border-radius: 8px;
+font-size: 0.95em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+white-space: nowrap;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+color: white;
+}
+
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(42,82,152,0.4); }
+
+.btn-secondary {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+}
+
+.btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+
+.table-container { overflow-x: auto; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+table { width: 100%; border-collapse: collapse; background: white; }
+
+table th {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 15px 10px;
+text-align: left;
+font-weight: 600;
+font-size: 0.85em;
+white-space: nowrap;
+}
+
+table td { padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 0.85em; }
+table tr:hover { background: #f8f9fa; }
+
+.badge {
+display: inline-block;
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 0.8em;
+font-weight: 600;
+white-space: nowrap;
+}
+
+.badge-seguimiento { background: #fff3cd; color: #856404; }
+.badge-cumplido { background: #d4edda; color: #155724; }
+.badge-no-cumplido { background: #f8d7da; color: #721c24; }
+.badge-parcial { background: #d1ecf1; color: #0c5460; }
+
+@media (max-width: 768px) {
+header { flex-direction: column; text-align: center; }
+.search-bar { flex-direction: column; }
+.search-bar input, .search-bar select, .btn { width: 100%; min-width: 100%; }
+table { font-size: 0.75em; }
+table th, table td { padding: 8px 5px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<header>
+<div class="header-left">
+<img src="./logo.png" alt="Logo" onerror="this.style.display='none'">
+<div class="header-title">
+<h1>Reuniones y Acuerdos con Padres</h1>
+<p>Solo Lectura - PNSA</p>
+</div>
+</div>
+<a href="consulta.html" class="btn-back">← Volver al Dashboard</a>
+</header>
+
+<div class="content-card">
+<div class="search-bar">
+<div style="position: relative; flex: 1; min-width: 200px;">
+<input type="text" 
+id="buscarEstudiante" 
+placeholder="🔍 Buscar por nombre de estudiante..."
+autocomplete="off"
+oninput="filtrarSugerencias()"
+onfocus="mostrarSugerencias()"
+style="width: 100%;">
+<div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
+</div>
+<select id="filtrarCurso" class="filter-select">
+<option value="">Todos los cursos</option>
+<option value="1roA">1roA</option>
+<option value="1roB">1roB</option>
+<option value="1roC">1roC</option>
+<option value="2doA">2doA</option>
+<option value="2doB">2doB</option>
+<option value="2doC">2doC</option>
+<option value="3roA">3roA</option>
+<option value="3roB">3roB</option>
+<option value="3roC">3roC</option>
+<option value="4toA">4toA</option>
+<option value="4toB">4toB</option>
+<option value="4toC">4toC</option>
+<option value="5toA">5toA</option>
+<option value="5toB">5toB</option>
+<option value="5toC">5toC</option>
+<option value="6toA">6toA</option>
+<option value="6toB">6toB</option>
+<option value="6toC">6toC</option>
+</select>
+<select id="filtrarEstado" class="filter-select">
+<option value="">Todos los estados</option>
+<option value="En seguimiento">En seguimiento</option>
+<option value="Cumplido">Cumplido</option>
+<option value="No cumplido">No cumplido</option>
+<option value="Parcialmente cumplido">Parcialmente cumplido</option>
+</select>
+<button class="btn btn-primary" onclick="buscarReuniones()">🔍 Buscar</button>
+<button class="btn btn-secondary" onclick="recargarReuniones()">🔄 Recargar</button>
+</div>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="width:8%;">Fecha</th>
+<th style="width:6%;">Tipo</th>
+<th style="width:12%;">Estudiante</th>
+<th style="width:11%;">Padre/Madre</th>
+<th style="width:7%;">¿Asistió?</th>
+<th style="width:7%;">Reuniones</th>
+<th style="width:15%;">Motivo</th>
+<th style="width:10%;">Estado</th>
+<th style="width:8%;">Seguimiento</th>
+</tr>
+</thead>
+<tbody id="bodyReuniones">
+<tr><td colspan="9" style="text-align:center;padding:40px;">📥 Cargando reuniones...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<script src="./auth-guard.js"></script>
+<script>
+let datosReuniones = [];
+let reunionesFiltradas = [];
+
+let CONFIG = { 
+urlReuniones: 'https://script.google.com/macros/s/AKfycbxjky9LnAAqElohVjgLESUA2nh-ICXYWNDMGkVfGjwVEb1tc0HQAtg-sayrFMXH788aLA/exec'
+};
+
+window.addEventListener('load', function() {
+const configGuardada = localStorage.getItem('censaConfig');
+if (configGuardada) {
+const configTemp = JSON.parse(configGuardada);
+if (configTemp.urlReuniones) {
+CONFIG.urlReuniones = configTemp.urlReuniones;
+}
+}
+console.log('🤝 URL Reuniones:', CONFIG.urlReuniones);
+
+cargarReuniones();
+});
+
+async function cargarDatosDesdeGoogleSheets(url) {
+try {
+const response = await fetch(url);
+if (!response.ok) throw new Error('Error en la respuesta');
+return await response.json();
+} catch (error) {
+console.error('Error:', error);
+return [];
+}
+}
+
+async function cargarReuniones() {
+const tbody = document.getElementById('bodyReuniones');
+
+if (CONFIG.urlReuniones) {
+try {
+const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones);
+if (datos && datos.length > 0) {
+datosReuniones = datos;
+reunionesFiltradas = datos;
+console.log('✅ Reuniones cargadas:', datos.length);
+mostrarReuniones();
+} else {
+tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:60px;"><div style="font-size:4em;margin-bottom:15px;opacity:0.5;">📭</div><p>No hay reuniones registradas</p></td></tr>';
+}
+} catch (error) {
+console.error('Error:', error);
+tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos.</td></tr>';
+}
+} else {
+tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No hay URL de Google Sheets configurada.</td></tr>';
+}
+}
+
+function mostrarReuniones() {
+const tbody = document.getElementById('bodyReuniones');
+
+if (reunionesFiltradas.length === 0) {
+tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:60px;">No se encontraron resultados.</td></tr>';
+return;
+}
+
+tbody.innerHTML = reunionesFiltradas.map(r => {
+const estado = r['Estado'] || 'N/A';
+const badgeClass = estado === 'Cumplido' ? 'badge-cumplido'
+: estado === 'No cumplido' ? 'badge-no-cumplido'
+: estado.includes('Parcial') ? 'badge-parcial'
+: 'badge-seguimiento';
+
+// Contar cuántas reuniones tiene este estudiante HASTA esta fecha
+const nombreEstudiante = r['Nombre Estudiante'] || '';
+const fechaActual = new Date(r['Fecha y Hora']);
+
+const totalReuniones = datosReuniones.filter(reunion => {
+if (reunion['Nombre Estudiante'] !== nombreEstudiante) return false;
+try {
+const fechaReunion = new Date(reunion['Fecha y Hora']);
+return fechaReunion <= fechaActual;
+} catch {
+return false;
+}
+}).length;
+
+// Badge para reuniones
+const reunionesBadge = totalReuniones === 1 ? 'badge-seguimiento'
+: totalReuniones === 2 ? 'badge-parcial'
+: 'badge-no-cumplido';
+
+// Badge para asistió
+const asistio = r['Asistió'] || '';
+const asistioIcon = asistio.toLowerCase().includes('sí') || asistio.toLowerCase().includes('si') 
+? '✅ Sí' 
+: asistio.toLowerCase().includes('no') 
+? '❌ No' 
+: '-';
+const asistioBadge = asistio.toLowerCase().includes('sí') || asistio.toLowerCase().includes('si')
+? 'badge-cumplido'
+: 'badge-no-cumplido';
+
+return `<tr>
+<td style="font-size:0.85em;">
+<div>${formatearFechaCorta(r['Fecha y Hora'])}</div>
+<div style="color:#666;font-size:0.9em;">${formatearHora(r['Fecha y Hora'])}</div>
+</td>
+<td>
+${r['Tipo'] === 'Presencial' ? '🏫' : '📞'}<br>
+<span style="font-size:0.85em;">${r['Tipo'] || 'N/A'}</span>
+</td>
+<td>
+<strong>${nombreEstudiante || 'N/A'}</strong><br>
+<span style="color:#666;font-size:0.85em;">${r['Curso'] || ''}</span>
+</td>
+<td style="font-size:0.85em;">
+<div><strong>${r['Nombre Padre/Madre'] || r['Padre/Madre Presente'] || 'N/A'}</strong></div>
+<div style="color:#666;font-size:0.9em;">${r['Padre/Madre Presente'] || ''}</div>
+</td>
+<td style="text-align:center;">
+<span class="badge ${asistioBadge}">${asistioIcon}</span>
+</td>
+<td style="text-align:center;">
+<span class="badge ${reunionesBadge}">${totalReuniones}ª vez</span>
+</td>
+<td style="font-size:0.85em;">${r['Motivo'] || 'N/A'}</td>
+<td><span class="badge ${badgeClass}">${estado}</span></td>
+<td style="font-size:0.85em;">${formatearFechaCorta(r['Fecha Seguimiento']) || '-'}</td>
+</tr>`;
+}).join('');
+
+console.log(`📊 Mostrando ${reunionesFiltradas.length} reuniones`);
+}
+
+function buscarReuniones() {
+const buscarEstudiante = document.getElementById('buscarEstudiante').value.toLowerCase();
+const filtrarCurso = document.getElementById('filtrarCurso').value;
+const filtrarEstado = document.getElementById('filtrarEstado').value;
+
+reunionesFiltradas = datosReuniones.filter(r => {
+const estudiante = r['Nombre Estudiante'] || '';
+const curso = r['Curso'] || '';
+const estado = r['Estado'] || '';
+
+const cumpleEstudiante = !buscarEstudiante || estudiante.toLowerCase().includes(buscarEstudiante);
+const cumpleCurso = !filtrarCurso || curso === filtrarCurso;
+const cumpleEstado = !filtrarEstado || estado === filtrarEstado;
+
+return cumpleEstudiante && cumpleCurso && cumpleEstado;
+});
+
+mostrarReuniones();
+console.log(`🔍 Filtrado: ${reunionesFiltradas.length} de ${datosReuniones.length} reuniones`);
+}
+
+function recargarReuniones() {
+document.getElementById('buscarEstudiante').value = '';
+document.getElementById('filtrarCurso').value = '';
+document.getElementById('filtrarEstado').value = '';
+reunionesFiltradas = datosReuniones;
+mostrarReuniones();
+console.log('🔄 Filtros limpiados');
+}
+
+// Autocompletado
+function filtrarSugerencias() {
+const input = document.getElementById('buscarEstudiante');
+const sugerencias = document.getElementById('sugerenciasEstudiantes');
+const texto = input.value.toLowerCase().trim();
+
+if (texto.length === 0) {
+sugerencias.style.display = 'none';
+return;
+}
+
+const estudiantesUnicos = [...new Set(datosReuniones
+.map(r => r['Nombre Estudiante'])
+.filter(nombre => nombre && nombre.toLowerCase().includes(texto))
+)].sort();
+
+if (estudiantesUnicos.length === 0) {
+sugerencias.style.display = 'none';
+return;
+}
+
+sugerencias.innerHTML = estudiantesUnicos.map(nombre => `
+<div onclick="seleccionarEstudiante('${nombre.replace(/'/g, "\\'")}')" 
+style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s;"
+onmouseover="this.style.background='#f0f0f0'"
+onmouseout="this.style.background='white'">
+${nombre}
+</div>
+`).join('');
+
+sugerencias.style.display = 'block';
+}
+
+function mostrarSugerencias() {
+const input = document.getElementById('buscarEstudiante');
+if (input.value.trim().length > 0) {
+filtrarSugerencias();
+}
+}
+
+function seleccionarEstudiante(nombre) {
+document.getElementById('buscarEstudiante').value = nombre;
+document.getElementById('sugerenciasEstudiantes').style.display = 'none';
+buscarReuniones();
+}
+
+document.addEventListener('click', function(e) {
+const sugerencias = document.getElementById('sugerenciasEstudiantes');
+const input = document.getElementById('buscarEstudiante');
+if (e.target !== input && e.target !== sugerencias) {
+sugerencias.style.display = 'none';
+}
+});
+
+// Re-habilitar filtros
+setTimeout(function() {
+const filtros = document.querySelectorAll('.filter-select');
+filtros.forEach(filtro => {
+filtro.disabled = false;
+filtro.style.opacity = '1';
+filtro.style.cursor = 'pointer';
+filtro.style.background = 'white';
+filtro.style.pointerEvents = 'auto';
+});
+console.log('✅ Filtros re-habilitados');
+}, 1000);
+
+const intervalo = setInterval(function() {
+const filtros = document.querySelectorAll('.filter-select');
+let todosHabilitados = true;
+
+filtros.forEach(filtro => {
+if (filtro.disabled) {
+filtro.disabled = false;
+filtro.style.opacity = '1';
+filtro.style.cursor = 'pointer';
+filtro.style.background = 'white';
+filtro.style.pointerEvents = 'auto';
+todosHabilitados = false;
+}
+});
+
+if (todosHabilitados) {
+clearInterval(intervalo);
+console.log('✅ Filtros permanentemente habilitados');
+}
+}, 500);
+
+function formatearFecha(fechaStr) {
+if (!fechaStr) return 'N/A';
+try {
+const fecha = new Date(fechaStr);
+return `${String(fecha.getDate()).padStart(2, '0')}/${String(fecha.getMonth() + 1).padStart(2, '0')}/${fecha.getFullYear()}`;
+} catch (error) {
+return fechaStr;
+}
+}
+
+function formatearFechaCorta(fechaStr) {
+if (!fechaStr) return 'N/A';
+try {
+const fecha = new Date(fechaStr);
+return `${String(fecha.getDate()).padStart(2, '0')}/${String(fecha.getMonth() + 1).padStart(2, '0')}/${fecha.getFullYear()}`;
+} catch (error) {
+return fechaStr;
+}
+}
+
+function formatearHora(fechaStr) {
+if (!fechaStr) return '';
+try {
+const fecha = new Date(fechaStr);
+return `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')} ${ fecha.getHours() >= 12 ? 'p. m.' : 'a. m.'}`;
+} catch (error) {
+return '';
+}
+}
+
+console.log('🤝 Módulo de reuniones (consulta) cargado');
+</script>
+
+</body>
+</html>

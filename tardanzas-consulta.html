@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tardanzas - Consulta</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+min-height: 100vh;
+padding: 20px;
+}
+
+.container { max-width: 1400px; margin: 0 auto; }
+
+header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 30px;
+border-radius: 15px;
+margin-bottom: 25px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+
+.header-left { display: flex; align-items: center; gap: 15px; }
+.header-left img { width: 50px; height: 50px; }
+.header-title h1 { font-size: 1.6em; margin-bottom: 3px; }
+.header-title p { color: #4a9eff; font-size: 0.85em; }
+
+.btn-back {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.9em;
+font-weight: 600;
+transition: all 0.3s;
+text-decoration: none;
+display: inline-block;
+}
+
+.btn-back:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+.content-card {
+background: white;
+border-radius: 15px;
+padding: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.alert-readonly {
+background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+border: 2px solid #fbbf24;
+border-radius: 12px;
+padding: 15px 20px;
+margin-bottom: 25px;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.alert-readonly .icon { font-size: 1.8em; }
+.alert-readonly p { color: #92400e; font-size: 0.9em; margin: 0; }
+
+.filter-radios {
+background: #f8f9fa;
+padding: 15px;
+border-radius: 10px;
+margin-bottom: 20px;
+}
+
+.filter-radios label { font-weight: 600; margin-bottom: 10px; display: block; color: #333; }
+.radio-group { display: flex; gap: 30px; flex-wrap: wrap; }
+.radio-group label { display: flex; align-items: center; cursor: pointer; }
+.radio-group input[type="radio"] { margin-right: 8px; cursor: pointer; width: 18px; height: 18px; }
+
+.search-bar { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+
+.search-bar input,
+.search-bar select {
+flex: 1;
+min-width: 200px;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-size: 0.95em;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+outline: none;
+border-color: #2a5298;
+box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
+}
+
+.btn {
+padding: 12px 24px;
+border: none;
+border-radius: 8px;
+font-size: 0.95em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+white-space: nowrap;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+color: white;
+}
+
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(42,82,152,0.4); }
+
+.btn-secondary {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+}
+
+.btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+
+/* Forzar que los filtros estén habilitados */
+.filter-select {
+pointer-events: auto !important;
+opacity: 1 !important;
+cursor: pointer !important;
+background: white !important;
+}
+
+input[type="radio"] {
+pointer-events: auto !important;
+cursor: pointer !important;
+}
+
+.table-container { overflow-x: auto; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+table { width: 100%; border-collapse: collapse; background: white; }
+
+table th {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 15px 12px;
+text-align: left;
+font-weight: 600;
+font-size: 0.9em;
+}
+
+table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+table tr:hover { background: #f8f9fa; }
+
+/* Filas resaltadas según tardanzas */
+tr.fila-advertencia {
+background: #fff3cd !important;
+}
+
+tr.fila-advertencia:hover {
+background: #ffe69c !important;
+}
+
+tr.fila-peligro {
+background: #f8d7da !important;
+}
+
+tr.fila-peligro:hover {
+background: #f1aeb5 !important;
+}
+
+.badge-warning {
+background: #fff3cd;
+color: #856404;
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 0.85em;
+font-weight: 600;
+}
+
+.badge-danger {
+background: #f8d7da;
+color: #721c24;
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 0.85em;
+font-weight: 600;
+}
+
+@media (max-width: 768px) {
+header { flex-direction: column; text-align: center; }
+.search-bar { flex-direction: column; }
+.search-bar input, .search-bar select, .btn { width: 100%; min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<header>
+<div class="header-left">
+<img src="./logo.png" alt="Logo" onerror="this.style.display='none'">
+<div class="header-title">
+<h1>Registro de Tardanzas</h1>
+<p>Solo Lectura - PNSA</p>
+</div>
+</div>
+<a href="consulta.html" class="btn-back">← Volver al Dashboard</a>
+</header>
+
+<div class="content-card">
+
+<div class="filter-radios">
+<label>📊 Filtro por Cantidad de Tardanzas en un Mes:</label>
+<div class="radio-group">
+<label>
+<input type="radio" name="filtroTardanzas" value="todas" checked onchange="aplicarFiltro()">
+<span>Todas las tardanzas</span>
+</label>
+<label>
+<input type="radio" name="filtroTardanzas" value="3" onchange="aplicarFiltro()">
+<span>⚠️ Exactamente 3 tardanzas</span>
+</label>
+<label>
+<input type="radio" name="filtroTardanzas" value="mas3" onchange="aplicarFiltro()">
+<span>🚨 Más de 3 tardanzas</span>
+</label>
+</div>
+</div>
+
+<div class="search-bar">
+<div style="position: relative; flex: 1; min-width: 200px;">
+<input type="text" 
+id="buscarEstudiante" 
+placeholder="🔍 Buscar por nombre de estudiante..."
+autocomplete="off"
+oninput="filtrarSugerencias()"
+onfocus="mostrarSugerencias()"
+style="width: 100%;">
+<div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
+</div>
+<select id="filtrarCurso" class="filter-select">
+<option value="">Todos los cursos</option>
+<option value="1roA">1roA</option>
+<option value="1roB">1roB</option>
+<option value="1roC">1roC</option>
+<option value="2doA">2doA</option>
+<option value="2doB">2doB</option>
+<option value="2doC">2doC</option>
+<option value="3roA">3roA</option>
+<option value="3roB">3roB</option>
+<option value="3roC">3roC</option>
+<option value="4toA">4toA</option>
+<option value="4toB">4toB</option>
+<option value="4toC">4toC</option>
+<option value="5toA">5toA</option>
+<option value="5toB">5toB</option>
+<option value="5toC">5toC</option>
+<option value="6toA">6toA</option>
+<option value="6toB">6toB</option>
+<option value="6toC">6toC</option>
+</select>
+<select id="filtrarMes" class="filter-select">
+<option value="">Todos los meses</option>
+<option value="Enero">Enero</option>
+<option value="Febrero">Febrero</option>
+<option value="Marzo">Marzo</option>
+<option value="Abril">Abril</option>
+<option value="Mayo">Mayo</option>
+<option value="Junio">Junio</option>
+<option value="Julio">Julio</option>
+<option value="Agosto">Agosto</option>
+<option value="Septiembre">Septiembre</option>
+<option value="Octubre">Octubre</option>
+<option value="Noviembre">Noviembre</option>
+<option value="Diciembre">Diciembre</option>
+</select>
+<button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
+<button class="btn btn-secondary" onclick="recargarTardanzas()">🔄 Recargar</button>
+</div>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Fecha</th>
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Mes</th>
+<th>Total Mes</th>
+</tr>
+</thead>
+<tbody id="bodyTardanzas">
+<tr><td colspan="5" style="text-align:center;padding:40px;">📥 Cargando tardanzas...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<script src="./auth-guard.js"></script>
+<script>
+let datosTardanzas = [];
+let tardanzasFiltradas = [];
+let CONFIG = { 
+urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec'
+};
+
+window.addEventListener('load', function() {
+const configGuardada = localStorage.getItem('censaConfig');
+if (configGuardada) {
+const configTemp = JSON.parse(configGuardada);
+if (configTemp.urlTardanzas) {
+CONFIG.urlTardanzas = configTemp.urlTardanzas;
+}
+console.log('✅ Configuración actualizada desde localStorage');
+}
+console.log('⏰ URL Tardanzas:', CONFIG.urlTardanzas);
+
+cargarTardanzas();
+});
+
+async function cargarDatosDesdeGoogleSheets(url) {
+try {
+const response = await fetch(url);
+if (!response.ok) throw new Error('Error en la respuesta');
+return await response.json();
+} catch (error) {
+console.error('Error:', error);
+return [];
+}
+}
+
+async function cargarTardanzas() {
+const tbody = document.getElementById('bodyTardanzas');
+if (CONFIG.urlTardanzas) {
+try {
+const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas);
+if (datos && datos.length > 0) {
+// Calcular "Total Mes" para cada registro
+datos.forEach(tardanza => {
+const estudiante = tardanza['Nombre Estudiante'];
+const mes = tardanza['Mes'];
+const año = tardanza['Año'];
+
+// Contar tardanzas del mismo estudiante en el mismo mes/año
+const totalMes = datos.filter(t => 
+t['Nombre Estudiante'] === estudiante && 
+t['Mes'] === mes && 
+t['Año'] === año
+).length;
+
+tardanza['Total Mes'] = totalMes;
+});
+
+datosTardanzas = datos;
+tardanzasFiltradas = datos;
+console.log('✅ Tardanzas cargadas:', datos.length);
+mostrarTardanzas();
+} else {
+tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:60px;"><div style="font-size:4em;margin-bottom:15px;opacity:0.5;">📭</div><p>No hay tardanzas registradas</p></td></tr>';
+}
+} catch (error) {
+tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos.</td></tr>';
+}
+} else {
+tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No hay URL de Google Sheets configurada.</td></tr>';
+}
+}
+
+function mostrarTardanzas() {
+const tbody = document.getElementById('bodyTardanzas');
+if (tardanzasFiltradas.length === 0) {
+tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:60px;">No se encontraron resultados.</td></tr>';
+return;
+}
+
+tbody.innerHTML = tardanzasFiltradas.map(t => {
+const totalMes = parseInt(t['Total Mes']) || 0;
+
+// Clase para resaltar toda la fila
+const claseFila = totalMes >= 4 ? 'fila-peligro' : totalMes === 3 ? 'fila-advertencia' : '';
+
+return `<tr class="${claseFila}">
+<td>${formatearFecha(t['Fecha'])}</td>
+<td><strong>${t['Nombre Estudiante'] || 'N/A'}</strong></td>
+<td>${t['Curso'] || 'N/A'}</td>
+<td>${t['Mes'] || 'N/A'}</td>
+<td><strong>${totalMes}</strong></td>
+</tr>`;
+}).join('');
+}
+
+function aplicarFiltro() {
+const filtro = document.querySelector('input[name="filtroTardanzas"]:checked').value;
+buscarTardanzas(filtro);
+}
+
+function buscarTardanzas(filtroRadio = null) {
+const buscarEstudiante = document.getElementById('buscarEstudiante').value.toLowerCase();
+const filtrarCurso = document.getElementById('filtrarCurso').value;
+const filtrarMes = document.getElementById('filtrarMes').value;
+const filtro = filtroRadio || document.querySelector('input[name="filtroTardanzas"]:checked').value;
+
+console.log('🔍 Filtros aplicados:');
+console.log('  - Estudiante:', buscarEstudiante || 'Todos');
+console.log('  - Curso:', filtrarCurso || 'Todos');
+console.log('  - Mes:', filtrarMes || 'Todos');
+console.log('  - Radio:', filtro);
+
+// Mostrar algunos ejemplos de meses en los datos
+if (filtrarMes) {
+const ejemplosMeses = [...new Set(datosTardanzas.map(t => t['Mes']))].slice(0, 5);
+console.log('🔍 Ejemplos de meses en datos:', ejemplosMeses);
+console.log('🔍 Mes buscado:', filtrarMes);
+}
+
+// Si el filtro es "Exactamente 3" o "Más de 3", agrupar por mes
+if (filtro === '3' || filtro === 'mas3') {
+console.log('📊 Agrupando por mes para filtro:', filtro);
+
+// Primero filtrar por estudiante, curso y mes
+let tardanzasBase = datosTardanzas.filter(t => {
+const cumpleEstudiante = !buscarEstudiante || (t['Nombre Estudiante'] && t['Nombre Estudiante'].toLowerCase().includes(buscarEstudiante));
+const cumpleCurso = !filtrarCurso || t['Curso'] === filtrarCurso;
+const mesTardanza = (t['Mes'] || '').toLowerCase();
+const mesFiltro = filtrarMes.toLowerCase();
+const cumpleMes = !filtrarMes || mesTardanza === mesFiltro;
+return cumpleEstudiante && cumpleCurso && cumpleMes;
+});
+
+// Agrupar por estudiante + mes + año
+const grupos = {};
+tardanzasBase.forEach(t => {
+const estudiante = t['Nombre Estudiante'] || '';
+const mes = t['Mes'] || '';
+const año = t['Año'] || '';
+const clave = `${estudiante}|${mes}|${año}`;
+
+if (!grupos[clave]) {
+grupos[clave] = {
+estudiante: estudiante,
+curso: t['Curso'],
+mes: mes,
+año: año,
+tardanzas: [],
+totalMes: 0
+};
+}
+grupos[clave].tardanzas.push(t);
+});
+
+// Calcular totales y filtrar según el criterio
+tardanzasFiltradas = [];
+Object.values(grupos).forEach(grupo => {
+grupo.totalMes = grupo.tardanzas.length;
+
+// Aplicar filtro de cantidad
+let cumpleFiltro = true;
+if (filtro === '3') cumpleFiltro = grupo.totalMes === 3;
+else if (filtro === 'mas3') cumpleFiltro = grupo.totalMes > 3;
+
+if (cumpleFiltro) {
+// Tomar la ÚLTIMA tardanza del mes como representante
+const ultimaTardanza = grupo.tardanzas.sort((a, b) => {
+const fechaA = new Date(a['Fecha']);
+const fechaB = new Date(b['Fecha']);
+return fechaB - fechaA;
+})[0];
+
+// Agregar el total calculado
+ultimaTardanza['Total Mes'] = grupo.totalMes;
+tardanzasFiltradas.push(ultimaTardanza);
+}
+});
+
+console.log(`📊 Grupos encontrados: ${Object.keys(grupos).length}`);
+console.log(`📊 Resultados filtrados: ${tardanzasFiltradas.length}`);
+
+} else {
+// Para "Todas las tardanzas", mostrar normal
+tardanzasFiltradas = datosTardanzas.filter(t => {
+const cumpleEstudiante = !buscarEstudiante || (t['Nombre Estudiante'] && t['Nombre Estudiante'].toLowerCase().includes(buscarEstudiante));
+const cumpleCurso = !filtrarCurso || t['Curso'] === filtrarCurso;
+const mesTardanza = (t['Mes'] || '').toLowerCase();
+const mesFiltro = filtrarMes.toLowerCase();
+const cumpleMes = !filtrarMes || mesTardanza === mesFiltro;
+return cumpleEstudiante && cumpleCurso && cumpleMes;
+});
+
+console.log(`📊 Resultados: ${tardanzasFiltradas.length} de ${datosTardanzas.length} tardanzas`);
+}
+
+mostrarTardanzas();
+}
+
+function recargarTardanzas() {
+document.getElementById('buscarEstudiante').value = '';
+document.getElementById('filtrarCurso').value = '';
+document.getElementById('filtrarMes').value = '';
+document.querySelector('input[name="filtroTardanzas"][value="todas"]').checked = true;
+tardanzasFiltradas = datosTardanzas;
+mostrarTardanzas();
+}
+
+function formatearFecha(fechaStr) {
+if (!fechaStr) return 'N/A';
+try {
+const fecha = new Date(fechaStr);
+return `${String(fecha.getDate()).padStart(2, '0')}/${String(fecha.getMonth() + 1).padStart(2, '0')}/${fecha.getFullYear()}`;
+} catch (error) {
+return fechaStr;
+}
+}
+
+// ==========================================
+// AUTOCOMPLETADO DINÁMICO
+// ==========================================
+
+function filtrarSugerencias() {
+const input = document.getElementById('buscarEstudiante');
+const sugerencias = document.getElementById('sugerenciasEstudiantes');
+const texto = input.value.toLowerCase().trim();
+
+if (texto.length === 0) {
+sugerencias.style.display = 'none';
+return;
+}
+
+// Obtener estudiantes únicos de las tardanzas
+const estudiantesUnicos = [...new Set(datosTardanzas
+.map(tard => tard['Nombre Estudiante'])
+.filter(nombre => nombre && nombre.toLowerCase().includes(texto))
+)].sort();
+
+if (estudiantesUnicos.length === 0) {
+sugerencias.style.display = 'none';
+return;
+}
+
+// Mostrar sugerencias
+sugerencias.innerHTML = estudiantesUnicos.map(nombre => `
+<div onclick="seleccionarEstudiante('${nombre.replace(/'/g, "\\'")}')" 
+style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s;"
+onmouseover="this.style.background='#f0f0f0'"
+onmouseout="this.style.background='white'">
+${nombre}
+</div>
+`).join('');
+
+sugerencias.style.display = 'block';
+}
+
+function mostrarSugerencias() {
+const input = document.getElementById('buscarEstudiante');
+if (input.value.trim().length > 0) {
+filtrarSugerencias();
+}
+}
+
+function seleccionarEstudiante(nombre) {
+document.getElementById('buscarEstudiante').value = nombre;
+document.getElementById('sugerenciasEstudiantes').style.display = 'none';
+buscarTardanzas();
+}
+
+// Cerrar sugerencias al hacer clic fuera
+document.addEventListener('click', function(e) {
+const sugerencias = document.getElementById('sugerenciasEstudiantes');
+const input = document.getElementById('buscarEstudiante');
+if (e.target !== input && e.target !== sugerencias) {
+sugerencias.style.display = 'none';
+}
+});
+
+// ==========================================
+// RE-HABILITAR FILTROS
+// ==========================================
+
+setTimeout(function() {
+const filtros = document.querySelectorAll('.filter-select');
+const radios = document.querySelectorAll('input[type="radio"]');
+
+filtros.forEach(filtro => {
+filtro.disabled = false;
+filtro.style.opacity = '1';
+filtro.style.cursor = 'pointer';
+filtro.style.background = 'white';
+filtro.style.pointerEvents = 'auto';
+});
+
+radios.forEach(radio => {
+radio.disabled = false;
+radio.style.cursor = 'pointer';
+radio.style.pointerEvents = 'auto';
+});
+
+console.log('✅ Filtros re-habilitados');
+}, 1000);
+
+const intervalo = setInterval(function() {
+const filtros = document.querySelectorAll('.filter-select');
+const radios = document.querySelectorAll('input[type="radio"]');
+let todosHabilitados = true;
+
+filtros.forEach(filtro => {
+if (filtro.disabled) {
+filtro.disabled = false;
+filtro.style.opacity = '1';
+filtro.style.cursor = 'pointer';
+filtro.style.background = 'white';
+filtro.style.pointerEvents = 'auto';
+todosHabilitados = false;
+}
+});
+
+radios.forEach(radio => {
+if (radio.disabled) {
+radio.disabled = false;
+radio.style.cursor = 'pointer';
+radio.style.pointerEvents = 'auto';
+todosHabilitados = false;
+}
+});
+
+if (todosHabilitados) {
+clearInterval(intervalo);
+console.log('✅ Filtros permanentemente habilitados');
+}
+}, 500);
+
+console.log('⏰ Módulo de tardanzas (consulta) cargado');
+</script>
+
+</body>
+</html>

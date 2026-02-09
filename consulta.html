@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta - Sistema UGC</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+min-height: 100vh;
+padding: 20px;
+}
+
+.container {
+max-width: 1400px;
+margin: 0 auto;
+}
+
+header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 30px;
+border-radius: 15px;
+margin-bottom: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.header-top {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 20px;
+flex-wrap: wrap;
+}
+
+.header-left {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.header-left img {
+width: 50px;
+height: 50px;
+}
+
+.header-title h1 {
+font-size: 1.5em;
+margin-bottom: 3px;
+}
+
+.header-title p {
+color: #4a9eff;
+font-size: 0.85em;
+}
+
+.header-right {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.user-bar {
+background: white;
+padding: 12px 20px;
+border-radius: 10px;
+margin-top: 15px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.user-info-bar {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.user-avatar-bar {
+width: 40px;
+height: 40px;
+background: #2a5298;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.2em;
+}
+
+.user-details-bar h3 {
+color: #000000;
+font-size: 0.95em;
+margin-bottom: 2px;
+}
+
+.user-details-bar p {
+color: #2a5298;
+font-size: 0.75em;
+font-weight: 600;
+}
+
+.btn-logout {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+border: none;
+padding: 8px 20px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.9em;
+font-weight: 600;
+transition: all 0.3s;
+}
+
+.btn-logout:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+}
+
+.modules-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+gap: 25px;
+}
+
+.module-card {
+background: white;
+border-radius: 15px;
+padding: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+cursor: pointer;
+transition: all 0.3s ease;
+border-top: 5px solid #2a5298;
+}
+
+.module-card:hover {
+transform: translateY(-10px);
+box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+border-top-color: #000000;
+}
+
+.module-header {
+display: flex;
+align-items: center;
+gap: 15px;
+margin-bottom: 20px;
+}
+
+.module-icon {
+font-size: 3em;
+color: #2a5298;
+}
+
+.module-info h3 {
+color: #000000;
+font-size: 1.5em;
+margin-bottom: 5px;
+}
+
+.module-info p {
+color: #666;
+font-size: 0.9em;
+}
+
+.module-stats {
+display: flex;
+gap: 20px;
+margin-top: 15px;
+padding-top: 15px;
+border-top: 2px solid #f0f0f0;
+}
+
+.stat-item {
+flex: 1;
+text-align: center;
+}
+
+.stat-item .number {
+font-size: 2em;
+font-weight: bold;
+color: #2a5298;
+display: block;
+}
+
+.stat-item .label {
+font-size: 0.75em;
+color: #666;
+text-transform: uppercase;
+margin-top: 5px;
+}
+
+.btn-view {
+width: 100%;
+padding: 12px 30px;
+background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+color: white;
+border: none;
+border-radius: 8px;
+font-size: 1em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+margin-top: 15px;
+}
+
+.btn-view:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(42,82,152,0.4);
+}
+
+/* MODAL DE CONFIRMACIÓN */
+.modal-confirm {
+display: none;
+position: fixed;
+z-index: 9999;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,0.7);
+align-items: center;
+justify-content: center;
+}
+
+.modal-confirm-content {
+background: white;
+border-radius: 15px;
+max-width: 450px;
+width: 90%;
+box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+animation: slideIn 0.3s ease;
+overflow: hidden;
+}
+
+@keyframes slideIn {
+from {
+transform: translateY(-50px);
+opacity: 0;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+
+.modal-confirm-header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 25px;
+text-align: center;
+}
+
+.modal-confirm-header h3 {
+font-size: 1.3em;
+}
+
+.modal-confirm-body {
+padding: 30px 25px;
+text-align: center;
+}
+
+.modal-confirm-body p {
+color: #666;
+font-size: 1.05em;
+line-height: 1.6;
+}
+
+.modal-confirm-buttons {
+display: flex;
+gap: 15px;
+margin-top: 25px;
+}
+
+.btn-confirm {
+flex: 1;
+padding: 12px 30px;
+border: none;
+border-radius: 8px;
+font-size: 1em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+}
+
+.btn-confirm-yes {
+background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+color: white;
+}
+
+.btn-confirm-yes:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(42,82,152,0.4);
+}
+
+.btn-confirm-no {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+}
+
+.btn-confirm-no:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+}
+
+@media (max-width: 768px) {
+.header-top {
+flex-direction: column;
+}
+
+.modules-grid {
+grid-template-columns: 1fr;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<!-- HEADER -->
+<header>
+<div class="header-top">
+<div class="header-left">
+<img src="./logo.png" alt="Logo" onerror="this.style.display='none'">
+<div class="header-title">
+<h1>Sistema de Consulta</h1>
+<p>Solo Lectura - PNSA</p>
+</div>
+</div>
+</div>
+
+<!-- BARRA DE USUARIO -->
+<div class="user-bar">
+<div class="user-info-bar">
+<div class="user-avatar-bar">👤</div>
+<div class="user-details-bar">
+<h3 id="userName">Usuario de Consulta</h3>
+<p id="userCargo">🔍 Acceso de solo lectura</p>
+</div>
+</div>
+<button class="btn-logout" onclick="mostrarConfirmacionSalir()">
+🚪 Salir
+</button>
+</div>
+</header>
+
+<!-- MÓDULOS -->
+<div class="modules-grid">
+<!-- INCIDENCIAS -->
+<div class="module-card" onclick="verModulo('incidencias')">
+<div class="module-header">
+<div class="module-icon">📋</div>
+<div class="module-info">
+<h3>Incidencias</h3>
+<p>Registro de conductas</p>
+</div>
+</div>
+<div class="module-stats">
+<div class="stat-item">
+<span class="number" id="statIncidencias">---</span>
+<span class="label">Registros</span>
+</div>
+<div class="stat-item">
+<span class="number" id="statIncidenciasMes">---</span>
+<span class="label">Este mes</span>
+</div>
+</div>
+<button class="btn-view">👁️ Ver Registros</button>
+</div>
+
+<!-- TARDANZAS -->
+<div class="module-card" onclick="verModulo('tardanzas')">
+<div class="module-header">
+<div class="module-icon">⏰</div>
+<div class="module-info">
+<h3>Tardanzas</h3>
+<p>Control de llegadas tarde</p>
+</div>
+</div>
+<div class="module-stats">
+<div class="stat-item">
+<span class="number" id="statTardanzas">---</span>
+<span class="label">Total</span>
+</div>
+<div class="stat-item">
+<span class="number" id="statTardanzasHoy">---</span>
+<span class="label">Hoy</span>
+</div>
+</div>
+<button class="btn-view">👁️ Ver Registros</button>
+</div>
+
+<!-- REUNIONES Y ACUERDOS -->
+<div class="module-card" onclick="verModulo('reuniones')">
+<div class="module-header">
+<div class="module-icon">🤝</div>
+<div class="module-info">
+<h3>Reuniones y Acuerdos</h3>
+<p>Con padres de familia</p>
+</div>
+</div>
+<div class="module-stats">
+<div class="stat-item">
+<span class="number" id="statReuniones">---</span>
+<span class="label">Total</span>
+</div>
+<div class="stat-item">
+<span class="number" id="statReunionesMes">---</span>
+<span class="label">Este Mes</span>
+</div>
+</div>
+<button class="btn-view">👁️ Ver Reuniones</button>
+</div>
+
+<!-- ESTADÍSTICAS -->
+<div class="module-card" onclick="verModulo('estadisticas')">
+<div class="module-header">
+<div class="module-icon">📊</div>
+<div class="module-info">
+<h3>Estadísticas</h3>
+<p>Estadísticas generales</p>
+</div>
+</div>
+<div class="module-stats">
+<div class="stat-item">
+<span class="number">📈</span>
+<span class="label">Análisis</span>
+</div>
+<div class="stat-item">
+<span class="number">📉</span>
+<span class="label">Tendencias</span>
+</div>
+</div>
+<button class="btn-view">👁️ Ver Reportes</button>
+</div>
+</div>
+</div>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<div class="modal-confirm" id="modalConfirm">
+<div class="modal-confirm-content">
+<div class="modal-confirm-header">
+<h3>⚠️ Confirmar Cierre de Sesión</h3>
+</div>
+<div class="modal-confirm-body">
+<p>¿Estás seguro de que deseas cerrar sesión?</p>
+<div class="modal-confirm-buttons">
+<button class="btn-confirm btn-confirm-yes" onclick="cerrarSesion()">
+Sí, Cerrar Sesión
+</button>
+<button class="btn-confirm btn-confirm-no" onclick="cerrarModal()">
+Cancelar
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// ==========================================
+// VERIFICAR AUTENTICACIÓN
+// ==========================================
+
+window.addEventListener('load', function() {
+const usuarioData = localStorage.getItem('usuarioUGC');
+
+if (!usuarioData) {
+window.location.href = 'index.html';
+return;
+}
+
+const usuario = JSON.parse(usuarioData);
+
+if (usuario.rol !== 'consulta') {
+if (usuario.rol === 'administrador') {
+console.log('ℹ️ Administrador en vista de consulta');
+} else {
+window.location.href = 'index.html';
+return;
+}
+}
+
+document.getElementById('userName').textContent = usuario.nombre;
+if (usuario.cargo) {
+document.getElementById('userCargo').textContent = '💼 ' + usuario.cargo;
+}
+
+console.log('✅ Usuario autenticado:', usuario);
+
+cargarEstadisticas();
+});
+
+// ==========================================
+// CARGAR ESTADÍSTICAS REALES
+// ==========================================
+
+// URLs de Google Sheets
+const CONFIG_STATS = {
+urlIncidencias: 'https://script.google.com/macros/s/AKfycbwnCHIHNum-8uCHLbuE5NvwJeVmVMF6hCLWOAQQRUOwsU5GK_vpkrxifDFlMat1tP-z/exec',
+urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
+urlReuniones: 'https://script.google.com/macros/s/AKfycbxjky9LnAAqElohVjgLESUA2nh-ICXYWNDMGkVfGjwVEb1tc0HQAtg-sayrFMXH788aLA/exec'
+};
+
+async function cargarDatosDesdeGoogleSheets(url) {
+try {
+const response = await fetch(url);
+if (!response.ok) throw new Error('Error en la respuesta');
+return await response.json();
+} catch (error) {
+console.error('Error cargando datos:', error);
+return [];
+}
+}
+
+async function cargarEstadisticas() {
+console.log('📊 ===== INICIANDO CARGA DE ESTADÍSTICAS =====');
+console.log('📊 URLs configuradas:');
+console.log('  - Incidencias:', CONFIG_STATS.urlIncidencias);
+console.log('  - Tardanzas:', CONFIG_STATS.urlTardanzas);
+
+// Valores por defecto mientras carga
+document.getElementById('statIncidencias').textContent = '...';
+document.getElementById('statIncidenciasMes').textContent = '...';
+document.getElementById('statTardanzas').textContent = '...';
+document.getElementById('statTardanzasHoy').textContent = '...';
+document.getElementById('statReuniones').textContent = '...';
+document.getElementById('statReunionesMes').textContent = '...';
+
+console.log('📊 Valores iniciales establecidos en "..."');
+
+try {
+// Cargar incidencias
+console.log('📥 Cargando incidencias desde Google Sheets...');
+const incidencias = await cargarDatosDesdeGoogleSheets(CONFIG_STATS.urlIncidencias);
+console.log('📥 Incidencias recibidas:', incidencias.length, 'registros');
+
+const totalIncidencias = incidencias.length;
+
+// Calcular incidencias del mes actual
+const mesActual = new Date().getMonth();
+const añoActual = new Date().getFullYear();
+console.log('📅 Mes actual:', mesActual, 'Año:', añoActual);
+
+const incidenciasMes = incidencias.filter(inc => {
+try {
+const fecha = new Date(inc['Fecha y Hora']);
+return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+} catch {
+return false;
+}
+}).length;
+
+console.log('📊 Total incidencias:', totalIncidencias);
+console.log('📊 Incidencias del mes:', incidenciasMes);
+
+// Actualizar incidencias
+console.log('🔄 Actualizando elementos HTML...');
+document.getElementById('statIncidencias').textContent = totalIncidencias;
+document.getElementById('statIncidenciasMes').textContent = incidenciasMes;
+
+console.log(`✅ Incidencias actualizadas: ${totalIncidencias} (Mes: ${incidenciasMes})`);
+
+// Cargar tardanzas
+console.log('📥 Cargando tardanzas desde Google Sheets...');
+const tardanzas = await cargarDatosDesdeGoogleSheets(CONFIG_STATS.urlTardanzas);
+console.log('📥 Tardanzas recibidas:', tardanzas.length, 'registros');
+
+const totalTardanzas = tardanzas.length;
+
+// Calcular tardanzas de hoy
+const hoy = new Date().toISOString().split('T')[0];
+console.log('📅 Fecha de hoy:', hoy);
+
+const tardanzasHoy = tardanzas.filter(tard => {
+try {
+const fecha = new Date(tard.fecha || tard.Fecha);
+return fecha.toISOString().split('T')[0] === hoy;
+} catch {
+return false;
+}
+}).length;
+
+console.log('📊 Total tardanzas:', totalTardanzas);
+console.log('📊 Tardanzas de hoy:', tardanzasHoy);
+
+// Actualizar tardanzas
+document.getElementById('statTardanzas').textContent = totalTardanzas;
+document.getElementById('statTardanzasHoy').textContent = tardanzasHoy;
+
+console.log(`✅ Tardanzas actualizadas: ${totalTardanzas} (Hoy: ${tardanzasHoy})`);
+
+// Cargar reuniones
+console.log('📥 Cargando reuniones desde Google Sheets...');
+const reuniones = await cargarDatosDesdeGoogleSheets(CONFIG_STATS.urlReuniones);
+console.log('📥 Reuniones recibidas:', reuniones.length, 'registros');
+
+const totalReuniones = reuniones.length;
+
+const reunionesMes = reuniones.filter(reun => {
+try {
+const fecha = new Date(reun['Fecha y Hora']);
+return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+} catch {
+return false;
+}
+}).length;
+
+console.log('📊 Total reuniones:', totalReuniones);
+console.log('📊 Reuniones del mes:', reunionesMes);
+
+// Actualizar reuniones
+document.getElementById('statReuniones').textContent = totalReuniones;
+document.getElementById('statReunionesMes').textContent = reunionesMes;
+
+console.log(`✅ Reuniones actualizadas: ${totalReuniones} (Mes: ${reunionesMes})`);
+console.log('📊 ===== ESTADÍSTICAS REALES CARGADAS =====');
+
+} catch (error) {
+console.error('❌ ===== ERROR CARGANDO ESTADÍSTICAS =====');
+console.error('❌ Error completo:', error);
+console.error('❌ Tipo:', error.name);
+console.error('❌ Mensaje:', error.message);
+
+// Mostrar 0 en caso de error
+document.getElementById('statIncidencias').textContent = '0';
+document.getElementById('statIncidenciasMes').textContent = '0';
+document.getElementById('statTardanzas').textContent = '0';
+document.getElementById('statTardanzasHoy').textContent = '0';
+document.getElementById('statReuniones').textContent = '0';
+document.getElementById('statReunionesMes').textContent = '0';
+}
+}
+
+// ==========================================
+// VER MÓDULO
+// ==========================================
+
+function verModulo(modulo) {
+console.log('👁️ Abriendo módulo:', modulo);
+
+const paginas = {
+'incidencias': 'incidencias-consulta.html',
+'tardanzas': 'tardanzas-consulta.html',
+'estadisticas': 'estadisticas-consulta.html',
+'reuniones': 'reuniones-consulta.html'
+};
+
+if (paginas[modulo]) {
+window.location.href = paginas[modulo];
+} else {
+alert(`📊 Módulo de ${modulo}\n\n🔒 Vista de solo lectura activada.`);
+}
+}
+
+// ==========================================
+// MODAL DE CONFIRMACIÓN
+// ==========================================
+
+function mostrarConfirmacionSalir() {
+document.getElementById('modalConfirm').style.display = 'flex';
+}
+
+function cerrarModal() {
+document.getElementById('modalConfirm').style.display = 'none';
+}
+
+// ==========================================
+// CERRAR SESIÓN
+// ==========================================
+
+function cerrarSesion() {
+localStorage.removeItem('usuarioUGC');
+console.log('👋 Sesión cerrada');
+window.location.href = 'index.html';
+}
+
+// Cerrar modal al hacer clic fuera
+window.onclick = function(event) {
+const modal = document.getElementById('modalConfirm');
+if (event.target == modal) {
+cerrarModal();
+}
+}
+
+console.log('📊 Sistema de consulta cargado');
+</script>
+
+</body>
+</html>
