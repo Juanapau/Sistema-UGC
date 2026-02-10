@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -172,12 +173,12 @@ table th, table td { padding: 8px 5px; }
 id="buscarEstudiante" 
 placeholder="🔍 Buscar por nombre de estudiante..."
 autocomplete="off"
-oninput="filtrarSugerencias()"
+oninput="filtrarSugerencias(); buscarReuniones();"
 onfocus="mostrarSugerencias()"
 style="width: 100%;">
 <div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
 </div>
-<select id="filtrarCurso" class="filter-select">
+<select id="filtrarCurso" class="filter-select" onchange="buscarReuniones()">
 <option value="">Todos los cursos</option>
 <option value="1roA">1roA</option>
 <option value="1roB">1roB</option>
@@ -198,14 +199,13 @@ style="width: 100%;">
 <option value="6toB">6toB</option>
 <option value="6toC">6toC</option>
 </select>
-<select id="filtrarEstado" class="filter-select">
+<select id="filtrarEstado" class="filter-select" onchange="buscarReuniones()">
 <option value="">Todos los estados</option>
 <option value="En seguimiento">En seguimiento</option>
 <option value="Cumplido">Cumplido</option>
 <option value="No cumplido">No cumplido</option>
 <option value="Parcialmente cumplido">Parcialmente cumplido</option>
 </select>
-<button class="btn btn-primary" onclick="buscarReuniones()">🔍 Buscar</button>
 <button class="btn btn-secondary" onclick="recargarReuniones()">🔄 Recargar</button>
 </div>
 
