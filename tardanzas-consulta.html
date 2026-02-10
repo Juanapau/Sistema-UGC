@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -240,12 +241,12 @@ header { flex-direction: column; text-align: center; }
 id="buscarEstudiante" 
 placeholder="🔍 Buscar por nombre de estudiante..."
 autocomplete="off"
-oninput="filtrarSugerencias()"
+oninput="filtrarSugerencias(); buscarTardanzas();"
 onfocus="mostrarSugerencias()"
 style="width: 100%;">
 <div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
 </div>
-<select id="filtrarCurso" class="filter-select">
+<select id="filtrarCurso" class="filter-select" onchange="buscarTardanzas()">
 <option value="">Todos los cursos</option>
 <option value="1roA">1roA</option>
 <option value="1roB">1roB</option>
@@ -266,7 +267,7 @@ style="width: 100%;">
 <option value="6toB">6toB</option>
 <option value="6toC">6toC</option>
 </select>
-<select id="filtrarMes" class="filter-select">
+<select id="filtrarMes" class="filter-select" onchange="buscarTardanzas()">
 <option value="">Todos los meses</option>
 <option value="Enero">Enero</option>
 <option value="Febrero">Febrero</option>
@@ -281,7 +282,6 @@ style="width: 100%;">
 <option value="Noviembre">Noviembre</option>
 <option value="Diciembre">Diciembre</option>
 </select>
-<button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
 <button class="btn btn-secondary" onclick="recargarTardanzas()">🔄 Recargar</button>
 </div>
 
