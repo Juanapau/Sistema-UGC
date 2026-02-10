@@ -334,14 +334,14 @@ function crearModalIncidencias() {
             <h3>Consultar Incidencias</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarInc" data-sugerencias="sugerenciasBuscarInc" placeholder="🔍 Buscar estudiante..." style="width:100%;">
+                    <input type="text" id="buscarInc" data-sugerencias="sugerenciasBuscarInc" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarIncidencias()">
                     <div id="sugerenciasBuscarInc" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoInc">
+                <select id="filtrarCursoInc" onchange="buscarIncidencias()">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarTipo">
+                <select id="filtrarTipo" onchange="buscarIncidencias()">
                     <option value="">Todos los tipos</option>
                     <option value="Leve">Leve</option>
                     <option value="Grave">Grave</option>
@@ -432,7 +432,7 @@ function crearModalIncidencias() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarInc', 'sugerenciasBuscarInc');
+        crearAutocompletadoBusqueda('buscarInc', 'sugerenciasBuscarInc', 'buscarIncidencias');
     }, 200);
 }
 
@@ -709,7 +709,7 @@ function buscarIncidencias() {
             <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
             <td>${docente}</td>
             <td style="white-space:normal;max-width:150px;">${tipoConducta}</td>
-            <td style="white-space:normal;max-width:250px;">${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
+            <td style="white-space:normal;max-width:250px;">${descripcion}</td>
             <td style="white-space:normal;max-width:200px;">${acciones || '-'}</td>
             <td style="white-space:normal;max-width:200px;">${seguimiento || '-'}</td>
         </tr>
@@ -802,14 +802,14 @@ function crearModalTardanzas() {
             
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarTard" data-sugerencias="sugerenciasBuscarTard" placeholder="🔍 Buscar estudiante..." style="width:100%;">
+                    <input type="text" id="buscarTard" data-sugerencias="sugerenciasBuscarTard" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarTardanzas()">
                     <div id="sugerenciasBuscarTard" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoTard">
+                <select id="filtrarCursoTard" onchange="buscarTardanzas()">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarMesTard">
+                <select id="filtrarMesTard" onchange="buscarTardanzas()">
                     <option value="">Todos los meses</option>
                     <option value="Enero">Enero</option>
                     <option value="Febrero">Febrero</option>
@@ -906,7 +906,7 @@ function crearModalTardanzas() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarTard', 'sugerenciasBuscarTard');
+        crearAutocompletadoBusqueda('buscarTard', 'sugerenciasBuscarTard', 'buscarTardanzas');
     }, 200);
 }
 
@@ -1062,7 +1062,7 @@ function crearAutocompletadoBusqueda(inputId, sugerenciasId, callbackSeleccion) 
             const nombre = e['Nombre Completo'] || e.nombre || '';
             const curso = e['Curso'] || e.curso || '';
             const nombreEscapado = nombre.replace(/'/g, "\\'");
-            return `<div onclick="seleccionarEstudianteBusqueda('${inputId}', '${sugerenciasId}', '${nombreEscapado}', ${callbackSeleccion ? 'function(){' + callbackSeleccion + '(\'' + nombreEscapado + '\')}' : 'null'})" 
+            return `<div onclick="seleccionarEstudianteBusqueda('${inputId}', '${sugerenciasId}', '${nombreEscapado}', '${callbackSeleccion || ''}')" 
                          style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
                          onmouseover="this.style.background='#f0f0f0'" 
                          onmouseout="this.style.background='white'">
@@ -1087,7 +1087,17 @@ function seleccionarEstudianteBusqueda(inputId, sugerenciasId, nombre, callback)
     
     if (input) input.value = nombre;
     if (sugerencias) sugerencias.style.display = 'none';
-    if (callback) callback(nombre);
+    
+    // 🆕 Si hay callback como string, ejecutarlo
+    if (callback && typeof callback === 'string') {
+        if (callback === 'buscarIncidencias') {
+            buscarIncidencias();
+        } else if (callback === 'buscarTardanzas') {
+            buscarTardanzas();
+        }
+    } else if (callback && typeof callback === 'function') {
+        callback(nombre);
+    }
 }
 
 // Cerrar sugerencias al hacer clic fuera
@@ -2151,6 +2161,21 @@ function importarContactos(event) {
 }
 
 function cargarTablaContactos() {
+    // 🆕 RESTAURAR EL HEADER ORIGINAL DE 7 COLUMNAS
+    const tabla = document.querySelector('#modalContactos table');
+    if (tabla) {
+        const thead = tabla.querySelector('thead tr');
+        thead.innerHTML = `
+            <th>Estudiante</th>
+            <th>Padre</th>
+            <th>Tel. Padre</th>
+            <th>Madre</th>
+            <th>Tel. Madre</th>
+            <th>Emergencia</th>
+            <th>Acción</th>
+        `;
+    }
+    
     const tbody = document.getElementById('bodyContactos');
     if (datosContactos.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
@@ -2197,6 +2222,21 @@ function cargarTablaContactos() {
 }
 
 function buscarContactos() {
+    // 🆕 RESTAURAR EL HEADER ORIGINAL DE 7 COLUMNAS
+    const tabla = document.querySelector('#modalContactos table');
+    if (tabla) {
+        const thead = tabla.querySelector('thead tr');
+        thead.innerHTML = `
+            <th>Estudiante</th>
+            <th>Padre</th>
+            <th>Tel. Padre</th>
+            <th>Madre</th>
+            <th>Tel. Madre</th>
+            <th>Emergencia</th>
+            <th>Acción</th>
+        `;
+    }
+    
     const buscar = document.getElementById('buscarContacto').value.toLowerCase().trim();
     
     const filtrados = datosContactos.filter(c => {
@@ -2318,12 +2358,25 @@ function obtenerEstudiantesSinContactos() {
 }
 
 function mostrarEstudiantesSinContactos(estudiantes) {
+    const tabla = document.querySelector('#modalContactos table');
+    
+    if (!tabla) return;
+    
+    // 🆕 CAMBIAR EL HEADER A 3 COLUMNAS
+    const thead = tabla.querySelector('thead tr');
+    thead.innerHTML = `
+        <th>Estudiante</th>
+        <th>Curso</th>
+        <th>Contacto</th>
+        <th>Acción</th>
+    `;
+    
     const tbody = document.getElementById('bodyContactos');
     
     if (estudiantes.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align:center;padding:40px;color:#059669;">
+                <td colspan="4" style="text-align:center;padding:40px;color:#059669;">
                     <div style="font-size:3em;margin-bottom:15px;">✅</div>
                     <strong style="font-size:1.2em;">¡Excelente!</strong>
                     <p style="margin-top:10px;color:#666;">Todos los estudiantes tienen contactos registrados</p>
@@ -2340,7 +2393,8 @@ function mostrarEstudiantesSinContactos(estudiantes) {
         return `
         <tr style="background:#fef2f2;">
             <td><strong style="color:#991b1b;">${nombre}</strong></td>
-            <td colspan="5" style="color:#7f1d1d;font-style:italic;">Sin contactos registrados</td>
+            <td>${curso}</td>
+            <td style="color:#7f1d1d;font-style:italic;">Sin contacto registrado</td>
             <td>
                 <button class="btn btn-sm" onclick="agregarContactoRapido('${nombre.replace(/'/g, "\\'")}', '${curso}')" 
                         style="background:#059669;color:white;padding:5px 12px;font-size:0.85em;">
