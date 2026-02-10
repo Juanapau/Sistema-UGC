@@ -1,3 +1,4 @@
+
 // ========================================
 // SISTEMA DE GESTIÓN DE CONVIVENCIA CENSA
 // ========================================
@@ -567,8 +568,27 @@ function editarIncidencia(indice) {
     // Scroll al formulario
     document.querySelector('#formIncidencia').scrollIntoView({ behavior: 'smooth', block: 'start' });
     
+    // 🆕 CONVERTIR FECHA AL FORMATO datetime-local (YYYY-MM-DDTHH:mm)
+    let fechaFormateada = '';
+    if (inc['Fecha y Hora']) {
+        try {
+            const fecha = new Date(inc['Fecha y Hora']);
+            if (!isNaN(fecha.getTime())) {
+                // Formato: YYYY-MM-DDTHH:mm
+                const año = fecha.getFullYear();
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                const horas = String(fecha.getHours()).padStart(2, '0');
+                const minutos = String(fecha.getMinutes()).padStart(2, '0');
+                fechaFormateada = `${año}-${mes}-${dia}T${horas}:${minutos}`;
+            }
+        } catch (error) {
+            console.error('Error al formatear fecha:', error);
+        }
+    }
+    
     // Llenar el formulario con los datos
-    document.getElementById('fechaIncidencia').value = inc['Fecha y Hora'] || '';
+    document.getElementById('fechaIncidencia').value = fechaFormateada;
     document.getElementById('nombreEstudianteInc').value = inc['Nombre Estudiante'] || '';
     document.getElementById('cursoIncidencia').value = inc['Curso'] || '';
     document.getElementById('tipoFalta').value = inc['Tipo de falta'] || '';
