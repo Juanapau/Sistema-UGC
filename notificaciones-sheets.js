@@ -576,15 +576,19 @@ async function limpiarNotifLeidas() {
 // FUNCIONES DE CREACIÓN
 // ========================================
 
-async function notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta) {
+async function notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta, docente) {
     if (!sistemaNotificacionesSheets) return;
     
-    const prioridad = (tipoFalta === 'Grave' || tipoFalta === 'Muy Grave') ? 'importante' : 'info';
+    // 🆕 TODAS las incidencias son importantes (badge amarillo)
+    const prioridad = 'importante';
+    
+    // 🆕 Incluir el nombre del docente en el mensaje
+    const docenteTexto = docente ? ` reportada por <strong>${docente}</strong>` : '';
     
     await sistemaNotificacionesSheets.crearNotificacion(
         'incidencia',
         'Nueva incidencia registrada',
-        `Se ha registrado una <strong>Falta ${tipoFalta}</strong> para <strong>${estudiante}</strong> por ${tipoConducta}.`,
+        `Se ha registrado una <strong>Falta ${tipoFalta}</strong> para <strong>${estudiante}</strong> por ${tipoConducta}${docenteTexto}.`,
         prioridad,
         'todos'
     );
@@ -797,3 +801,25 @@ document.head.appendChild(styleSheet);
 console.log('✅ Sistema de notificaciones CORREGIDO cargado');
 console.log('🔧 Event listeners en lugar de onclick inline');
 console.log('🚀 Compatible iOS/Android/Desktop');
+
+// 🆕 ACTUALIZACIÓN AUTOMÁTICA DEL CONTADOR DE NOTIFICACIONES
+// Actualizar el contador cada 30 segundos sin abrir el panel
+if (sistemaNotificacionesSheets) {
+    // Cargar notificaciones inicialmente para mostrar el contador
+    sistemaNotificacionesSheets.cargarNotificaciones(true).then(() => {
+        console.log('📊 Contador de notificaciones actualizado');
+    }).catch(error => {
+        console.log('⚠️ No se pudo cargar el contador inicial:', error);
+    });
+    
+    // Actualizar periódicamente cada 30 segundos
+    setInterval(() => {
+        if (sistemaNotificacionesSheets && CONFIG.urlNotificaciones) {
+            sistemaNotificacionesSheets.cargarNotificaciones(true).then(() => {
+                console.log('🔄 Contador de notificaciones actualizado automáticamente');
+            }).catch(error => {
+                console.log('⚠️ Error en actualización automática:', error);
+            });
+        }
+    }, 30000); // 30 segundos
+}
