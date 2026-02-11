@@ -347,6 +347,7 @@ function crearModalIncidencias() {
                     <option value="Grave">Grave</option>
                     <option value="Muy Grave">Muy Grave</option>
                 </select>
+                <button class="btn btn-primary" onclick="buscarIncidencias()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarIncidencias()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarIncidenciasPDF()">📥 Exportar</button>
             </div>
@@ -549,7 +550,8 @@ const inc = {
             const estudiante = inc['Nombre Estudiante'];
             const tipoFalta = inc['Tipo de falta'];
             const tipoConducta = inc['Tipo de Conducta'];
-            notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta);
+            const docente = inc['Docente'];
+            notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta, docente);
         }
     }
     
@@ -842,6 +844,7 @@ function crearModalTardanzas() {
                     <option value="Noviembre">Noviembre</option>
                     <option value="Diciembre">Diciembre</option>
                 </select>
+                <button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarTardanzas()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarTardanzasPDF()">📥 Exportar</button>
             </div>
@@ -1105,18 +1108,12 @@ function seleccionarEstudianteBusqueda(inputId, sugerenciasId, nombre, callback)
     if (input) input.value = nombre;
     if (sugerencias) sugerencias.style.display = 'none';
     
-    // Si hay callback como string, ejecutarlo
+    // 🆕 Si hay callback como string, ejecutarlo
     if (callback && typeof callback === 'string') {
         if (callback === 'buscarIncidencias') {
             buscarIncidencias();
         } else if (callback === 'buscarTardanzas') {
             buscarTardanzas();
-        } else if (callback === 'buscarReuniones') {
-            buscarReuniones();
-        } else if (callback === 'buscarEstudiantes') {
-            buscarEstudiantes();
-        } else if (callback === 'buscarContactos') {
-            buscarContactos();
         }
     } else if (callback && typeof callback === 'function') {
         callback(nombre);
@@ -1931,12 +1928,13 @@ function crearModalContactos() {
             <h3>Buscar Contactos</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarContactos()">
+                    <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarCont" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
                 <button class="btn" id="btnSinContactos" onclick="toggleFiltroSinContactos()" style="background:#dc2626;color:white;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,0.3);">
                     🚨 Sin Contactos
                 </button>
+                <button class="btn btn-primary" onclick="buscarContactos()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarContactos()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarContactosPDF()">📥 Exportar</button>
             </div>
@@ -2004,7 +2002,7 @@ function crearModalContactos() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarContacto', 'sugerenciasBuscarCont', 'buscarContactos');
+        crearAutocompletadoBusqueda('buscarContacto', 'sugerenciasBuscarCont');
         crearAutocompletadoBusqueda('estContacto', 'sugerenciasEstContacto');
     }, 200);
 }
@@ -2496,13 +2494,14 @@ function crearModalEstudiantes() {
             <h3>Buscar Estudiantes</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarEst" data-sugerencias="sugerenciasBuscarEst" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarEstudiantes()">
+                    <input type="text" id="buscarEst" data-sugerencias="sugerenciasBuscarEst" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarEst" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoEst" onchange="buscarEstudiantes()">
+                <select id="filtrarCursoEst">
                     <option value="">Todos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
+                <button class="btn btn-primary" onclick="buscarEstudiantes()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarEstudiantes()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarEstudiantesPDF()">📥 Exportar</button>
             </div>
@@ -2546,7 +2545,7 @@ function crearModalEstudiantes() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarEst', 'sugerenciasBuscarEst', 'buscarEstudiantes');
+        crearAutocompletadoBusqueda('buscarEst', 'sugerenciasBuscarEst');
     }, 200);
 }
 
@@ -2841,20 +2840,21 @@ function crearModalReuniones() {
             <h3>🔍 Buscar Reuniones</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarReunion" data-sugerencias="sugerenciasBuscarReun" placeholder="🔍 Buscar por estudiante..." style="width:100%;" oninput="buscarReuniones()">
+                    <input type="text" id="buscarReunion" data-sugerencias="sugerenciasBuscarReun" placeholder="🔍 Buscar por estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarReun" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoReunion" onchange="buscarReuniones()">
+                <select id="filtrarCursoReunion">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarEstadoReunion" onchange="buscarReuniones()">
+                <select id="filtrarEstadoReunion">
                     <option value="">Todos los estados</option>
                     <option value="En seguimiento">En seguimiento</option>
                     <option value="Cumplido">Cumplido</option>
                     <option value="No cumplido">No cumplido</option>
                     <option value="Parcialmente cumplido">Parcialmente cumplido</option>
                 </select>
+                <button class="btn btn-primary" onclick="buscarReuniones()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarReuniones()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarReunionesPDF()">📥 Exportar</button>
             </div>
@@ -2930,7 +2930,7 @@ function crearModalReuniones() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarReunion', 'sugerenciasBuscarReun', 'buscarReuniones');
+        crearAutocompletadoBusqueda('buscarReunion', 'sugerenciasBuscarReun');
     }, 200);
 }
 
@@ -6757,42 +6757,8 @@ function editarReunion(indice) {
     // Scroll al formulario
     document.querySelector('#formReunion').scrollIntoView({ behavior: 'smooth', block: 'start' });
     
-    // CONVERTIR FECHA Y HORA AL FORMATO datetime-local (YYYY-MM-DDTHH:mm)
-    let fechaReunionFormateada = '';
-    if (reunion['Fecha y Hora']) {
-        try {
-            const fecha = new Date(reunion['Fecha y Hora']);
-            if (!isNaN(fecha.getTime())) {
-                const año = fecha.getFullYear();
-                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-                const dia = String(fecha.getDate()).padStart(2, '0');
-                const horas = String(fecha.getHours()).padStart(2, '0');
-                const minutos = String(fecha.getMinutes()).padStart(2, '0');
-                fechaReunionFormateada = `${año}-${mes}-${dia}T${horas}:${minutos}`;
-            }
-        } catch (error) {
-            console.error('Error al formatear fecha reunión:', error);
-        }
-    }
-    
-    // CONVERTIR FECHA DE SEGUIMIENTO AL FORMATO date (YYYY-MM-DD)
-    let fechaSeguimientoFormateada = '';
-    if (reunion['Fecha Seguimiento']) {
-        try {
-            const fecha = new Date(reunion['Fecha Seguimiento']);
-            if (!isNaN(fecha.getTime())) {
-                const año = fecha.getFullYear();
-                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-                const dia = String(fecha.getDate()).padStart(2, '0');
-                fechaSeguimientoFormateada = `${año}-${mes}-${dia}`;
-            }
-        } catch (error) {
-            console.error('Error al formatear fecha seguimiento:', error);
-        }
-    }
-    
     // Llenar el formulario con los datos
-    document.getElementById('fechaReunion').value = fechaReunionFormateada;
+    document.getElementById('fechaReunion').value = reunion['Fecha y Hora'] || '';
     document.getElementById('tipoReunion').value = reunion['Tipo'] || 'Presencial';
     document.getElementById('estudianteReunion').value = reunion['Nombre Estudiante'] || '';
     document.getElementById('cursoReunion').value = reunion['Curso'] || '';
@@ -6802,7 +6768,7 @@ function editarReunion(indice) {
     document.getElementById('motivoReunion').value = reunion['Motivo'] || '';
     document.getElementById('situacionTratada').value = reunion['Situación Tratada'] || '';
     document.getElementById('acuerdosEstablecidos').value = reunion['Acuerdos Establecidos'] || '';
-    document.getElementById('fechaSeguimiento').value = fechaSeguimientoFormateada;
+    document.getElementById('fechaSeguimiento').value = reunion['Fecha Seguimiento'] || '';
     document.getElementById('estadoAcuerdo').value = reunion['Estado'] || '';
     document.getElementById('observacionesReunion').value = reunion['Observaciones'] || '';
     
