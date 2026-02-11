@@ -47,6 +47,12 @@
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         }
 
+        /* 🆕 LOGO DE FONDO EN MODO OSCURO */
+        body.dark-mode::before {
+            opacity: 0.08;
+            filter: brightness(0.8);
+        }
+
         body.dark-mode header {
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         }
@@ -153,6 +159,41 @@
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 🆕 LOGO DE FONDO COMO MARCA DE AGUA */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 900px;
+            height: 900px;
+            background-image: url('./logo.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+            filter: brightness(1.2);
+        }
+
+        /* Asegurar que el contenido esté por encima del logo */
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        header,
+        .dashboard,
+        .module-card,
+        #modalContainer {
+            position: relative;
+            z-index: 2;
         }
 
         .container {
