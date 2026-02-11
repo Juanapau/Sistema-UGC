@@ -1,4 +1,3 @@
-
 // ========================================
 // SISTEMA DE GESTIÓN DE CONVIVENCIA CENSA
 // ========================================
@@ -335,19 +334,20 @@ function crearModalIncidencias() {
             <h3>Consultar Incidencias</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarInc" data-sugerencias="sugerenciasBuscarInc" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarIncidencias()">
+                    <input type="text" id="buscarInc" data-sugerencias="sugerenciasBuscarInc" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarInc" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoInc" onchange="buscarIncidencias()">
+                <select id="filtrarCursoInc">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarTipo" onchange="buscarIncidencias()">
+                <select id="filtrarTipo">
                     <option value="">Todos los tipos</option>
                     <option value="Leve">Leve</option>
                     <option value="Grave">Grave</option>
                     <option value="Muy Grave">Muy Grave</option>
                 </select>
+                <button class="btn btn-primary" onclick="buscarIncidencias()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarIncidencias()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarIncidenciasPDF()">📥 Exportar</button>
             </div>
@@ -432,7 +432,7 @@ function crearModalIncidencias() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarInc', 'sugerenciasBuscarInc', 'buscarIncidencias');
+        crearAutocompletadoBusqueda('buscarInc', 'sugerenciasBuscarInc');
     }, 200);
 }
 
@@ -550,7 +550,8 @@ const inc = {
             const estudiante = inc['Nombre Estudiante'];
             const tipoFalta = inc['Tipo de falta'];
             const tipoConducta = inc['Tipo de Conducta'];
-            notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta);
+            const docente = inc['Docente']; // 🆕 Obtener el nombre del docente
+            notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta, docente);
         }
     }
     
@@ -567,27 +568,8 @@ function editarIncidencia(indice) {
     // Scroll al formulario
     document.querySelector('#formIncidencia').scrollIntoView({ behavior: 'smooth', block: 'start' });
     
-    // 🆕 CONVERTIR FECHA AL FORMATO datetime-local (YYYY-MM-DDTHH:mm)
-    let fechaFormateada = '';
-    if (inc['Fecha y Hora']) {
-        try {
-            const fecha = new Date(inc['Fecha y Hora']);
-            if (!isNaN(fecha.getTime())) {
-                // Formato: YYYY-MM-DDTHH:mm
-                const año = fecha.getFullYear();
-                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-                const dia = String(fecha.getDate()).padStart(2, '0');
-                const horas = String(fecha.getHours()).padStart(2, '0');
-                const minutos = String(fecha.getMinutes()).padStart(2, '0');
-                fechaFormateada = `${año}-${mes}-${dia}T${horas}:${minutos}`;
-            }
-        } catch (error) {
-            console.error('Error al formatear fecha:', error);
-        }
-    }
-    
     // Llenar el formulario con los datos
-    document.getElementById('fechaIncidencia').value = fechaFormateada;
+    document.getElementById('fechaIncidencia').value = inc['Fecha y Hora'] || '';
     document.getElementById('nombreEstudianteInc').value = inc['Nombre Estudiante'] || '';
     document.getElementById('cursoIncidencia').value = inc['Curso'] || '';
     document.getElementById('tipoFalta').value = inc['Tipo de falta'] || '';
@@ -728,7 +710,7 @@ function buscarIncidencias() {
             <td><span class="status-badge badge-${tipo.toLowerCase().replace(' ', '-')}">${tipo}</span></td>
             <td>${docente}</td>
             <td style="white-space:normal;max-width:150px;">${tipoConducta}</td>
-            <td style="white-space:normal;max-width:250px;">${descripcion}</td>
+            <td style="white-space:normal;max-width:250px;">${descripcion.substring(0,80)}${descripcion.length > 80 ? '...' : ''}</td>
             <td style="white-space:normal;max-width:200px;">${acciones || '-'}</td>
             <td style="white-space:normal;max-width:200px;">${seguimiento || '-'}</td>
         </tr>
@@ -821,14 +803,14 @@ function crearModalTardanzas() {
             
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarTard" data-sugerencias="sugerenciasBuscarTard" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarTardanzas()">
+                    <input type="text" id="buscarTard" data-sugerencias="sugerenciasBuscarTard" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarTard" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoTard" onchange="buscarTardanzas()">
+                <select id="filtrarCursoTard">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarMesTard" onchange="buscarTardanzas()">
+                <select id="filtrarMesTard">
                     <option value="">Todos los meses</option>
                     <option value="Enero">Enero</option>
                     <option value="Febrero">Febrero</option>
@@ -843,6 +825,7 @@ function crearModalTardanzas() {
                     <option value="Noviembre">Noviembre</option>
                     <option value="Diciembre">Diciembre</option>
                 </select>
+                <button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarTardanzas()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarTardanzasPDF()">📥 Exportar</button>
             </div>
@@ -924,7 +907,7 @@ function crearModalTardanzas() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarTard', 'sugerenciasBuscarTard', 'buscarTardanzas');
+        crearAutocompletadoBusqueda('buscarTard', 'sugerenciasBuscarTard');
     }, 200);
 }
 
@@ -1080,7 +1063,7 @@ function crearAutocompletadoBusqueda(inputId, sugerenciasId, callbackSeleccion) 
             const nombre = e['Nombre Completo'] || e.nombre || '';
             const curso = e['Curso'] || e.curso || '';
             const nombreEscapado = nombre.replace(/'/g, "\\'");
-            return `<div onclick="seleccionarEstudianteBusqueda('${inputId}', '${sugerenciasId}', '${nombreEscapado}', '${callbackSeleccion || ''}')" 
+            return `<div onclick="seleccionarEstudianteBusqueda('${inputId}', '${sugerenciasId}', '${nombreEscapado}', ${callbackSeleccion ? 'function(){' + callbackSeleccion + '(\'' + nombreEscapado + '\')}' : 'null'})" 
                          style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
                          onmouseover="this.style.background='#f0f0f0'" 
                          onmouseout="this.style.background='white'">
@@ -1105,23 +1088,7 @@ function seleccionarEstudianteBusqueda(inputId, sugerenciasId, nombre, callback)
     
     if (input) input.value = nombre;
     if (sugerencias) sugerencias.style.display = 'none';
-    
-    // 🆕 Si hay callback como string, ejecutarlo
-    if (callback && typeof callback === 'string') {
-        if (callback === 'buscarIncidencias') {
-            buscarIncidencias();
-        } else if (callback === 'buscarTardanzas') {
-            buscarTardanzas();
-        } else if (callback === 'buscarReuniones') {
-            buscarReuniones();
-        } else if (callback === 'buscarEstudiantes') {
-            buscarEstudiantes();
-        } else if (callback === 'buscarContactos') {
-            buscarContactos();
-        }
-    } else if (callback && typeof callback === 'function') {
-        callback(nombre);
-    }
+    if (callback) callback(nombre);
 }
 
 // Cerrar sugerencias al hacer clic fuera
@@ -1932,12 +1899,13 @@ function crearModalContactos() {
             <h3>Buscar Contactos</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarContactos()">
+                    <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarCont" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
                 <button class="btn" id="btnSinContactos" onclick="toggleFiltroSinContactos()" style="background:#dc2626;color:white;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,0.3);">
                     🚨 Sin Contactos
                 </button>
+                <button class="btn btn-primary" onclick="buscarContactos()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarContactos()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarContactosPDF()">📥 Exportar</button>
             </div>
@@ -2005,7 +1973,7 @@ function crearModalContactos() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarContacto', 'sugerenciasBuscarCont', 'buscarContactos');
+        crearAutocompletadoBusqueda('buscarContacto', 'sugerenciasBuscarCont');
         crearAutocompletadoBusqueda('estContacto', 'sugerenciasEstContacto');
     }, 200);
 }
@@ -2184,21 +2152,6 @@ function importarContactos(event) {
 }
 
 function cargarTablaContactos() {
-    // 🆕 RESTAURAR EL HEADER ORIGINAL DE 7 COLUMNAS
-    const tabla = document.querySelector('#modalContactos table');
-    if (tabla) {
-        const thead = tabla.querySelector('thead tr');
-        thead.innerHTML = `
-            <th>Estudiante</th>
-            <th>Padre</th>
-            <th>Tel. Padre</th>
-            <th>Madre</th>
-            <th>Tel. Madre</th>
-            <th>Emergencia</th>
-            <th>Acción</th>
-        `;
-    }
-    
     const tbody = document.getElementById('bodyContactos');
     if (datosContactos.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No hay contactos</td></tr>';
@@ -2245,21 +2198,6 @@ function cargarTablaContactos() {
 }
 
 function buscarContactos() {
-    // 🆕 RESTAURAR EL HEADER ORIGINAL DE 7 COLUMNAS
-    const tabla = document.querySelector('#modalContactos table');
-    if (tabla) {
-        const thead = tabla.querySelector('thead tr');
-        thead.innerHTML = `
-            <th>Estudiante</th>
-            <th>Padre</th>
-            <th>Tel. Padre</th>
-            <th>Madre</th>
-            <th>Tel. Madre</th>
-            <th>Emergencia</th>
-            <th>Acción</th>
-        `;
-    }
-    
     const buscar = document.getElementById('buscarContacto').value.toLowerCase().trim();
     
     const filtrados = datosContactos.filter(c => {
@@ -2381,25 +2319,12 @@ function obtenerEstudiantesSinContactos() {
 }
 
 function mostrarEstudiantesSinContactos(estudiantes) {
-    const tabla = document.querySelector('#modalContactos table');
-    
-    if (!tabla) return;
-    
-    // 🆕 CAMBIAR EL HEADER A 3 COLUMNAS
-    const thead = tabla.querySelector('thead tr');
-    thead.innerHTML = `
-        <th>Estudiante</th>
-        <th>Curso</th>
-        <th>Contacto</th>
-        <th>Acción</th>
-    `;
-    
     const tbody = document.getElementById('bodyContactos');
     
     if (estudiantes.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="4" style="text-align:center;padding:40px;color:#059669;">
+                <td colspan="7" style="text-align:center;padding:40px;color:#059669;">
                     <div style="font-size:3em;margin-bottom:15px;">✅</div>
                     <strong style="font-size:1.2em;">¡Excelente!</strong>
                     <p style="margin-top:10px;color:#666;">Todos los estudiantes tienen contactos registrados</p>
@@ -2416,8 +2341,7 @@ function mostrarEstudiantesSinContactos(estudiantes) {
         return `
         <tr style="background:#fef2f2;">
             <td><strong style="color:#991b1b;">${nombre}</strong></td>
-            <td>${curso}</td>
-            <td style="color:#7f1d1d;font-style:italic;">Sin contacto registrado</td>
+            <td colspan="5" style="color:#7f1d1d;font-style:italic;">Sin contactos registrados</td>
             <td>
                 <button class="btn btn-sm" onclick="agregarContactoRapido('${nombre.replace(/'/g, "\\'")}', '${curso}')" 
                         style="background:#059669;color:white;padding:5px 12px;font-size:0.85em;">
@@ -2497,13 +2421,14 @@ function crearModalEstudiantes() {
             <h3>Buscar Estudiantes</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarEst" data-sugerencias="sugerenciasBuscarEst" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarEstudiantes()">
+                    <input type="text" id="buscarEst" data-sugerencias="sugerenciasBuscarEst" placeholder="🔍 Buscar estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarEst" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoEst" onchange="buscarEstudiantes()">
+                <select id="filtrarCursoEst">
                     <option value="">Todos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
+                <button class="btn btn-primary" onclick="buscarEstudiantes()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarEstudiantes()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarEstudiantesPDF()">📥 Exportar</button>
             </div>
@@ -2547,7 +2472,7 @@ function crearModalEstudiantes() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarEst', 'sugerenciasBuscarEst', 'buscarEstudiantes');
+        crearAutocompletadoBusqueda('buscarEst', 'sugerenciasBuscarEst');
     }, 200);
 }
 
@@ -2842,20 +2767,21 @@ function crearModalReuniones() {
             <h3>🔍 Buscar Reuniones</h3>
             <div class="search-bar">
                 <div style="position:relative;flex:1;min-width:200px;">
-                    <input type="text" id="buscarReunion" data-sugerencias="sugerenciasBuscarReun" placeholder="🔍 Buscar por estudiante..." style="width:100%;" oninput="buscarReuniones()">
+                    <input type="text" id="buscarReunion" data-sugerencias="sugerenciasBuscarReun" placeholder="🔍 Buscar por estudiante..." style="width:100%;">
                     <div id="sugerenciasBuscarReun" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
-                <select id="filtrarCursoReunion" onchange="buscarReuniones()">
+                <select id="filtrarCursoReunion">
                     <option value="">Todos los cursos</option>
                     ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
                 </select>
-                <select id="filtrarEstadoReunion" onchange="buscarReuniones()">
+                <select id="filtrarEstadoReunion">
                     <option value="">Todos los estados</option>
                     <option value="En seguimiento">En seguimiento</option>
                     <option value="Cumplido">Cumplido</option>
                     <option value="No cumplido">No cumplido</option>
                     <option value="Parcialmente cumplido">Parcialmente cumplido</option>
                 </select>
+                <button class="btn btn-primary" onclick="buscarReuniones()">🔍 Buscar</button>
                 <button class="btn" onclick="recargarReuniones()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarReunionesPDF()">📥 Exportar</button>
             </div>
@@ -2931,7 +2857,7 @@ function crearModalReuniones() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('buscarReunion', 'sugerenciasBuscarReun', 'buscarReuniones');
+        crearAutocompletadoBusqueda('buscarReunion', 'sugerenciasBuscarReun');
     }, 200);
 }
 
@@ -6758,42 +6684,8 @@ function editarReunion(indice) {
     // Scroll al formulario
     document.querySelector('#formReunion').scrollIntoView({ behavior: 'smooth', block: 'start' });
     
-    // 🆕 CONVERTIR FECHA Y HORA AL FORMATO datetime-local (YYYY-MM-DDTHH:mm)
-    let fechaReunionFormateada = '';
-    if (reunion['Fecha y Hora']) {
-        try {
-            const fecha = new Date(reunion['Fecha y Hora']);
-            if (!isNaN(fecha.getTime())) {
-                const año = fecha.getFullYear();
-                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-                const dia = String(fecha.getDate()).padStart(2, '0');
-                const horas = String(fecha.getHours()).padStart(2, '0');
-                const minutos = String(fecha.getMinutes()).padStart(2, '0');
-                fechaReunionFormateada = `${año}-${mes}-${dia}T${horas}:${minutos}`;
-            }
-        } catch (error) {
-            console.error('Error al formatear fecha reunión:', error);
-        }
-    }
-    
-    // 🆕 CONVERTIR FECHA DE SEGUIMIENTO AL FORMATO date (YYYY-MM-DD)
-    let fechaSeguimientoFormateada = '';
-    if (reunion['Fecha Seguimiento']) {
-        try {
-            const fecha = new Date(reunion['Fecha Seguimiento']);
-            if (!isNaN(fecha.getTime())) {
-                const año = fecha.getFullYear();
-                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-                const dia = String(fecha.getDate()).padStart(2, '0');
-                fechaSeguimientoFormateada = `${año}-${mes}-${dia}`;
-            }
-        } catch (error) {
-            console.error('Error al formatear fecha seguimiento:', error);
-        }
-    }
-    
     // Llenar el formulario con los datos
-    document.getElementById('fechaReunion').value = fechaReunionFormateada;
+    document.getElementById('fechaReunion').value = reunion['Fecha y Hora'] || '';
     document.getElementById('tipoReunion').value = reunion['Tipo'] || 'Presencial';
     document.getElementById('estudianteReunion').value = reunion['Nombre Estudiante'] || '';
     document.getElementById('cursoReunion').value = reunion['Curso'] || '';
@@ -6803,7 +6695,7 @@ function editarReunion(indice) {
     document.getElementById('motivoReunion').value = reunion['Motivo'] || '';
     document.getElementById('situacionTratada').value = reunion['Situación Tratada'] || '';
     document.getElementById('acuerdosEstablecidos').value = reunion['Acuerdos Establecidos'] || '';
-    document.getElementById('fechaSeguimiento').value = fechaSeguimientoFormateada;
+    document.getElementById('fechaSeguimiento').value = reunion['Fecha Seguimiento'] || '';
     document.getElementById('estadoAcuerdo').value = reunion['Estado'] || '';
     document.getElementById('observacionesReunion').value = reunion['Observaciones'] || '';
     
