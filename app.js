@@ -550,16 +550,7 @@ const inc = {
             const estudiante = inc['Nombre Estudiante'];
             const tipoFalta = inc['Tipo de falta'];
             const tipoConducta = inc['Tipo de Conducta'];
-            const docente = inc['Docente']; // 🆕 Obtener el nombre del docente
-            
-            // 🔍 DEBUG: Verificar que el docente se está capturando
-            console.log('🔍 DEBUG Notificación:', {
-                estudiante,
-                tipoFalta,
-                tipoConducta,
-                docente
-            });
-            
+            const docente = inc['Docente'];
             notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta, docente);
         }
     }
