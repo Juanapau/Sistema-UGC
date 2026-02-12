@@ -428,6 +428,28 @@ grid-template-columns: 1fr;
 <button class="btn-view">👁️ Ver Registros</button>
 </div>
 
+<!-- CONTACTOS -->
+<div class="module-card" onclick="verModulo('contactos')">
+<div class="module-header">
+<div class="module-icon">📞</div>
+<div class="module-info">
+<h3>Contactos</h3>
+<p>Información de padres</p>
+</div>
+</div>
+<div class="module-stats">
+<div class="stat-item">
+<span class="number" id="statContactos">---</span>
+<span class="label">Registros</span>
+</div>
+<div class="stat-item">
+<span class="number" id="statSinContactos">---</span>
+<span class="label">Sin Contacto</span>
+</div>
+</div>
+<button class="btn-view">👁️ Ver Contactos</button>
+</div>
+
 <!-- REUNIONES Y ACUERDOS -->
 <div class="module-card" onclick="verModulo('reuniones')">
 <div class="module-header">
@@ -536,7 +558,9 @@ cargarEstadisticas();
 const CONFIG_STATS = {
 urlIncidencias: 'https://script.google.com/macros/s/AKfycbwnCHIHNum-8uCHLbuE5NvwJeVmVMF6hCLWOAQQRUOwsU5GK_vpkrxifDFlMat1tP-z/exec',
 urlTardanzas: 'https://script.google.com/macros/s/AKfycbxI2JCRc-f0MdokDyepK_UOPf_gAbjYpCWzqe6ShqhRIP7uurohjBdswChKHaExsT2Riw/exec',
-urlReuniones: 'https://script.google.com/macros/s/AKfycbxjky9LnAAqElohVjgLESUA2nh-ICXYWNDMGkVfGjwVEb1tc0HQAtg-sayrFMXH788aLA/exec'
+urlReuniones: 'https://script.google.com/macros/s/AKfycbxjky9LnAAqElohVjgLESUA2nh-ICXYWNDMGkVfGjwVEb1tc0HQAtg-sayrFMXH788aLA/exec',
+urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec'
 };
 
 async function cargarDatosDesdeGoogleSheets(url) {
@@ -563,6 +587,8 @@ document.getElementById('statTardanzas').textContent = '...';
 document.getElementById('statTardanzasHoy').textContent = '...';
 document.getElementById('statReuniones').textContent = '...';
 document.getElementById('statReunionesMes').textContent = '...';
+document.getElementById('statContactos').textContent = '...';
+document.getElementById('statSinContactos').textContent = '...';
 
 console.log('📊 Valores iniciales establecidos en "..."');
 
@@ -651,6 +677,41 @@ document.getElementById('statReuniones').textContent = totalReuniones;
 document.getElementById('statReunionesMes').textContent = reunionesMes;
 
 console.log(`✅ Reuniones actualizadas: ${totalReuniones} (Mes: ${reunionesMes})`);
+
+// Cargar contactos
+console.log('📥 Cargando contactos desde Google Sheets...');
+const contactos = await cargarDatosDesdeGoogleSheets(CONFIG_STATS.urlContactos);
+console.log('📥 Contactos recibidos:', contactos.length, 'registros');
+
+// Cargar estudiantes para calcular sin contactos
+console.log('📥 Cargando estudiantes desde Google Sheets...');
+const estudiantes = await cargarDatosDesdeGoogleSheets(CONFIG_STATS.urlEstudiantes);
+console.log('📥 Estudiantes recibidos:', estudiantes.length, 'registros');
+
+const totalContactos = contactos.length;
+
+// Calcular estudiantes sin contactos
+const normalizarNombre = (nombre) => (nombre || '').toLowerCase().trim().replace(/\s+/g, ' ');
+const estudiantesConContactos = new Set(
+contactos.map(c => {
+const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+return normalizarNombre(nombre);
+}).filter(n => n !== '')
+);
+const sinContactos = estudiantes.filter(est => {
+const nombre = est['Nombre Completo'] || est.nombre || est.Nombre || '';
+const nombreNormalizado = normalizarNombre(nombre);
+return nombreNormalizado !== '' && !estudiantesConContactos.has(nombreNormalizado);
+}).length;
+
+console.log('📊 Total contactos:', totalContactos);
+console.log('📊 Estudiantes sin contactos:', sinContactos);
+
+// Actualizar contactos
+document.getElementById('statContactos').textContent = totalContactos;
+document.getElementById('statSinContactos').textContent = sinContactos;
+
+console.log(`✅ Contactos actualizados: ${totalContactos} (Sin contacto: ${sinContactos})`);
 console.log('📊 ===== ESTADÍSTICAS REALES CARGADAS =====');
 
 } catch (error) {
@@ -666,6 +727,8 @@ document.getElementById('statTardanzas').textContent = '0';
 document.getElementById('statTardanzasHoy').textContent = '0';
 document.getElementById('statReuniones').textContent = '0';
 document.getElementById('statReunionesMes').textContent = '0';
+document.getElementById('statContactos').textContent = '0';
+document.getElementById('statSinContactos').textContent = '0';
 }
 }
 
@@ -679,6 +742,7 @@ console.log('👁️ Abriendo módulo:', modulo);
 const paginas = {
 'incidencias': 'incidencias-consulta.html',
 'tardanzas': 'tardanzas-consulta.html',
+'contactos': 'contactos-consulta.html',
 'estadisticas': 'estadisticas-consulta.html',
 'reuniones': 'reuniones-consulta.html'
 };
