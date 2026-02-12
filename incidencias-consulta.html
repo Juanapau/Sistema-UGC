@@ -216,6 +216,16 @@ transform: translateY(-2px);
 box-shadow: 0 5px 15px rgba(0,0,0,0.4);
 }
 
+.btn-success {
+background: linear-gradient(135deg, #059669 0%, #047857 100%);
+color: white;
+}
+
+.btn-success:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(5,150,105,0.4);
+}
+
 .table-container {
 overflow-x: auto;
 border-radius: 12px;
@@ -245,8 +255,15 @@ font-size: 0.9em;
 vertical-align: top;
 }
 
-table tr:hover {
-background: #f8f9fa;
+table tbody tr {
+cursor: pointer;
+transition: all 0.2s;
+}
+
+table tbody tr:hover {
+background: #e3f2fd;
+transform: scale(1.005);
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .status-badge {
@@ -290,6 +307,75 @@ color: #999;
 font-size: 4em;
 margin-bottom: 15px;
 opacity: 0.5;
+}
+
+/* ESTILOS DEL MODAL */
+.modal {
+display: none;
+position: fixed;
+z-index: 9999;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,0.7);
+overflow-y: auto;
+}
+
+.modal-content {
+background: white;
+margin: 20px auto;
+padding: 0;
+border-radius: 15px;
+max-width: 1200px;
+box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+from {
+transform: translateY(-50px);
+opacity: 0;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+
+.modal-header {
+background: linear-gradient(135deg, #059669 0%, #047857 100%);
+color: white;
+padding: 25px 30px;
+border-radius: 15px 15px 0 0;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.modal-header h2 {
+font-size: 1.8em;
+margin: 0;
+}
+
+.close {
+color: white;
+font-size: 35px;
+font-weight: bold;
+cursor: pointer;
+transition: all 0.3s;
+line-height: 1;
+}
+
+.close:hover {
+color: #4a9eff;
+transform: rotate(90deg);
+}
+
+.modal-body {
+padding: 30px;
+max-height: 70vh;
+overflow-y: auto;
 }
 
 @media (max-width: 768px) {
@@ -348,7 +434,10 @@ vertical-align: top;
 <!-- CONTENIDO -->
 <div class="content-card">
 
-<!-- BARRA DE BÚSQUEDA -->
+
+
+
+<!-- BARRA DE BÚSQUEDA Y FILTROS -->
 <div class="search-bar">
 <div style="position: relative; flex: 1; min-width: 200px;">
 <input type="text" 
@@ -357,7 +446,7 @@ placeholder="🔍 Buscar por nombre de estudiante..."
 autocomplete="off"
 oninput="filtrarSugerencias(); buscarIncidencias();"
 onfocus="mostrarSugerencias()"
-style="width: 100%;">
+style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95em;">
 <div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
 </div>
 <select id="filtrarCurso" class="filter-select" onchange="buscarIncidencias()">
@@ -416,16 +505,14 @@ style="width: 100%;">
 </div>
 </div>
 
-<script src="./auth-guard.js"></script>
-<script>
-// Datos de incidencias
-let datosIncidencias = [];
-let incidenciasFiltradas = [];
+<!-- CONTENEDOR PARA MODALES (usado por app.js) -->
+<div id="modalContainer"></div>
 
-// Configuración (cargada desde localStorage)
-let CONFIG = {
-urlIncidencias: 'https://script.google.com/macros/s/AKfycbwnCHIHNum-8uCHLbuE5NvwJeVmVMF6hCLWOAQQRUOwsU5GK_vpkrxifDFlMat1tP-z/exec'
-};
+<script src="./auth-guard.js"></script>
+<script src="./app.js"></script>
+<script>
+// Datos de incidencias locales
+let incidenciasFiltradas = [];
 
 // Cargar configuración
 window.addEventListener('load', function() {
@@ -524,11 +611,12 @@ return;
 tbody.innerHTML = incidenciasFiltradas.map(inc => {
 const tipo = inc['Tipo de falta'] || 'N/A';
 const tipoClass = tipo !== 'N/A' ? tipo.toLowerCase().replace(/ /g, '-') : 'leve';
+const nombreEstudiante = inc['Nombre Estudiante'] || 'N/A';
 
 return `
-<tr>
+<tr onclick="abrirHistorialEstudiante('${nombreEstudiante.replace(/'/g, "\\'")}')">
 <td>${formatearFecha(inc['Fecha y Hora'])}</td>
-<td><strong>${inc['Nombre Estudiante'] || 'N/A'}</strong></td>
+<td><strong>${nombreEstudiante}</strong></td>
 <td>${inc['Curso'] || 'N/A'}</td>
 <td><span class="status-badge badge-${tipoClass}">${tipo}</span></td>
 <td>${inc['Docente'] || 'N/A'}</td>
@@ -665,6 +753,313 @@ if (e.target !== input && e.target !== sugerencias) {
 sugerencias.style.display = 'none';
 }
 });
+
+// ==========================================
+// SOBRESCRIBIR FUNCIÓN DE APP.JS PARA LIMPIAR MODALES ANTERIORES
+// ==========================================
+
+// Guardar la función original
+const abrirHistorialEstudianteOriginal = window.abrirHistorialEstudiante;
+
+// Sobrescribir para cerrar modales anteriores y personalizar para esta página
+window.abrirHistorialEstudiante = function(nombreEstudiante) {
+// Cerrar cualquier modal anterior
+const modalAnterior = document.getElementById('modalHistorialEstudiante');
+if (modalAnterior) {
+modalAnterior.remove();
+}
+
+// Buscar información del estudiante
+const estudiante = datosEstudiantes.find(e => {
+const nombre = e['Nombre Completo'] || e.nombre || '';
+return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+if (!estudiante) {
+alert('⚠️ No se encontró información del estudiante en la base de datos.');
+return;
+}
+
+const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
+const curso = estudiante['Curso'] || estudiante.curso || '';
+
+// Recopilar toda la información del estudiante
+const incidencias = datosIncidencias.filter(i => {
+const nom = i['Nombre Estudiante'] || i.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+const tardanzas = datosTardanzas.filter(t => {
+const nom = t['Nombre Estudiante'] || t.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+const reuniones = datosReuniones.filter(r => {
+const nom = r['Nombre Estudiante'] || r.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+const contacto = datosContactos.find(c => {
+const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+// Contar incidencias por tipo
+const incidenciasLeves = incidencias.filter(i => {
+const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
+return tipo === 'Leve';
+}).length;
+
+const incidenciasGraves = incidencias.filter(i => {
+const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
+return tipo === 'Grave';
+}).length;
+
+const incidenciasMuyGraves = incidencias.filter(i => {
+const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
+return tipo === 'Muy Grave';
+}).length;
+
+// Total de tardanzas
+const tardanzasTotales = tardanzas.length;
+
+// Determinar estado basado en tardanzas y faltas graves/muy graves
+const faltasGravesYMuyGraves = incidenciasGraves + incidenciasMuyGraves;
+let estadoColor = '#059669';
+let estadoTexto = 'Normal';
+let estadoIcono = '✅';
+
+if (faltasGravesYMuyGraves >= 3 || tardanzasTotales >= 10) {
+estadoColor = '#dc2626';
+estadoTexto = 'Requiere Atención Urgente';
+estadoIcono = '🚨';
+} else if (faltasGravesYMuyGraves >= 1 || tardanzasTotales >= 5) {
+estadoColor = '#f59e0b';
+estadoTexto = 'Requiere Atención';
+estadoIcono = '⚠️';
+}
+
+// Generar HTML de contactos
+let htmlContactos = '';
+if (contacto) {
+const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || '';
+const telPadre = contacto['Contacto Padre'] || contacto.telPadre || '';
+const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || '';
+const telMadre = contacto['Contacto Madre'] || contacto.telMadre || '';
+const telEmergencia = contacto['Contacto Emergencia'] || contacto.telEmergencia || '';
+
+if (nombrePadre && telPadre) {
+htmlContactos += `
+<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+<h4 style="color:#333;margin-bottom:8px;">👨 Padre</h4>
+<p style="margin-bottom:10px;">${nombrePadre}<br>☎️ ${telPadre}</p>
+<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telPadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+</div>
+`;
+}
+
+if (nombreMadre && telMadre) {
+htmlContactos += `
+<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+<h4 style="color:#333;margin-bottom:8px;">👩 Madre</h4>
+<p style="margin-bottom:10px;">${nombreMadre}<br>☎️ ${telMadre}</p>
+<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telMadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+</div>
+`;
+}
+
+if (telEmergencia) {
+htmlContactos += `
+<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+<h4 style="color:#333;margin-bottom:8px;">🚨 Emergencia</h4>
+<p style="margin-bottom:10px;">☎️ ${telEmergencia}</p>
+<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telEmergencia}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+</div>
+`;
+}
+}
+
+if (!htmlContactos) {
+htmlContactos = '<p style="color:#f59e0b;font-style:italic;">⚠️ Sin contactos registrados</p>';
+}
+
+// Generar línea de tiempo combinando todo
+let eventos = [];
+
+incidencias.forEach(inc => {
+eventos.push({
+fecha: new Date(inc['Fecha y Hora'] || inc['Fecha'] || inc.fecha || ''),
+tipo: 'incidencia',
+titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
+descripcion: inc['Descripción'] || inc.descripcion || '',
+gravedad: inc['Tipo'] || inc['Tipo de falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
+docente: inc['Docente'] || inc['Docente que Reporta'] || inc.docenteReporta || inc.docente || 'No especificado'
+});
+});
+
+tardanzas.forEach(tard => {
+eventos.push({
+fecha: new Date(tard['Fecha'] || tard.fecha || ''),
+tipo: 'tardanza',
+titulo: 'Tardanza',
+descripcion: 'Llegada tardía',
+motivo: tard['Motivo'] || tard.motivo || ''
+});
+});
+
+reuniones.forEach(reun => {
+eventos.push({
+fecha: new Date(reun['Fecha'] || reun.fecha || ''),
+tipo: 'reunion',
+titulo: 'Reunión con Padres',
+descripcion: reun['Motivo'] || reun.motivo || '',
+asistio: reun['Asistió'] || reun.asistio || '',
+acuerdos: reun['Acuerdos'] || reun.acuerdos || ''
+});
+});
+
+// Ordenar por fecha (más reciente primero)
+eventos.sort((a, b) => b.fecha - a.fecha);
+
+// Generar HTML de línea de tiempo - MOSTRAR TODOS LOS EVENTOS
+let htmlTimeline = '';
+if (eventos.length === 0) {
+htmlTimeline = '<p style="color:#999;text-align:center;padding:40px;">No hay eventos registrados</p>';
+} else {
+// MOSTRAR TODOS LOS EVENTOS (sin límite)
+eventos.forEach(evento => {
+const fechaTexto = evento.fecha.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
+const horaTexto = evento.fecha.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+
+let iconoTipo = '';
+let colorBorde = '';
+let labelTipo = '';
+let detalles = '';
+
+if (evento.tipo === 'incidencia') {
+iconoTipo = '📋';
+colorBorde = evento.gravedad === 'Grave' || evento.gravedad === 'Muy Grave' ? '#dc2626' : '#f59e0b';
+labelTipo = `<span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">📋 Incidencia</span>`;
+detalles = `
+<strong>${evento.titulo}</strong><br>
+${evento.descripcion}<br>
+<span style="color:#666;font-size:0.9em;">Tipo de Falta: ${evento.gravedad} | Docente: ${evento.docente}</span>
+`;
+} else if (evento.tipo === 'tardanza') {
+iconoTipo = '⏰';
+colorBorde = '#f59e0b';
+labelTipo = `<span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">⏰ Tardanza</span>`;
+detalles = `<strong>${evento.titulo}</strong><br>${evento.descripcion}${evento.motivo ? '<br><span style="color:#666;font-size:0.9em;">Motivo: ' + evento.motivo + '</span>' : ''}`;
+} else {
+iconoTipo = '🤝';
+colorBorde = '#3b82f6';
+labelTipo = `<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">🤝 Reunión</span>`;
+detalles = `
+<strong>${evento.titulo}</strong><br>
+${evento.descripcion}<br>
+<span style="color:#666;font-size:0.9em;">Asistió: ${evento.asistio === 'Sí' ? '✅ Sí' : '❌ No'}</span>
+${evento.acuerdos ? '<br><span style="color:#666;font-size:0.9em;">Acuerdos: ' + evento.acuerdos + '</span>' : ''}
+`;
+}
+
+htmlTimeline += `
+<div style="position:relative;margin-bottom:25px;background:#f8f9fa;padding:15px;border-radius:8px;border-left:4px solid ${colorBorde};">
+<div style="color:#666;font-size:0.85em;margin-bottom:8px;">${fechaTexto} - ${horaTexto}</div>
+${labelTipo}
+<div style="margin-top:10px;color:#333;line-height:1.6;">${detalles}</div>
+</div>
+`;
+});
+}
+
+// Crear modal - SIN BOTÓN DE EXPORTAR PDF
+const modalHTML = `
+<div id="modalHistorialEstudiante" class="modal" style="display:block;">
+<div class="modal-content" style="max-width:1000px;max-height:90vh;display:flex;flex-direction:column;">
+<div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;flex-shrink:0;">
+<h2>👤 ${nombre}</h2>
+<span class="close" onclick="cerrarHistorialEstudiante()">&times;</span>
+</div>
+<div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;flex-shrink:0;">
+<p style="font-size:1.1em;opacity:0.9;">${curso}</p>
+</div>
+<div class="modal-body" style="overflow-y:auto;flex:1;max-height:calc(90vh - 180px);">
+
+<!-- RESUMEN GENERAL -->
+<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+📊 Resumen General
+</h3>
+<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:15px;margin-bottom:30px;">
+<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidencias.length}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Incidencias Totales</div>
+</div>
+<div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${tardanzasTotales}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Tardanzas Totales</div>
+</div>
+<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${reuniones.length}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Reuniones con Padres</div>
+</div>
+<div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasLeves}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Leves</div>
+</div>
+<div style="background:#fff7ed;border-left:4px solid #f97316;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasGraves}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Graves</div>
+</div>
+<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasMuyGraves}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Muy Graves</div>
+</div>
+</div>
+
+<!-- ESTADO DEL ESTUDIANTE -->
+<div style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;margin-bottom:30px;text-align:center;">
+<div style="font-size:2.5em;font-weight:bold;color:#333;">${estadoIcono}</div>
+<div style="color:#666;font-size:1.1em;margin-top:5px;font-weight:600;">${estadoTexto}</div>
+</div>
+
+<!-- CONTACTOS -->
+<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+📞 Información de Contacto
+</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:15px;margin-bottom:30px;">
+${htmlContactos}
+</div>
+
+<!-- LÍNEA DE TIEMPO -->
+<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+📅 Línea de Tiempo (Últimos eventos)
+</h3>
+<div style="position:relative;padding-left:40px;">
+<div style="position:absolute;left:15px;top:0;bottom:0;width:2px;background:#e0e0e0;"></div>
+${htmlTimeline}
+</div>
+
+</div>
+</div>
+</div>`;
+
+document.getElementById('modalContainer').innerHTML = modalHTML;
+};
+
+// Función para abrir WhatsApp (necesaria para los botones de contacto)
+function abrirWhatsApp(numero, mensaje) {
+const numeroLimpio = numero.replace(/[\s\-\(\)]/g, '');
+const mensajeCodificado = encodeURIComponent(mensaje);
+window.open(`https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`, '_blank');
+}
+
+// Función para cerrar el historial
+function cerrarHistorialEstudiante() {
+const modal = document.getElementById('modalHistorialEstudiante');
+if (modal) {
+modal.remove();
+}
+}
 
 // ==========================================
 // RE-HABILITAR FILTROS (después de auth-guard)
