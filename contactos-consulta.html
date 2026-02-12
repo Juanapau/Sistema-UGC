@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contactos - Consulta</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+min-height: 100vh;
+padding: 20px;
+position: relative;
+overflow-x: hidden;
+}
+
+/* LOGO DE FONDO COMO MARCA DE AGUA */
+body::before {
+content: '';
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 900px;
+height: 900px;
+background-image: url('./logo.png');
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+opacity: 0.08;
+z-index: 0;
+pointer-events: none;
+filter: brightness(1.2);
+}
+
+.container {
+max-width: 1400px;
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+
+header,
+.card,
+table {
+position: relative;
+z-index: 2;
+}
+
+header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 30px;
+border-radius: 15px;
+margin-bottom: 25px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+
+.header-left {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.header-left img {
+width: 50px;
+height: 50px;
+}
+
+.header-title h1 {
+font-size: 1.6em;
+margin-bottom: 3px;
+}
+
+.header-title p {
+color: #4a9eff;
+font-size: 0.85em;
+}
+
+.btn-back {
+background: #000000;
+color: white;
+border: none;
+padding: 15px 30px;
+border-radius: 12px;
+cursor: pointer;
+font-size: 1em;
+font-weight: 600;
+transition: all 0.3s;
+text-decoration: none;
+display: inline-flex;
+align-items: center;
+gap: 10px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.btn-back:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+background: #1a1a1a;
+}
+
+.content-card {
+background: white;
+border-radius: 15px;
+padding: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.page-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 30px;
+padding-bottom: 20px;
+border-bottom: 2px solid #e5e7eb;
+}
+
+.page-header h2 {
+color: #000000;
+font-size: 1.8em;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.alert-readonly {
+background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+border: 2px solid #fbbf24;
+border-radius: 12px;
+padding: 15px 20px;
+margin-bottom: 25px;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.alert-readonly .icon {
+font-size: 1.8em;
+}
+
+.alert-readonly p {
+color: #92400e;
+font-size: 0.9em;
+margin: 0;
+}
+
+.search-bar {
+display: flex;
+gap: 15px;
+margin-bottom: 25px;
+flex-wrap: wrap;
+}
+
+.search-bar input {
+flex: 1;
+min-width: 200px;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-size: 0.95em;
+}
+
+.search-bar input:focus {
+outline: none;
+border-color: #2a5298;
+box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
+}
+
+/* Estilos para autocompletado */
+.autocomplete-container {
+position: relative;
+flex: 1;
+min-width: 200px;
+}
+
+.autocomplete-suggestions {
+position: absolute;
+z-index: 1000;
+background: white;
+border: 2px solid #2a5298;
+border-radius: 8px;
+max-height: 300px;
+overflow-y: auto;
+width: 100%;
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+display: none;
+}
+
+.autocomplete-suggestions.active {
+display: block;
+}
+
+.autocomplete-item {
+padding: 12px 15px;
+cursor: pointer;
+border-bottom: 1px solid #eee;
+transition: all 0.2s;
+}
+
+.autocomplete-item:last-child {
+border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+background: #e3f2fd;
+}
+
+.autocomplete-item strong {
+color: #2a5298;
+}
+
+.btn {
+padding: 12px 24px;
+border: none;
+border-radius: 8px;
+font-size: 0.95em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+white-space: nowrap;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+color: white;
+}
+
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(42,82,152,0.4);
+}
+
+.btn-secondary {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+}
+
+.btn-secondary:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+}
+
+.btn-success {
+background: linear-gradient(135deg, #059669 0%, #047857 100%);
+color: white;
+}
+
+.btn-success:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(5,150,105,0.4);
+}
+
+.btn-warning {
+background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+color: white;
+}
+
+.btn-warning:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(220,38,38,0.4);
+}
+
+.table-container {
+overflow-x: auto;
+border-radius: 12px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+background: white;
+}
+
+table th {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 15px 12px;
+text-align: left;
+font-weight: 600;
+font-size: 0.9em;
+white-space: nowrap;
+}
+
+table td {
+padding: 12px;
+border-bottom: 1px solid #eee;
+font-size: 0.9em;
+vertical-align: top;
+}
+
+table tbody tr {
+transition: all 0.2s;
+}
+
+table tbody tr:hover {
+background: #e3f2fd;
+transform: scale(1.002);
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.whatsapp-btn {
+background: #25D366 !important;
+padding: 8px 12px;
+font-size: 0.85em;
+display: inline-flex;
+align-items: center;
+gap: 5px;
+}
+
+.whatsapp-btn:hover {
+background: #1da851 !important;
+}
+
+.no-contact {
+color: #999;
+font-style: italic;
+font-size: 0.85em;
+}
+
+/* Alerta de estudiantes sin contactos */
+.alert-sin-contactos {
+background: #fee2e2;
+border-left: 4px solid #dc2626;
+padding: 15px 20px;
+margin: 20px 0;
+border-radius: 8px;
+display: none;
+}
+
+.alert-sin-contactos.active {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.alert-sin-contactos .icon {
+font-size: 1.5em;
+}
+
+.alert-sin-contactos strong {
+color: #991b1b;
+display: block;
+margin-bottom: 5px;
+}
+
+.alert-sin-contactos p {
+color: #7f1d1d;
+margin: 0;
+font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+.search-bar {
+flex-direction: column;
+}
+.search-bar input,
+.search-bar .btn {
+width: 100%;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<!-- HEADER -->
+<header>
+<div class="header-left">
+<img src="./logo.png" alt="Logo">
+<div class="header-title">
+<h1>Contactos de Padres</h1>
+<p>Solo Lectura - PNSA</p>
+</div>
+</div>
+<a href="consulta.html" class="btn-back">← Volver al Dashboard</a>
+</header>
+
+<!-- CONTENIDO -->
+<div class="content-card">
+
+<!-- BARRA DE BÚSQUEDA -->
+<div class="search-bar">
+<div class="autocomplete-container" style="flex: 4;">
+<input type="text" id="buscarContacto" placeholder="🔍 Buscar estudiante o padre..." autocomplete="off">
+<div id="sugerenciasContacto" class="autocomplete-suggestions"></div>
+</div>
+<button class="btn btn-secondary" onclick="recargarContactos()">
+🔄 Recargar
+</button>
+</div>
+
+<!-- ALERTA DE ESTUDIANTES SIN CONTACTOS -->
+<div id="alertaSinContactos" class="alert-sin-contactos">
+<span class="icon">⚠️</span>
+<div style="flex:1;">
+<strong>Estudiantes sin contactos registrados</strong>
+<p>Se encontraron <strong id="contadorSinContactos">0</strong> estudiantes sin ningún contacto de padres registrado.</p>
+</div>
+</div>
+
+<!-- TABLA DE CONTACTOS -->
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Padre</th>
+<th>Tel. Padre</th>
+<th>Madre</th>
+<th>Tel. Madre</th>
+<th>Tel. Emergencia</th>
+</tr>
+</thead>
+<tbody id="bodyContactos">
+<tr>
+<td colspan="7" style="text-align:center;padding:40px;color:#666;">
+📥 Cargando contactos...
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<script>
+// ==========================================
+// VERIFICAR AUTENTICACIÓN
+// ==========================================
+
+window.addEventListener('load', function() {
+const usuarioData = localStorage.getItem('usuarioUGC');
+
+if (!usuarioData) {
+window.location.href = 'index.html';
+return;
+}
+
+const usuario = JSON.parse(usuarioData);
+
+if (usuario.rol !== 'consulta') {
+if (usuario.rol === 'administrador') {
+console.log('ℹ️ Administrador en vista de consulta');
+} else {
+window.location.href = 'index.html';
+return;
+}
+}
+
+console.log('✅ Usuario autenticado:', usuario);
+
+cargarDatos();
+});
+
+// ==========================================
+// CONFIGURACIÓN
+// ==========================================
+
+const CONFIG = {
+urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHPpD0qPbGCtse4Ku16yxwhVo-8AjnXpKTudVi-0dVwOK/exec',
+urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec'
+};
+
+let datosContactos = [];
+let datosEstudiantes = [];
+let estudiantesSinContactos = [];
+let mostrandoSinContactos = false;
+
+// ==========================================
+// CARGAR DATOS
+// ==========================================
+
+async function cargarDatosDesdeGoogleSheets(url) {
+try {
+const response = await fetch(url);
+if (!response.ok) throw new Error('Error en la respuesta');
+return await response.json();
+} catch (error) {
+console.error('Error cargando datos:', error);
+return [];
+}
+}
+
+async function cargarDatos() {
+console.log('📥 Cargando datos...');
+const tbody = document.getElementById('bodyContactos');
+
+try {
+// Cargar contactos
+console.log('📥 Cargando contactos...');
+const contactos = await cargarDatosDesdeGoogleSheets(CONFIG.urlContactos);
+console.log('✅ Contactos cargados:', contactos.length);
+datosContactos = contactos;
+
+// Cargar estudiantes
+console.log('📥 Cargando estudiantes...');
+const estudiantes = await cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes);
+console.log('✅ Estudiantes cargados:', estudiantes.length);
+datosEstudiantes = estudiantes;
+
+// Calcular estudiantes sin contactos
+calcularSinContactos();
+
+// Mostrar datos
+mostrarContactos(datosContactos);
+
+// Inicializar autocompletado
+inicializarAutocompletado();
+
+} catch (error) {
+console.error('❌ Error:', error);
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos</td></tr>';
+}
+}
+
+// ==========================================
+// CALCULAR ESTUDIANTES SIN CONTACTOS
+// ==========================================
+
+function calcularSinContactos() {
+const normalizarNombre = (nombre) => (nombre || '').toLowerCase().trim().replace(/\s+/g, ' ');
+
+// Obtener estudiantes con contactos
+const estudiantesConContactos = new Set(
+datosContactos.map(c => {
+const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+return normalizarNombre(nombre);
+}).filter(n => n !== '')
+);
+
+// Filtrar estudiantes sin contactos
+estudiantesSinContactos = datosEstudiantes.filter(est => {
+const nombre = est['Nombre Completo'] || est.nombre || est.Nombre || '';
+const nombreNormalizado = normalizarNombre(nombre);
+return nombreNormalizado !== '' && !estudiantesConContactos.has(nombreNormalizado);
+});
+
+console.log('📊 Estudiantes sin contactos:', estudiantesSinContactos.length);
+}
+
+// ==========================================
+// MOSTRAR CONTACTOS
+// ==========================================
+
+function mostrarContactos(contactos) {
+const tbody = document.getElementById('bodyContactos');
+
+if (contactos.length === 0) {
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No hay contactos registrados</td></tr>';
+return;
+}
+
+// Ordenar por nombre de estudiante
+contactos.sort((a, b) => {
+const nombreA = (a['Nombre Estudiante'] || a['Mombre Estudiante'] || a.estudiante || '').toLowerCase();
+const nombreB = (b['Nombre Estudiante'] || b['Mombre Estudiante'] || b.estudiante || '').toLowerCase();
+return nombreA.localeCompare(nombreB);
+});
+
+tbody.innerHTML = contactos.map(c => {
+const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-';
+const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '-';
+const telPadre = c['Contacto Padre'] || c.telPadre || '-';
+const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '-';
+const telMadre = c['Contacto Madre'] || c.telMadre || '-';
+const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
+
+// Buscar curso del estudiante
+const estData = datosEstudiantes.find(e => {
+const nombre = e['Nombre Completo'] || e.nombre || e.Nombre || '';
+return nombre.toLowerCase().trim() === estudiante.toLowerCase().trim();
+});
+const curso = estData ? (estData.Curso || estData.curso || '-') : '-';
+
+return `
+<tr>
+<td><strong>${estudiante}</strong></td>
+<td>${curso}</td>
+<td>${nombrePadre}</td>
+<td>${telPadre}</td>
+<td>${nombreMadre}</td>
+<td>${telMadre}</td>
+<td>${telEmergencia}</td>
+</tr>
+`;
+}).join('');
+}
+
+// ==========================================
+// MOSTRAR ESTUDIANTES SIN CONTACTOS
+// ==========================================
+
+function mostrarEstudiantesSinContactos() {
+const tbody = document.getElementById('bodyContactos');
+const tabla = document.querySelector('table');
+
+// Cambiar header
+const thead = tabla.querySelector('thead tr');
+thead.innerHTML = `
+<th>Estudiante</th>
+<th>Curso</th>
+<th colspan="5" style="text-align:center;">Sin información de contacto registrada</th>
+`;
+
+if (estudiantesSinContactos.length === 0) {
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#059669;">✅ Todos los estudiantes tienen contactos registrados</td></tr>';
+return;
+}
+
+// Ordenar por curso y nombre
+estudiantesSinContactos.sort((a, b) => {
+const cursoA = a.Curso || a.curso || '';
+const cursoB = b.Curso || b.curso || '';
+if (cursoA !== cursoB) return cursoA.localeCompare(cursoB);
+const nombreA = (a['Nombre Completo'] || a.nombre || '').toLowerCase();
+const nombreB = (b['Nombre Completo'] || b.nombre || '').toLowerCase();
+return nombreA.localeCompare(nombreB);
+});
+
+tbody.innerHTML = estudiantesSinContactos.map(est => {
+const nombre = est['Nombre Completo'] || est.nombre || est.Nombre || '-';
+const curso = est.Curso || est.curso || '-';
+
+return `
+<tr>
+<td><strong>${nombre}</strong></td>
+<td>${curso}</td>
+<td colspan="5" style="text-align:center;color:#dc2626;font-style:italic;">⚠️ Sin contactos registrados</td>
+</tr>
+`;
+}).join('');
+}
+
+// ==========================================
+// TOGGLE SIN CONTACTOS
+// ==========================================
+
+function toggleSinContactos() {
+const btn = document.getElementById('btnSinContactos');
+const alerta = document.getElementById('alertaSinContactos');
+const contador = document.getElementById('contadorSinContactos');
+const tabla = document.querySelector('table');
+
+mostrandoSinContactos = !mostrandoSinContactos;
+
+if (mostrandoSinContactos) {
+// Mostrar sin contactos
+btn.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+btn.innerHTML = '✅ Mostrando Sin Contactos';
+alerta.classList.add('active');
+contador.textContent = estudiantesSinContactos.length;
+mostrarEstudiantesSinContactos();
+} else {
+// Mostrar todos
+btn.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+btn.innerHTML = '🚨 Sin Contactos';
+alerta.classList.remove('active');
+// Restaurar header
+const thead = tabla.querySelector('thead tr');
+thead.innerHTML = `
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Padre</th>
+<th>Tel. Padre</th>
+<th>Madre</th>
+<th>Tel. Madre</th>
+<th>Tel. Emergencia</th>
+`;
+mostrarContactos(datosContactos);
+}
+}
+
+// ==========================================
+// WHATSAPP
+// ==========================================
+
+function abrirWhatsAppContacto(estudiante, telPadre, telMadre, telEmergencia) {
+const numeros = [];
+if (telPadre && telPadre !== '-') numeros.push({tipo: 'Padre', numero: telPadre});
+if (telMadre && telMadre !== '-') numeros.push({tipo: 'Madre', numero: telMadre});
+if (telEmergencia && telEmergencia !== '-') numeros.push({tipo: 'Emergencia', numero: telEmergencia});
+
+if (numeros.length === 0) {
+alert('No hay números de teléfono registrados');
+return;
+}
+
+if (numeros.length === 1) {
+// Abrir directamente
+abrirWhatsApp(numeros[0].numero, `Saludos,\n\nRespecto a ${estudiante}:\n\n`);
+} else {
+// Mostrar opciones
+let mensaje = `Seleccione el contacto para ${estudiante}:\n\n`;
+numeros.forEach((n, i) => {
+mensaje += `${i + 1}. ${n.tipo}: ${n.numero}\n`;
+});
+
+const opcion = prompt(mensaje + '\nIngrese el número (1-' + numeros.length + '):');
+const idx = parseInt(opcion) - 1;
+
+if (idx >= 0 && idx < numeros.length) {
+abrirWhatsApp(numeros[idx].numero, `Saludos,\n\nRespecto a ${estudiante}:\n\n`);
+}
+}
+}
+
+function abrirWhatsApp(numero, mensaje) {
+const numeroLimpio = numero.replace(/[\s\-\(\)]/g, '');
+const mensajeCodificado = encodeURIComponent(mensaje);
+window.open(`https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`, '_blank');
+}
+
+// ==========================================
+// AUTOCOMPLETADO Y BÚSQUEDA
+// ==========================================
+
+function inicializarAutocompletado() {
+const input = document.getElementById('buscarContacto');
+const sugerencias = document.getElementById('sugerenciasContacto');
+let selectedIndex = -1;
+
+input.addEventListener('input', function() {
+const buscar = this.value.toLowerCase().trim();
+selectedIndex = -1;
+
+if (!buscar) {
+sugerencias.classList.remove('active');
+if (!mostrandoSinContactos) {
+mostrarContactos(datosContactos);
+}
+return;
+}
+
+// Buscar en contactos
+const resultados = datosContactos.filter(c => {
+const estudiante = (c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '').toLowerCase();
+const nombrePadre = (c['Nombre Padre'] || c.nombrePadre || '').toLowerCase();
+const nombreMadre = (c['Nombre Madre'] || c.nombreMadre || '').toLowerCase();
+
+return estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar);
+});
+
+if (resultados.length === 0) {
+sugerencias.classList.remove('active');
+const tbody = document.getElementById('bodyContactos');
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+return;
+}
+
+// Mostrar sugerencias
+sugerencias.innerHTML = resultados.slice(0, 5).map((c, idx) => {
+const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '';
+const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '';
+
+// Buscar curso
+const estData = datosEstudiantes.find(e => {
+const nombre = e['Nombre Completo'] || e.nombre || e.Nombre || '';
+return nombre.toLowerCase().trim() === estudiante.toLowerCase().trim();
+});
+const curso = estData ? (estData.Curso || estData.curso || '') : '';
+
+return `
+<div class="autocomplete-item" data-index="${idx}">
+<strong>${estudiante}</strong> ${curso ? `(${curso})` : ''}
+<div style="font-size:0.85em;color:#666;margin-top:3px;">
+${nombrePadre ? '👨 ' + nombrePadre : ''} ${nombreMadre ? '👩 ' + nombreMadre : ''}
+</div>
+</div>
+`;
+}).join('');
+
+sugerencias.classList.add('active');
+
+// Filtrar tabla automáticamente
+if (!mostrandoSinContactos) {
+mostrarContactos(resultados);
+}
+});
+
+// Navegar con teclado
+input.addEventListener('keydown', function(e) {
+const items = sugerencias.querySelectorAll('.autocomplete-item');
+
+if (e.key === 'ArrowDown') {
+e.preventDefault();
+selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+updateSelection(items);
+} else if (e.key === 'ArrowUp') {
+e.preventDefault();
+selectedIndex = Math.max(selectedIndex - 1, -1);
+updateSelection(items);
+} else if (e.key === 'Enter' && selectedIndex >= 0) {
+e.preventDefault();
+items[selectedIndex].click();
+}
+});
+
+// Seleccionar con click
+sugerencias.addEventListener('click', function(e) {
+const item = e.target.closest('.autocomplete-item');
+if (!item) return;
+
+const idx = parseInt(item.dataset.index);
+const contacto = datosContactos.filter(c => {
+const estudiante = (c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '').toLowerCase();
+const nombrePadre = (c['Nombre Padre'] || c.nombrePadre || '').toLowerCase();
+const nombreMadre = (c['Nombre Madre'] || c.nombreMadre || '').toLowerCase();
+const buscar = input.value.toLowerCase().trim();
+
+return estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar);
+})[idx];
+
+if (contacto) {
+const estudiante = contacto['Nombre Estudiante'] || contacto['Mombre Estudiante'] || contacto.estudiante || '';
+input.value = estudiante;
+sugerencias.classList.remove('active');
+mostrarContactos([contacto]);
+}
+});
+
+function updateSelection(items) {
+items.forEach((item, idx) => {
+if (idx === selectedIndex) {
+item.classList.add('selected');
+item.scrollIntoView({block: 'nearest'});
+} else {
+item.classList.remove('selected');
+}
+});
+}
+
+// Cerrar sugerencias al hacer click fuera
+document.addEventListener('click', function(e) {
+if (!input.contains(e.target) && !sugerencias.contains(e.target)) {
+sugerencias.classList.remove('active');
+}
+});
+}
+
+// ==========================================
+// RECARGAR
+// ==========================================
+
+async function recargarContactos() {
+const tbody = document.getElementById('bodyContactos');
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+
+// Limpiar búsqueda
+document.getElementById('buscarContacto').value = '';
+mostrandoSinContactos = false;
+
+// Restaurar header
+const tabla = document.querySelector('table');
+const thead = tabla.querySelector('thead tr');
+thead.innerHTML = `
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Padre</th>
+<th>Tel. Padre</th>
+<th>Madre</th>
+<th>Tel. Madre</th>
+<th>Tel. Emergencia</th>
+`;
+
+await cargarDatos();
+}
+
+console.log('📞 Módulo de contactos (consulta) cargado');
+</script>
+
+</body>
+</html>
