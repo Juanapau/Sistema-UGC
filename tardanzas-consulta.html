@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,12 +10,45 @@
 
 body {
 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 min-height: 100vh;
 padding: 20px;
+position: relative;
+overflow-x: hidden;
 }
 
-.container { max-width: 1400px; margin: 0 auto; }
+/* LOGO DE FONDO COMO MARCA DE AGUA */
+body::before {
+content: '';
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 900px;
+height: 900px;
+background-image: url('./logo.png');
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+opacity: 0.08;
+z-index: 0;
+pointer-events: none;
+filter: brightness(1.2);
+}
+
+.container { 
+max-width: 1400px; 
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+
+header,
+.card,
+table {
+position: relative;
+z-index: 2;
+}
 
 header {
 background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
@@ -241,12 +273,12 @@ header { flex-direction: column; text-align: center; }
 id="buscarEstudiante" 
 placeholder="🔍 Buscar por nombre de estudiante..."
 autocomplete="off"
-oninput="filtrarSugerencias(); buscarTardanzas();"
+oninput="filtrarSugerencias()"
 onfocus="mostrarSugerencias()"
 style="width: 100%;">
 <div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
 </div>
-<select id="filtrarCurso" class="filter-select" onchange="buscarTardanzas()">
+<select id="filtrarCurso" class="filter-select">
 <option value="">Todos los cursos</option>
 <option value="1roA">1roA</option>
 <option value="1roB">1roB</option>
@@ -267,7 +299,7 @@ style="width: 100%;">
 <option value="6toB">6toB</option>
 <option value="6toC">6toC</option>
 </select>
-<select id="filtrarMes" class="filter-select" onchange="buscarTardanzas()">
+<select id="filtrarMes" class="filter-select">
 <option value="">Todos los meses</option>
 <option value="Enero">Enero</option>
 <option value="Febrero">Febrero</option>
@@ -282,6 +314,7 @@ style="width: 100%;">
 <option value="Noviembre">Noviembre</option>
 <option value="Diciembre">Diciembre</option>
 </select>
+<button class="btn btn-primary" onclick="buscarTardanzas()">🔍 Buscar</button>
 <button class="btn btn-secondary" onclick="recargarTardanzas()">🔄 Recargar</button>
 </div>
 
@@ -343,49 +376,25 @@ if (CONFIG.urlTardanzas) {
 try {
 const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas);
 if (datos && datos.length > 0) {
-// Guardar datos originales
+// Calcular "Total Mes" para cada registro
+datos.forEach(tardanza => {
+const estudiante = tardanza['Nombre Estudiante'];
+const mes = tardanza['Mes'];
+const año = tardanza['Año'];
+
+// Contar tardanzas del mismo estudiante en el mismo mes/año
+const totalMes = datos.filter(t => 
+t['Nombre Estudiante'] === estudiante && 
+t['Mes'] === mes && 
+t['Año'] === año
+).length;
+
+tardanza['Total Mes'] = totalMes;
+});
+
 datosTardanzas = datos;
-console.log('📊 Tardanzas originales cargadas:', datos.length);
-
-// 🆕 AGRUPAR POR ESTUDIANTE-MES-AÑO DESDE EL INICIO
-const grupos = {};
-datos.forEach(t => {
-const estudiante = t['Nombre Estudiante'] || '';
-const mes = t['Mes'] || '';
-const año = t['Año'] || '';
-const clave = `${estudiante}|${mes}|${año}`;
-
-if (!grupos[clave]) {
-grupos[clave] = {
-estudiante: estudiante,
-curso: t['Curso'],
-mes: mes,
-año: año,
-tardanzas: [],
-totalMes: 0
-};
-}
-grupos[clave].tardanzas.push(t);
-});
-
-// Crear array agrupado con solo una fila por estudiante-mes-año
-tardanzasFiltradas = [];
-Object.values(grupos).forEach(grupo => {
-grupo.totalMes = grupo.tardanzas.length;
-
-// Tomar la ÚLTIMA tardanza del mes como representante
-const ultimaTardanza = grupo.tardanzas.sort((a, b) => {
-const fechaA = new Date(a['Fecha']);
-const fechaB = new Date(b['Fecha']);
-return fechaB - fechaA;
-})[0];
-
-// Agregar el total calculado
-ultimaTardanza['Total Mes'] = grupo.totalMes;
-tardanzasFiltradas.push(ultimaTardanza);
-});
-
-console.log('✅ Tardanzas agrupadas:', tardanzasFiltradas.length, 'grupos');
+tardanzasFiltradas = datos;
+console.log('✅ Tardanzas cargadas:', datos.length);
 mostrarTardanzas();
 } else {
 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:60px;"><div style="font-size:4em;margin-bottom:15px;opacity:0.5;">📭</div><p>No hay tardanzas registradas</p></td></tr>';
@@ -445,8 +454,9 @@ console.log('🔍 Ejemplos de meses en datos:', ejemplosMeses);
 console.log('🔍 Mes buscado:', filtrarMes);
 }
 
-// 🆕 SIEMPRE AGRUPAR POR ESTUDIANTE-MES-AÑO (igual que en app.js)
-console.log('📊 Agrupando por estudiante-mes-año...');
+// Si el filtro es "Exactamente 3" o "Más de 3", agrupar por mes
+if (filtro === '3' || filtro === 'mas3') {
+console.log('📊 Agrupando por mes para filtro:', filtro);
 
 // Primero filtrar por estudiante, curso y mes
 let tardanzasBase = datosTardanzas.filter(t => {
@@ -488,7 +498,6 @@ grupo.totalMes = grupo.tardanzas.length;
 let cumpleFiltro = true;
 if (filtro === '3') cumpleFiltro = grupo.totalMes === 3;
 else if (filtro === 'mas3') cumpleFiltro = grupo.totalMes > 3;
-// Si es 'todas', mostrar todos los grupos
 
 if (cumpleFiltro) {
 // Tomar la ÚLTIMA tardanza del mes como representante
@@ -507,6 +516,20 @@ tardanzasFiltradas.push(ultimaTardanza);
 console.log(`📊 Grupos encontrados: ${Object.keys(grupos).length}`);
 console.log(`📊 Resultados filtrados: ${tardanzasFiltradas.length}`);
 
+} else {
+// Para "Todas las tardanzas", mostrar normal
+tardanzasFiltradas = datosTardanzas.filter(t => {
+const cumpleEstudiante = !buscarEstudiante || (t['Nombre Estudiante'] && t['Nombre Estudiante'].toLowerCase().includes(buscarEstudiante));
+const cumpleCurso = !filtrarCurso || t['Curso'] === filtrarCurso;
+const mesTardanza = (t['Mes'] || '').toLowerCase();
+const mesFiltro = filtrarMes.toLowerCase();
+const cumpleMes = !filtrarMes || mesTardanza === mesFiltro;
+return cumpleEstudiante && cumpleCurso && cumpleMes;
+});
+
+console.log(`📊 Resultados: ${tardanzasFiltradas.length} de ${datosTardanzas.length} tardanzas`);
+}
+
 mostrarTardanzas();
 }
 
@@ -515,40 +538,7 @@ document.getElementById('buscarEstudiante').value = '';
 document.getElementById('filtrarCurso').value = '';
 document.getElementById('filtrarMes').value = '';
 document.querySelector('input[name="filtroTardanzas"][value="todas"]').checked = true;
-
-// 🆕 AGRUPAR DATOS AL RECARGAR
-const grupos = {};
-datosTardanzas.forEach(t => {
-const estudiante = t['Nombre Estudiante'] || '';
-const mes = t['Mes'] || '';
-const año = t['Año'] || '';
-const clave = `${estudiante}|${mes}|${año}`;
-
-if (!grupos[clave]) {
-grupos[clave] = {
-estudiante: estudiante,
-curso: t['Curso'],
-mes: mes,
-año: año,
-tardanzas: [],
-totalMes: 0
-};
-}
-grupos[clave].tardanzas.push(t);
-});
-
-tardanzasFiltradas = [];
-Object.values(grupos).forEach(grupo => {
-grupo.totalMes = grupo.tardanzas.length;
-const ultimaTardanza = grupo.tardanzas.sort((a, b) => {
-const fechaA = new Date(a['Fecha']);
-const fechaB = new Date(b['Fecha']);
-return fechaB - fechaA;
-})[0];
-ultimaTardanza['Total Mes'] = grupo.totalMes;
-tardanzasFiltradas.push(ultimaTardanza);
-});
-
+tardanzasFiltradas = datosTardanzas;
 mostrarTardanzas();
 }
 
