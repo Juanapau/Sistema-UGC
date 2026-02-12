@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,12 +10,45 @@
 
 body {
 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 min-height: 100vh;
 padding: 20px;
+position: relative;
+overflow-x: hidden;
 }
 
-.container { max-width: 1600px; margin: 0 auto; }
+/* LOGO DE FONDO COMO MARCA DE AGUA */
+body::before {
+content: '';
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 900px;
+height: 900px;
+background-image: url('./logo.png');
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+opacity: 0.08;
+z-index: 0;
+pointer-events: none;
+filter: brightness(1.2);
+}
+
+.container { 
+max-width: 1600px; 
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+
+header,
+.card,
+table {
+position: relative;
+z-index: 2;
+}
 
 header {
 background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
@@ -173,12 +205,12 @@ table th, table td { padding: 8px 5px; }
 id="buscarEstudiante" 
 placeholder="🔍 Buscar por nombre de estudiante..."
 autocomplete="off"
-oninput="filtrarSugerencias(); buscarReuniones();"
+oninput="filtrarSugerencias()"
 onfocus="mostrarSugerencias()"
 style="width: 100%;">
 <div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
 </div>
-<select id="filtrarCurso" class="filter-select" onchange="buscarReuniones()">
+<select id="filtrarCurso" class="filter-select">
 <option value="">Todos los cursos</option>
 <option value="1roA">1roA</option>
 <option value="1roB">1roB</option>
@@ -199,13 +231,14 @@ style="width: 100%;">
 <option value="6toB">6toB</option>
 <option value="6toC">6toC</option>
 </select>
-<select id="filtrarEstado" class="filter-select" onchange="buscarReuniones()">
+<select id="filtrarEstado" class="filter-select">
 <option value="">Todos los estados</option>
 <option value="En seguimiento">En seguimiento</option>
 <option value="Cumplido">Cumplido</option>
 <option value="No cumplido">No cumplido</option>
 <option value="Parcialmente cumplido">Parcialmente cumplido</option>
 </select>
+<button class="btn btn-primary" onclick="buscarReuniones()">🔍 Buscar</button>
 <button class="btn btn-secondary" onclick="recargarReuniones()">🔄 Recargar</button>
 </div>
 
