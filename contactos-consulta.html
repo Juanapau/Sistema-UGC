@@ -167,6 +167,7 @@ flex-wrap: wrap;
 .search-bar input {
 flex: 1;
 min-width: 200px;
+width: 100%;
 padding: 12px;
 border: 2px solid #ddd;
 border-radius: 8px;
@@ -184,6 +185,8 @@ box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
 position: relative;
 flex: 1;
 min-width: 200px;
+width: 100%;
+max-width: 800px;
 }
 
 .autocomplete-suggestions {
@@ -395,7 +398,7 @@ width: 100%;
 
 <!-- BARRA DE BÚSQUEDA -->
 <div class="search-bar">
-<div class="autocomplete-container" style="flex: 4;">
+<div class="autocomplete-container">
 <input type="text" id="buscarContacto" placeholder="🔍 Buscar estudiante o padre..." autocomplete="off">
 <div id="sugerenciasContacto" class="autocomplete-suggestions"></div>
 </div>
