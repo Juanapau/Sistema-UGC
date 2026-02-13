@@ -770,18 +770,31 @@ modalAnterior.remove();
 }
 
 // Buscar información del estudiante
-const estudiante = datosEstudiantes.find(e => {
+let estudiante = datosEstudiantes.find(e => {
 const nombre = e['Nombre Completo'] || e.nombre || '';
 return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
 });
 
+// Si no está en la base de estudiantes, crear uno temporal con los datos de la incidencia
 if (!estudiante) {
-alert('⚠️ No se encontró información del estudiante en la base de datos.');
+const primeraIncidencia = datosIncidencias.find(i => {
+const nom = i['Nombre Estudiante'] || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+if (primeraIncidencia) {
+estudiante = {
+'Nombre Completo': primeraIncidencia['Nombre Estudiante'] || nombreEstudiante,
+'Curso': primeraIncidencia['Curso'] || 'N/A'
+};
+} else {
+alert('⚠️ No se encontró información del estudiante.');
 return;
+}
 }
 
 const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
-const curso = estudiante['Curso'] || estudiante.curso || '';
+const curso = estudiante['Curso'] || estudiante.curso || 'N/A';
 
 // Recopilar toda la información del estudiante
 const incidencias = datosIncidencias.filter(i => {
