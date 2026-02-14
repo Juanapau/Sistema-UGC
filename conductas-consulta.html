@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de Conductas - Consulta</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+min-height: 100vh;
+padding: 20px;
+position: relative;
+overflow-x: hidden;
+}
+
+/* LOGO DE FONDO COMO MARCA DE AGUA */
+body::before {
+content: '';
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 900px;
+height: 900px;
+background-image: url('./logo.png');
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+opacity: 0.08;
+z-index: 0;
+pointer-events: none;
+filter: brightness(1.2);
+}
+
+.container {
+max-width: 1400px;
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+
+header,
+.card {
+position: relative;
+z-index: 2;
+}
+
+header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 30px;
+border-radius: 15px;
+margin-bottom: 25px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+
+.header-left {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.header-left img {
+width: 50px;
+height: 50px;
+}
+
+.header-title h1 {
+font-size: 1.6em;
+margin-bottom: 3px;
+}
+
+.header-title p {
+color: #4a9eff;
+font-size: 0.85em;
+}
+
+.btn-back {
+background: #000000;
+color: white;
+border: none;
+padding: 15px 30px;
+border-radius: 12px;
+cursor: pointer;
+font-size: 1em;
+font-weight: 600;
+transition: all 0.3s;
+text-decoration: none;
+display: inline-flex;
+align-items: center;
+gap: 10px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.btn-back:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+background: #1a1a1a;
+}
+
+.content-card {
+background: white;
+border-radius: 15px;
+padding: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.page-title {
+display: flex;
+align-items: center;
+gap: 15px;
+margin-bottom: 30px;
+color: #000;
+font-size: 1.8em;
+}
+
+.mes-selector {
+display: flex;
+gap: 10px;
+margin-bottom: 30px;
+flex-wrap: wrap;
+}
+
+.btn-mes {
+padding: 12px 24px;
+border: none;
+border-radius: 8px;
+font-size: 0.95em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+}
+
+.btn-mes-primary {
+background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+color: white;
+box-shadow: 0 4px 12px rgba(42,82,152,0.3);
+}
+
+.btn-mes-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 16px rgba(42,82,152,0.4);
+}
+
+.btn-mes-secondary {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+}
+
+.btn-mes-secondary:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.stats-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+gap: 20px;
+}
+
+.stat-card {
+padding: 25px;
+border-radius: 12px;
+text-align: center;
+border: 2px solid #e0e0e0;
+transition: all 0.3s;
+}
+
+.stat-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.stat-card-red {
+background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+border-color: #fca5a5;
+}
+
+.stat-card-yellow {
+background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+border-color: #fcd34d;
+}
+
+.stat-card-green {
+background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+border-color: #6ee7b7;
+}
+
+.stat-card-blue {
+background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+border-color: #93c5fd;
+}
+
+.stat-card h5 {
+font-size: 0.95em;
+margin-bottom: 12px;
+color: #666;
+font-weight: 600;
+}
+
+.stat-card .number {
+font-size: 2.5em;
+font-weight: bold;
+color: #333;
+}
+
+@media (max-width: 768px) {
+.mes-selector {
+flex-direction: column;
+}
+.mes-selector .btn-mes {
+width: 100%;
+}
+.stats-grid {
+grid-template-columns: 1fr;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<!-- HEADER -->
+<header>
+<div class="header-left">
+<img src="./logo.png" alt="Logo">
+<div class="header-title">
+<h1>Historial de Conductas por Mes</h1>
+<p>Solo Lectura - PNSA</p>
+</div>
+</div>
+<a href="consulta.html" class="btn-back">← Volver al Dashboard</a>
+</header>
+
+<!-- CONTENIDO -->
+<div class="content-card">
+<h2 class="page-title">📅 Historial de Conductas por Mes</h2>
+
+<!-- SELECTOR DE MES -->
+<div id="mesSelectorContainer" class="mes-selector">
+<!-- Se genera dinámicamente con JavaScript -->
+</div>
+
+<!-- GRID DE ESTADÍSTICAS -->
+<div class="stats-grid">
+<div class="stat-card stat-card-red">
+<h5>Agresión Física</h5>
+<div class="number" id="historialAgresionFisica">0</div>
+</div>
+<div class="stat-card stat-card-yellow">
+<h5>Agresión Verbal</h5>
+<div class="number" id="historialAgresionVerbal">0</div>
+</div>
+<div class="stat-card stat-card-green">
+<h5>Bullying</h5>
+<div class="number" id="historialBullying">0</div>
+</div>
+<div class="stat-card stat-card-blue">
+<h5>Cyber Bullying</h5>
+<div class="number" id="historialCyberBullying">0</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// ==========================================
+// VERIFICAR AUTENTICACIÓN
+// ==========================================
+
+window.addEventListener('load', function() {
+const usuarioData = localStorage.getItem('usuarioUGC');
+
+if (!usuarioData) {
+window.location.href = 'index.html';
+return;
+}
+
+const usuario = JSON.parse(usuarioData);
+
+if (usuario.rol !== 'consulta') {
+if (usuario.rol === 'administrador') {
+console.log('ℹ️ Administrador en vista de consulta');
+} else {
+window.location.href = 'index.html';
+return;
+}
+}
+
+console.log('✅ Usuario autenticado:', usuario);
+
+cargarDatos();
+});
+
+// ==========================================
+// CONFIGURACIÓN
+// ==========================================
+
+const CONFIG = {
+urlIncidencias: 'https://script.google.com/macros/s/AKfycbwnCHIHNum-8uCHLbuE5NvwJeVmVMF6hCLWOAQQRUOwsU5GK_vpkrxifDFlMat1tP-z/exec'
+};
+
+let datosIncidencias = [];
+
+// ==========================================
+// CARGAR DATOS
+// ==========================================
+
+async function cargarDatosDesdeGoogleSheets(url) {
+try {
+const response = await fetch(url);
+if (!response.ok) throw new Error('Error en la respuesta');
+return await response.json();
+} catch (error) {
+console.error('Error cargando datos:', error);
+return [];
+}
+}
+
+async function cargarDatos() {
+console.log('📥 Cargando datos de incidencias...');
+
+try {
+// Cargar incidencias
+const incidencias = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias);
+console.log('✅ Incidencias cargadas:', incidencias.length);
+datosIncidencias = incidencias;
+
+// Generar selector de meses
+generarHistorialMeses();
+
+} catch (error) {
+console.error('❌ Error:', error);
+}
+}
+
+// ==========================================
+// GENERAR HISTORIAL DE MESES
+// ==========================================
+
+function generarHistorialMeses() {
+const mesSelectorContainer = document.getElementById('mesSelectorContainer');
+if (!mesSelectorContainer) return;
+
+const ahora = new Date();
+const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+// Generar últimos 6 meses
+const botonesMeses = [];
+for (let i = 0; i < 6; i++) {
+const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+const mes = fecha.getMonth();
+const año = fecha.getFullYear();
+const nombreMes = `${meses[mes]} ${año}`;
+
+botonesMeses.push({
+nombre: nombreMes,
+mes: mes,
+año: año,
+esActual: i === 0
+});
+}
+
+// Crear botones
+mesSelectorContainer.innerHTML = botonesMeses.map(m => `
+<button class="btn-mes ${m.esActual ? 'btn-mes-primary' : 'btn-mes-secondary'}" 
+onclick="mostrarEstadisticasMes(${m.mes}, ${m.año})"
+data-mes="${m.mes}" data-año="${m.año}">
+${m.nombre}
+</button>
+`).join('');
+
+// Mostrar estadísticas del mes actual por defecto
+mostrarEstadisticasMes(ahora.getMonth(), ahora.getFullYear());
+}
+
+// ==========================================
+// MOSTRAR ESTADÍSTICAS DE UN MES
+// ==========================================
+
+function mostrarEstadisticasMes(mes, año) {
+console.log('📊 Mostrando estadísticas para:', mes, año);
+
+// Filtrar incidencias del mes seleccionado
+const incidenciasMes = datosIncidencias.filter(i => {
+try {
+const fechaInc = new Date(i['Fecha y Hora'] || i.fecha || '');
+return fechaInc.getMonth() === mes && fechaInc.getFullYear() === año;
+} catch {
+return false;
+}
+});
+
+console.log('📊 Incidencias del mes:', incidenciasMes.length);
+
+// Contar conductas por tipo
+const agresionFisica = incidenciasMes.filter(i => 
+(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
+).length;
+
+const agresionVerbal = incidenciasMes.filter(i => 
+(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
+).length;
+
+const bullying = incidenciasMes.filter(i => 
+(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
+).length;
+
+const cyberBullying = incidenciasMes.filter(i => 
+(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
+).length;
+
+// Actualizar interfaz
+const elemFisica = document.getElementById('historialAgresionFisica');
+const elemVerbal = document.getElementById('historialAgresionVerbal');
+const elemBullying = document.getElementById('historialBullying');
+const elemCyber = document.getElementById('historialCyberBullying');
+
+if (elemFisica) elemFisica.textContent = agresionFisica;
+if (elemVerbal) elemVerbal.textContent = agresionVerbal;
+if (elemBullying) elemBullying.textContent = bullying;
+if (elemCyber) elemCyber.textContent = cyberBullying;
+
+console.log('📊 Estadísticas:', { agresionFisica, agresionVerbal, bullying, cyberBullying });
+
+// Actualizar clase activa de botones
+const botones = document.querySelectorAll('#mesSelectorContainer button');
+botones.forEach(btn => {
+const btnMes = parseInt(btn.getAttribute('data-mes'));
+const btnAño = parseInt(btn.getAttribute('data-año'));
+if (btnMes === mes && btnAño === año) {
+btn.className = 'btn-mes btn-mes-primary';
+} else {
+btn.className = 'btn-mes btn-mes-secondary';
+}
+});
+}
+
+console.log('📅 Módulo de historial de conductas (consulta) cargado');
+</script>
+
+</body>
+</html>
