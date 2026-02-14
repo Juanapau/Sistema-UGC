@@ -162,22 +162,6 @@ grid-template-columns: repeat(3, 1fr);
 gap: 20px;
 }
 
-/* Primera fila: 3 tarjetas */
-.modules-grid .module-card:nth-child(1),
-.modules-grid .module-card:nth-child(2),
-.modules-grid .module-card:nth-child(3) {
-grid-column: span 1;
-}
-
-/* Segunda fila: 2 tarjetas alineadas con las dos primeras de arriba */
-.modules-grid .module-card:nth-child(4) {
-grid-column: 1 / 2;
-}
-
-.modules-grid .module-card:nth-child(5) {
-grid-column: 2 / 3;
-}
-
 .module-card {
 background: white;
 border-radius: 15px;
@@ -517,6 +501,28 @@ grid-column: auto;
 </div>
 <button class="btn-view">👁️ Ver Reportes</button>
 </div>
+
+<!-- HISTORIAL DE CONDUCTAS -->
+<div class="module-card" onclick="verModulo('conductas')">
+<div class="module-header">
+<div class="module-icon">📅</div>
+<div class="module-info">
+<h3>Historial de Conductas</h3>
+<p>Por mes</p>
+</div>
+</div>
+<div class="module-stats">
+<div class="stat-item">
+<span class="number" id="statConductasMes">---</span>
+<span class="label">Este Mes</span>
+</div>
+<div class="stat-item">
+<span class="number" id="statConductasTotal">---</span>
+<span class="label">Total</span>
+</div>
+</div>
+<button class="btn-view">👁️ Ver Historial</button>
+</div>
 </div>
 </div>
 
@@ -613,6 +619,8 @@ document.getElementById('statReuniones').textContent = '...';
 document.getElementById('statReunionesMes').textContent = '...';
 document.getElementById('statContactos').textContent = '...';
 document.getElementById('statSinContactos').textContent = '...';
+document.getElementById('statConductasMes').textContent = '...';
+document.getElementById('statConductasTotal').textContent = '...';
 
 console.log('📊 Valores iniciales establecidos en "..."');
 
@@ -736,6 +744,32 @@ document.getElementById('statContactos').textContent = totalContactos;
 document.getElementById('statSinContactos').textContent = sinContactos;
 
 console.log(`✅ Contactos actualizados: ${totalContactos} (Sin contacto: ${sinContactos})`);
+
+// Calcular conductas graves del mes actual y total
+const conductasGraves = ['Agresión física', 'Agresión verbal', 'Bullying', 'Cyber bullying'];
+const conductasMes = incidencias.filter(inc => {
+try {
+const fecha = new Date(inc['Fecha y Hora']);
+const tipoConducta = inc['Tipo de Conducta'] || inc['tipo de conducta'] || inc['tipoConducta'] || '';
+return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual && conductasGraves.includes(tipoConducta);
+} catch {
+return false;
+}
+}).length;
+
+const conductasTotal = incidencias.filter(inc => {
+const tipoConducta = inc['Tipo de Conducta'] || inc['tipo de conducta'] || inc['tipoConducta'] || '';
+return conductasGraves.includes(tipoConducta);
+}).length;
+
+console.log('📊 Conductas graves del mes:', conductasMes);
+console.log('📊 Conductas graves totales:', conductasTotal);
+
+// Actualizar conductas
+document.getElementById('statConductasMes').textContent = conductasMes;
+document.getElementById('statConductasTotal').textContent = conductasTotal;
+
+console.log(`✅ Conductas actualizadas: ${conductasMes} (Total: ${conductasTotal})`);
 console.log('📊 ===== ESTADÍSTICAS REALES CARGADAS =====');
 
 } catch (error) {
@@ -753,6 +787,8 @@ document.getElementById('statReuniones').textContent = '0';
 document.getElementById('statReunionesMes').textContent = '0';
 document.getElementById('statContactos').textContent = '0';
 document.getElementById('statSinContactos').textContent = '0';
+document.getElementById('statConductasMes').textContent = '0';
+document.getElementById('statConductasTotal').textContent = '0';
 }
 }
 
@@ -767,6 +803,7 @@ const paginas = {
 'incidencias': 'incidencias-consulta.html',
 'tardanzas': 'tardanzas-consulta.html',
 'contactos': 'contactos-consulta.html',
+'conductas': 'conductas-consulta.html',
 'estadisticas': 'estadisticas-consulta.html',
 'reuniones': 'reuniones-consulta.html'
 };
