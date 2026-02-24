@@ -550,7 +550,8 @@ const inc = {
             const tipoFalta = inc['Tipo de falta'];
             const tipoConducta = inc['Tipo de Conducta'];
             const docente = inc['Docente'];
-            notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta, docente);
+            const curso = inc['Curso'] || inc['curso'] || '';
+            notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta, docente, curso);
         }
     }
     
