@@ -2787,6 +2787,9 @@ function crearModalReuniones() {
                     </div>
                     <div class="form-group">
                         <label>Nombre del Padre/Madre</label>
+                        <select id="selectPadreReunion" style="display:none;width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:0.95em;background:#fff;cursor:pointer;" onchange="onSelectPadreReunion(this.value)">
+                            <option value="">-- Seleccione el padre/madre --</option>
+                        </select>
                         <input type="text" id="nombrePadreReunion" placeholder="Nombre completo">
                     </div>
                     <div class="form-group">
@@ -6670,25 +6673,76 @@ function seleccionarEstudianteReunion(nombre, curso) {
     autocompletarNombrePadre(nombre);
 }
 
+function onSelectPadreReunion(value) {
+    const campoNombre = document.getElementById('nombrePadreReunion');
+    if (!campoNombre) return;
+    if (value === '__manual__') {
+        campoNombre.style.display = 'block';
+        campoNombre.value = '';
+        campoNombre.focus();
+    } else if (value) {
+        campoNombre.value = value;
+        campoNombre.style.display = 'none';
+    } else {
+        campoNombre.value = '';
+        campoNombre.style.display = 'none';
+    }
+}
+
 function autocompletarNombrePadre(nombreEstudiante) {
     const contacto = datosContactos.find(c => {
         const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
         return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
     });
-    
+
+    const campoNombre = document.getElementById('nombrePadreReunion');
+    const selectPadre = document.getElementById('selectPadreReunion');
+
+    if (!campoNombre || !selectPadre) return;
+
+    // Resetear
+    campoNombre.value = '';
+    campoNombre.style.display = 'block';
+    selectPadre.innerHTML = '<option value="">-- Seleccione el padre/madre --</option>';
+
     if (contacto) {
         const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || '';
         const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || '';
-        
-        const campoNombre = document.getElementById('nombrePadreReunion');
-        if (campoNombre) {
-            if (nombreMadre) {
-                campoNombre.value = nombreMadre;
-                campoNombre.placeholder = `Padre: ${nombrePadre || 'No registrado'}`;
-            } else if (nombrePadre) {
-                campoNombre.value = nombrePadre;
-            }
+        const nombreTutor = contacto['Nombre Tutor'] || contacto.nombreTutor || '';
+
+        const opciones = [];
+        if (nombrePadre && nombrePadre !== '-') opciones.push({ label: '\u{1F468} Padre: ' + nombrePadre, value: nombrePadre });
+        if (nombreMadre && nombreMadre !== '-') opciones.push({ label: '\u{1F469} Madre: ' + nombreMadre, value: nombreMadre });
+        if (nombreTutor && nombreTutor !== '-') opciones.push({ label: '\u{1F9D1} Tutor/a: ' + nombreTutor, value: nombreTutor });
+
+        if (opciones.length > 1) {
+            opciones.forEach(op => {
+                const opt = document.createElement('option');
+                opt.value = op.value;
+                opt.textContent = op.label;
+                selectPadre.appendChild(opt);
+            });
+            // Add manual entry option
+            const optManual = document.createElement('option');
+            optManual.value = '__manual__';
+            optManual.textContent = '\u270F\uFE0F Escribir manualmente...';
+            selectPadre.appendChild(optManual);
+
+            selectPadre.style.display = 'block';
+            campoNombre.style.display = 'none'; // hide input, select is enough
+        } else if (opciones.length === 1) {
+            selectPadre.style.display = 'none';
+            campoNombre.style.display = 'block';
+            campoNombre.value = opciones[0].value;
+        } else {
+            selectPadre.style.display = 'none';
+            campoNombre.style.display = 'block';
+            campoNombre.placeholder = 'Sin contactos registrados';
         }
+    } else {
+        selectPadre.style.display = 'none';
+        campoNombre.style.display = 'block';
+        campoNombre.placeholder = 'Nombre completo';
     }
 }
 
@@ -6746,6 +6800,8 @@ function registrarReunion(e) {
     }
     
     document.getElementById('formReunion').reset();
+    const selPadre = document.getElementById('selectPadreReunion');
+    if (selPadre) { selPadre.style.display = 'none'; selPadre.innerHTML = '<option value="">-- Seleccione el padre/madre --</option>'; }
     cargarTablaReuniones();
     actualizarEstadisticasReuniones();
     buscarReuniones(); // Actualizar tabla de búsqueda también
@@ -6798,7 +6854,11 @@ function editarReunion(indice) {
     document.getElementById('estudianteReunion').value = reunion['Nombre Estudiante'] || '';
     document.getElementById('cursoReunion').value = reunion['Curso'] || '';
     document.getElementById('padrePresente').value = reunion['Padre/Madre Presente'] || '';
-    document.getElementById('nombrePadreReunion').value = reunion['Nombre Padre/Madre'] || '';
+    // Al editar: mostrar input, ocultar select
+    const _selPadreEdit = document.getElementById('selectPadreReunion');
+    const _inputPadreEdit = document.getElementById('nombrePadreReunion');
+    if (_selPadreEdit) _selPadreEdit.style.display = 'none';
+    if (_inputPadreEdit) { _inputPadreEdit.style.display = 'block'; _inputPadreEdit.value = reunion['Nombre Padre/Madre'] || ''; }
     document.getElementById('docenteReunion').value = reunion['Personal UGC'] || '';
     document.getElementById('motivoReunion').value = reunion['Motivo'] || '';
     document.getElementById('situacionTratada').value = reunion['Situación Tratada'] || '';
@@ -6844,6 +6904,8 @@ function editarReunion(indice) {
 function cancelarEdicionReunion() {
     // Limpiar formulario
     document.getElementById('formReunion').reset();
+    const selPadre2 = document.getElementById('selectPadreReunion');
+    if (selPadre2) { selPadre2.style.display = 'none'; selPadre2.innerHTML = '<option value="">-- Seleccione el padre/madre --</option>'; }
     document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
     
     // Salir del modo edición
