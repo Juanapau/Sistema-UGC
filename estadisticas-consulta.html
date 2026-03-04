@@ -108,14 +108,14 @@ gap: 12px;
 
 .stats-grid {
 display: grid;
-grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-gap: 20px;
+grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+gap: 14px;
 margin-bottom: 30px;
 }
 
 .stat-card {
 background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-padding: 25px;
+padding: 16px 12px;
 border-radius: 12px;
 text-align: center;
 border-top: 4px solid #2a5298;
@@ -124,48 +124,29 @@ transition: all 0.3s;
 }
 
 .stat-card:hover {
-transform: translateY(-5px);
+transform: translateY(-3px);
 box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .stat-card .icon {
-font-size: 3em;
-margin-bottom: 10px;
+font-size: 2em;
+margin-bottom: 6px;
 }
 
 .stat-card .number {
-font-size: 2.5em;
+font-size: 2em;
 font-weight: bold;
 color: #2a5298;
 display: block;
-margin-bottom: 5px;
+margin-bottom: 4px;
 }
 
 .stat-card .label {
-font-size: 0.95em;
+font-size: 0.82em;
 color: #666;
 font-weight: 600;
 }
 
-/* Tarjetas con detalles */
-.stat-card-detailed {
-padding-bottom: 20px;
-}
-
-.stat-details {
-margin-top: 15px;
-padding-top: 15px;
-border-top: 1px solid #e0e0e0;
-}
-
-.stat-detail-item {
-display: flex;
-justify-content: center;
-align-items: center;
-gap: 8px;
-margin-bottom: 12px;
-font-size: 0.9em;
-}
 
 .detail-label {
 color: #666;
@@ -270,44 +251,18 @@ header { flex-direction: column; text-align: center; }
 <div class="content-card">
 
 <div class="stats-grid">
-<!-- TARJETA 1: TOTAL INCIDENCIAS CON DETALLES -->
-<div class="stat-card stat-card-detailed">
+<!-- TARJETA 1: TOTAL INCIDENCIAS -->
+<div class="stat-card">
 <div class="icon">📋</div>
 <span class="number" id="totalIncidencias">0</span>
 <span class="label">Total Incidencias</span>
-<div class="stat-details">
-<div class="stat-detail-item">
-<span class="detail-label">Este mes:</span>
-<span class="detail-value" id="incidenciasMes">0</span>
-</div>
-<div class="stat-breakdown">
-<div class="breakdown-item">
-<span class="breakdown-dot leve"></span>
-<span class="breakdown-text">Leves: <strong id="incidenciasLeves">0</strong></span>
-</div>
-<div class="breakdown-item">
-<span class="breakdown-dot grave"></span>
-<span class="breakdown-text">Graves: <strong id="incidenciasGraves">0</strong></span>
-</div>
-<div class="breakdown-item">
-<span class="breakdown-dot muy-grave"></span>
-<span class="breakdown-text">Muy Graves: <strong id="incidenciasMuyGraves">0</strong></span>
-</div>
-</div>
-</div>
 </div>
 
-<!-- TARJETA 2: TOTAL TARDANZAS CON ESTE MES -->
-<div class="stat-card stat-card-detailed">
+<!-- TARJETA 2: TOTAL TARDANZAS -->
+<div class="stat-card">
 <div class="icon">⏰</div>
 <span class="number" id="totalTardanzas">0</span>
 <span class="label">Total Tardanzas</span>
-<div class="stat-details">
-<div class="stat-detail-item">
-<span class="detail-label">Este mes:</span>
-<span class="detail-value" id="tardanzasMes">0</span>
-</div>
-</div>
 </div>
 
 <!-- TARJETA 3: ESTUDIANTES REGISTRADOS -->
@@ -325,6 +280,93 @@ header { flex-direction: column; text-align: center; }
 </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECCIÓN: INCIDENCIAS POR CURSO                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<hr style="margin:30px 0;border:none;border-top:1px solid #e5e7eb;">
+
+<h3 style="font-size:1.1em;font-weight:700;color:#1e3a5f;margin-bottom:6px;">📊 Incidencias por Curso</h3>
+<p style="color:#666;font-size:0.88em;margin-bottom:16px;">
+    Comparativa de faltas por curso. <strong>Estudiantes afectados</strong> indica cuántos alumnos distintos
+    tienen al menos una incidencia — más estudiantes afectados = intervención más urgente.
+</p>
+
+<!-- Filtros -->
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px;">
+    <div>
+        <label style="font-size:0.8em;font-weight:600;color:#555;display:block;margin-bottom:4px;">Período</label>
+        <select id="filtroPeriodoCurso" onchange="renderGraficoCursos()" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.88em;background:white;">
+            <option value="todo">Todo el año</option>
+            <option value="mes">Mes actual</option>
+            <option value="trimestre">Últimos 3 meses</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.8em;font-weight:600;color:#555;display:block;margin-bottom:4px;">Ordenar por</label>
+        <select id="filtroOrdenCurso" onchange="renderGraficoCursos()" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.88em;background:white;">
+            <option value="total">Total de faltas</option>
+            <option value="afectados">Estudiantes afectados</option>
+            <option value="nombre">Nombre del curso</option>
+        </select>
+    </div>
+</div>
+
+<!-- Tarjetas resumen -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;">
+    <div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#166534;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">FALTAS LEVES</div>
+        <div style="font-size:2em;font-weight:800;color:#15803d;" id="resumenLeves">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#fef9c3,#fef08a);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#854d0e;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">FALTAS GRAVES</div>
+        <div style="font-size:2em;font-weight:800;color:#92400e;" id="resumenGraves">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#991b1b;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">FALTAS MUY GRAVES</div>
+        <div style="font-size:2em;font-weight:800;color:#b91c1c;" id="resumenMuyGraves">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#5b21b6;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">ESTUDIANTES AFECTADOS</div>
+        <div style="font-size:2em;font-weight:800;color:#6d28d9;" id="resumenAfectados">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#075985;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">CURSO MÁS AFECTADO</div>
+        <div style="font-size:1.3em;font-weight:800;color:#0369a1;" id="resumenCursoTop">—</div>
+    </div>
+</div>
+
+<!-- Gráfico SVG -->
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:20px;overflow-x:auto;margin-bottom:24px;">
+    <div id="graficoCursosContainer" style="min-width:600px;">
+        <p style="text-align:center;color:#9ca3af;padding:40px;">Cargando gráfico...</p>
+    </div>
+</div>
+
+<!-- Tabla detallada -->
+<div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.86em;">
+        <thead>
+            <tr style="background:#1e3a5f;color:white;">
+                <th style="padding:10px 14px;text-align:left;border-radius:8px 0 0 0;">Curso</th>
+                <th style="padding:10px 14px;text-align:center;background:#15803d;">🟢 Leves</th>
+                <th style="padding:10px 14px;text-align:center;background:#92400e;">🟡 Graves</th>
+                <th style="padding:10px 14px;text-align:center;background:#b91c1c;">🔴 Muy Graves</th>
+                <th style="padding:10px 14px;text-align:center;">Total Faltas</th>
+                <th style="padding:10px 14px;text-align:center;background:#5b21b6;">Estudiantes Afectados</th>
+                <th style="padding:10px 14px;text-align:center;border-radius:0 8px 0 0;">Índice de Riesgo</th>
+            </tr>
+        </thead>
+        <tbody id="tablaCursosBody">
+            <tr><td colspan="7" style="text-align:center;padding:30px;color:#9ca3af;">Cargando datos...</td></tr>
+        </tbody>
+    </table>
+</div>
+<p style="font-size:0.76em;color:#9ca3af;margin-top:8px;">
+    * El <strong>Índice de Riesgo</strong> (0–100%) combina: <strong>Gravedad</strong> (peso de las faltas),
+    <strong>Cobertura</strong> (% del curso afectado) y una referencia absoluta fija — así un curso con pocas
+    faltas nunca puede marcar 100% si hay cursos genuinamente más afectados.
+</p>
+
 </div>
 </div>
 
@@ -338,118 +380,266 @@ urlContactos: 'https://script.google.com/macros/s/AKfycbxcnvwmyorCWze_CkDPEUtdHP
 };
 
 window.addEventListener('load', function() {
+// Leer todas las URLs del localStorage (incluyendo contactos)
 const configGuardada = localStorage.getItem('censaConfig');
 if (configGuardada) {
 const configTemp = JSON.parse(configGuardada);
 if (configTemp.urlIncidencias) CONFIG.urlIncidencias = configTemp.urlIncidencias;
-if (configTemp.urlTardanzas) CONFIG.urlTardanzas = configTemp.urlTardanzas;
+if (configTemp.urlTardanzas)   CONFIG.urlTardanzas   = configTemp.urlTardanzas;
 if (configTemp.urlEstudiantes) CONFIG.urlEstudiantes = configTemp.urlEstudiantes;
+if (configTemp.urlContactos)   CONFIG.urlContactos   = configTemp.urlContactos;
 console.log('✅ Configuración actualizada desde localStorage');
 }
-console.log('📊 URLs:', CONFIG);
-
 cargarEstadisticas();
 });
 
+// Carga una URL y devuelve [] si falla — nunca lanza excepción
 async function cargarDatosDesdeGoogleSheets(url) {
 try {
 const response = await fetch(url);
-if (!response.ok) throw new Error('Error en la respuesta');
+if (!response.ok) throw new Error('HTTP ' + response.status);
 return await response.json();
 } catch (error) {
-console.error('Error:', error);
+console.warn('⚠️ No se pudo cargar ' + url + ':', error.message);
 return [];
 }
 }
 
+// Helper para actualizar un elemento sin lanzar error si no existe
+function setEl(id, val) {
+const el = document.getElementById(id);
+if (el) el.textContent = val;
+}
+
 async function cargarEstadisticas() {
-try {
-// Cargar incidencias
-let incidencias = [];
-if (CONFIG.urlIncidencias) {
-incidencias = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias);
-}
+// Cargar las 4 fuentes EN PARALELO — si una falla las demás siguen
+const [incidencias, tardanzas, estudiantes, contactos] = await Promise.all([
+CONFIG.urlIncidencias ? cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias) : Promise.resolve([]),
+CONFIG.urlTardanzas   ? cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas)   : Promise.resolve([]),
+CONFIG.urlEstudiantes ? cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes) : Promise.resolve([]),
+CONFIG.urlContactos   ? cargarDatosDesdeGoogleSheets(CONFIG.urlContactos)   : Promise.resolve([])
+]);
 
-// Cargar tardanzas
-let tardanzas = [];
-if (CONFIG.urlTardanzas) {
-tardanzas = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas);
-}
+// Actualizar tarjetas — setEl no rompe si el ID fue eliminado
+setEl('totalIncidencias', incidencias.length);
+setEl('totalTardanzas',   tardanzas.length);
+setEl('totalEstudiantes', estudiantes.length);
+setEl('totalContactos',   contactos.length);
 
-// Cargar estudiantes
-let estudiantes = [];
-if (CONFIG.urlEstudiantes) {
-estudiantes = await cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes);
-}
+console.log(`✅ Cargado: ${incidencias.length} incidencias, ${tardanzas.length} tardanzas, ${estudiantes.length} estudiantes, ${contactos.length} contactos`);
 
-// Cargar contactos
-let contactos = [];
-if (CONFIG.urlContactos) {
-contactos = await cargarDatosDesdeGoogleSheets(CONFIG.urlContactos);
-}
-
-// Calcular estadísticas
-const mesActual = new Date().getMonth();
-const añoActual = new Date().getFullYear();
-
-const incidenciasMes = incidencias.filter(inc => {
-try {
-const fecha = new Date(inc['Fecha y Hora']);
-return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
-} catch {
-return false;
-}
-});
-
-// Calcular incidencias por tipo
-const incidenciasLeves = incidencias.filter(inc => {
-const tipo = (inc['Tipo de falta'] || '').toLowerCase();
-return tipo.includes('leve') && !tipo.includes('grave');
-}).length;
-
-const incidenciasGraves = incidencias.filter(inc => {
-const tipo = (inc['Tipo de falta'] || '').toLowerCase();
-return tipo === 'grave' || tipo.includes('falta grave');
-}).length;
-
-const incidenciasMuyGraves = incidencias.filter(inc => {
-const tipo = (inc['Tipo de falta'] || '').toLowerCase();
-return tipo.includes('muy grave');
-}).length;
-
-const tardanzasMes = tardanzas.filter(tard => {
-try {
-const fecha = new Date(tard['Fecha']);
-return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
-} catch {
-return false;
-}
-});
-
-// Actualizar UI
-document.getElementById('totalIncidencias').textContent = incidencias.length;
-document.getElementById('incidenciasMes').textContent = incidenciasMes.length;
-document.getElementById('incidenciasLeves').textContent = incidenciasLeves;
-document.getElementById('incidenciasGraves').textContent = incidenciasGraves;
-document.getElementById('incidenciasMuyGraves').textContent = incidenciasMuyGraves;
-
-document.getElementById('totalTardanzas').textContent = tardanzas.length;
-document.getElementById('tardanzasMes').textContent = tardanzasMes.length;
-
-document.getElementById('totalEstudiantes').textContent = estudiantes.length;
-document.getElementById('totalContactos').textContent = contactos.length;
-
-console.log('✅ Estadísticas cargadas');
-console.log(`📊 Incidencias: ${incidencias.length} (Mes: ${incidenciasMes.length})`);
-console.log(`📊 Por tipo: Leves=${incidenciasLeves}, Graves=${incidenciasGraves}, Muy Graves=${incidenciasMuyGraves}`);
-console.log(`📊 Tardanzas: ${tardanzas.length} (Mes: ${tardanzasMes.length})`);
-console.log(`📊 Estudiantes: ${estudiantes.length}, Contactos: ${contactos.length}`);
-} catch (error) {
-console.error('Error cargando estadísticas:', error);
-}
+// Guardar para el gráfico y renderizar
+window._incidencias = incidencias;
+window._estudiantes = estudiantes;
+renderGraficoCursos();
 }
 
 console.log('📊 Módulo de estadísticas (consulta) cargado');
+</script>
+
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO DE INCIDENCIAS POR CURSO — estadisticas-consulta
+// ═══════════════════════════════════════════════════════════
+
+const TODOS_CURSOS_GRAFICO = [
+    '1roA','1roB','1roC',
+    '2doA','2doB','2doC',
+    '3roA','3roB','3roC',
+    '4toA','4toB','4toC',
+    '5toA','5toB','5toC',
+    '6toA','6toB','6toC'
+];
+
+function filtrarIncidenciasPorPeriodo() {
+    const inc = window._incidencias || [];
+    const filtro = (document.getElementById('filtroPeriodoCurso') || {}).value || 'todo';
+    const ahora = new Date();
+    return inc.filter(function(i) {
+        if (filtro === 'todo') return true;
+        const fecha = new Date(i['Fecha y Hora'] || i.fecha || '');
+        if (isNaN(fecha)) return true;
+        if (filtro === 'mes')
+            return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear();
+        if (filtro === 'trimestre')
+            return fecha >= new Date(ahora.getFullYear(), ahora.getMonth() - 2, 1);
+        return true;
+    });
+}
+
+function calcularDatosCursos() {
+    const incidencias = filtrarIncidenciasPorPeriodo();
+    const estudiantes = window._estudiantes || [];
+    const orden = (document.getElementById('filtroOrdenCurso') || {}).value || 'total';
+
+    const datos = TODOS_CURSOS_GRAFICO.map(function(curso) {
+        const inc = incidencias.filter(function(i) {
+            return (i['Curso'] || i.curso || '') === curso;
+        });
+        const leves     = inc.filter(function(i) { return (i['Tipo de falta'] || '') === 'Leve'; }).length;
+        const graves    = inc.filter(function(i) { return (i['Tipo de falta'] || '') === 'Grave'; }).length;
+        const muyGraves = inc.filter(function(i) { return (i['Tipo de falta'] || '') === 'Muy Grave'; }).length;
+        const total     = leves + graves + muyGraves;
+
+        const set = new Set();
+        inc.forEach(function(i) {
+            const n = (i['Nombre Estudiante'] || i['Estudiante'] || i.estudiante || '').trim();
+            if (n) set.add(n);
+        });
+        const afectados = set.size;
+
+        const puntosPonderados = muyGraves * 3 + graves * 2 + leves * 1;
+        const totalEstCurso = estudiantes.filter(function(e) {
+            return (e['Curso'] || e.curso || '') === curso;
+        }).length;
+        const tamCurso = totalEstCurso > 0 ? totalEstCurso : 30;
+        const cobertura = Math.min(afectados / tamCurso, 1);
+        const scoreRaw = puntosPonderados * (1 + cobertura);
+        const REFERENCIA_CRITICA = tamCurso * 2;
+        const indiceRaw = scoreRaw / REFERENCIA_CRITICA;
+
+        return { curso, leves, graves, muyGraves, total, afectados, indiceRaw };
+    });
+
+    if (orden === 'total')     datos.sort(function(a,b){ return b.total - a.total; });
+    if (orden === 'afectados') datos.sort(function(a,b){ return b.afectados - a.afectados; });
+    if (orden === 'nombre')    datos.sort(function(a,b){ return a.curso.localeCompare(b.curso); });
+
+    // Convertir a % absoluto, cappear en 100
+    datos.forEach(function(d){ d.indice = Math.min(Math.round(d.indiceRaw * 100), 100); });
+
+    return datos;
+}
+
+function renderGraficoCursos() {
+    const container = document.getElementById('graficoCursosContainer');
+    const tbody     = document.getElementById('tablaCursosBody');
+    if (!container) return;
+
+    const datos    = calcularDatosCursos();
+    const conDatos = datos.filter(function(d){ return d.total > 0; });
+
+    // Tarjetas resumen
+    const totalLeves     = datos.reduce(function(s,d){ return s+d.leves; }, 0);
+    const totalGraves    = datos.reduce(function(s,d){ return s+d.graves; }, 0);
+    const totalMuyGraves = datos.reduce(function(s,d){ return s+d.muyGraves; }, 0);
+    const totalAfectados = (function(){
+        const inc = filtrarIncidenciasPorPeriodo();
+        const s = new Set();
+        inc.forEach(function(i){
+            const n = (i['Nombre Estudiante'] || i['Estudiante'] || i.estudiante || '').trim();
+            if (n) s.add(n);
+        });
+        return s.size;
+    })();
+    const cursoTop = conDatos.length > 0
+        ? conDatos.reduce(function(a,b){ return b.indice > a.indice ? b : a; }).curso
+        : '—';
+
+    const el = function(id){ return document.getElementById(id); };
+    if (el('resumenLeves'))     el('resumenLeves').textContent     = totalLeves;
+    if (el('resumenGraves'))    el('resumenGraves').textContent    = totalGraves;
+    if (el('resumenMuyGraves')) el('resumenMuyGraves').textContent = totalMuyGraves;
+    if (el('resumenAfectados')) el('resumenAfectados').textContent = totalAfectados;
+    if (el('resumenCursoTop'))  el('resumenCursoTop').textContent  = cursoTop;
+
+    // Gráfico SVG
+    if (conDatos.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:40px 20px;">No hay incidencias registradas para el período seleccionado.</p>';
+    } else {
+        const maxVal = Math.max.apply(null, conDatos.map(function(d){
+            return Math.max(d.leves, d.graves, d.muyGraves, 1);
+        }));
+        const barW = 16, gap = 6, groupGap = 18;
+        const groupW = barW*3 + gap*2 + groupGap;
+        const chartH = 180, labelH = 36, topPad = 20;
+        const totalW = conDatos.length * groupW + 40;
+
+        var svgBars = '';
+        conDatos.forEach(function(d, i) {
+            const x = 20 + i * groupW;
+            function bar(val, color, offset) {
+                if (val === 0) return '';
+                const h = Math.max(2, Math.round((val / maxVal) * chartH));
+                const y = topPad + chartH - h;
+                return '<rect x="'+(x+offset)+'" y="'+y+'" width="'+barW+'" height="'+h+'" fill="'+color+'" rx="3">'+
+                       '<title>'+val+'</title></rect>'+
+                       '<text x="'+(x+offset+barW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="9" fill="#555">'+(val>0?val:'')+' </text>';
+            }
+            svgBars += bar(d.leves,     '#22c55e', 0);
+            svgBars += bar(d.graves,    '#eab308', barW+gap);
+            svgBars += bar(d.muyGraves, '#ef4444', (barW+gap)*2);
+
+            if (d.afectados > 0) {
+                const cx = x + groupW/2 - groupGap/2;
+                const cy = topPad + chartH + labelH - 6;
+                svgBars += '<circle cx="'+cx+'" cy="'+cy+'" r="9" fill="#7c3aed" opacity="0.85"/>';
+                svgBars += '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="9" fill="white" font-weight="bold">'+d.afectados+'</text>';
+            }
+            svgBars += '<text x="'+(x+groupW/2-groupGap/2)+'" y="'+(topPad+chartH+14)+'" text-anchor="middle" font-size="10" fill="#374151" font-weight="600">'+d.curso+'</text>';
+        });
+
+        var guias = '';
+        [0.25,0.5,0.75,1].forEach(function(p){
+            const y = topPad + chartH - Math.round(p*chartH);
+            const v = Math.round(p*maxVal);
+            guias += '<line x1="14" y1="'+y+'" x2="'+totalW+'" y2="'+y+'" stroke="#e5e7eb" stroke-width="1"/>';
+            guias += '<text x="10" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="#9ca3af">'+v+'</text>';
+        });
+
+        container.innerHTML =
+            '<div style="margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;">'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#22c55e;border-radius:2px;display:inline-block;"></span> Leve</span>'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#eab308;border-radius:2px;display:inline-block;"></span> Grave</span>'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#ef4444;border-radius:2px;display:inline-block;"></span> Muy Grave</span>'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#7c3aed;border-radius:50%;display:inline-block;"></span> Estudiantes afectados</span>'+
+            '</div>'+
+            '<svg width="100%" viewBox="0 0 '+totalW+' '+(topPad+chartH+labelH+14)+'" style="overflow:visible;">'+
+            guias+svgBars+'</svg>';
+    }
+
+    // Tabla
+    if (!tbody) return;
+    if (datos.every(function(d){ return d.total===0; })) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#9ca3af;">No hay incidencias registradas para el período seleccionado.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = datos.map(function(d, i) {
+        if (d.total === 0 && d.afectados === 0) {
+            return '<tr style="opacity:0.35;">'+
+                '<td style="padding:8px 14px;font-weight:600;">'+d.curso+'</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td>'+
+                '<td style="padding:8px 14px;text-align:center;">0</td>'+
+                '<td style="padding:8px 14px;text-align:center;">0</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td></tr>';
+        }
+        const pct = d.indice;
+        const riesgoColor = pct >= 70 ? '#ef4444' : pct >= 40 ? '#eab308' : '#22c55e';
+        const riesgoBarra =
+            '<div style="display:flex;align-items:center;gap:6px;">'+
+            '<div style="flex:1;background:#e5e7eb;border-radius:4px;height:8px;min-width:60px;">'+
+            '<div style="width:'+pct+'%;background:'+riesgoColor+';height:8px;border-radius:4px;"></div></div>'+
+            '<span style="font-size:0.85em;font-weight:700;color:'+riesgoColor+';min-width:36px;">'+pct+'%</span></div>';
+
+        const bg = i % 2 === 0 ? 'white' : '#f9fafb';
+        return '<tr style="background:'+bg+';">'+
+            '<td style="padding:10px 14px;font-weight:700;">'+d.curso+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;color:#15803d;font-weight:600;">'+(d.leves||'—')+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;color:#92400e;font-weight:600;">'+(d.graves||'—')+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;color:#b91c1c;font-weight:600;">'+(d.muyGraves||'—')+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;font-weight:700;">'+d.total+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;">'+
+                (d.afectados > 0
+                    ? '<span style="background:#ede9fe;color:#5b21b6;padding:3px 10px;border-radius:20px;font-weight:700;font-size:0.9em;">'+d.afectados+'</span>'
+                    : '—')+
+            '</td>'+
+            '<td style="padding:10px 14px;">'+riesgoBarra+'</td></tr>';
+    }).join('');
+}
 </script>
 
 </body>
