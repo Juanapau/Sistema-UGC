@@ -4300,32 +4300,8 @@ function crearModalReportes() {
             <button class="btn btn-primary" onclick="generarReporteEstudiante()">📊 Generar Reporte Individual</button>
             
             <hr style="margin:40px 0;">
-            <button class="btn btn-success" onclick="exportarTodo()">📥 Exportar Todo el Sistema</button>
             
-            <hr style="margin:40px 0;">
-            
-            <!-- SECCIÓN 1: ESTADÍSTICAS MES ACTUAL -->
-            <h3>📊 Estadísticas de Conductas Graves - Mes Actual <span style="display:inline-block;background:#10b981;color:white;padding:3px 10px;border-radius:12px;font-size:0.75em;margin-left:8px;font-weight:600;" id="badgeMesActual">Enero 2026</span></h3>
-            <div class="stats-grid">
-                <div class="stat-card" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
-                    <h4>Agresión Física</h4>
-                    <div class="number" id="statAgresionFisicaActual">0</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
-                    <h4>Agresión Verbal</h4>
-                    <div class="number" id="statAgresionVerbalActual">0</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
-                    <h4>Bullying</h4>
-                    <div class="number" id="statBullyingActual">0</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
-                    <h4>Cyber Bullying</h4>
-                    <div class="number" id="statCyberBullyingActual">0</div>
-                </div>
-            </div>
-            
-            <!-- SECCIÓN 2: HISTORIAL POR MES -->
+            <!-- HISTORIAL DE CONDUCTAS POR MES -->
             <div style="margin-top:40px;">
                 <h3>📅 Historial de Conductas por Mes</h3>
                 
@@ -4454,105 +4430,9 @@ function crearModalReportes() {
     }, 200);
 }
 
-// Función para actualizar solo las estadísticas de conductas graves
+// Actualizar estadísticas de conductas — ahora solo genera el historial de meses
 function actualizarEstadisticasConductas() {
-    console.log('🔍 actualizarEstadisticasConductas llamada');
-    
-    // Elementos del mes actual
-    const statAgresionFisica = document.getElementById('statAgresionFisicaActual');
-    const statAgresionVerbal = document.getElementById('statAgresionVerbalActual');
-    const statBullying = document.getElementById('statBullyingActual');
-    const statCyberBullying = document.getElementById('statCyberBullyingActual');
-    
-    console.log('🔍 Elementos encontrados:', {
-        statAgresionFisica: !!statAgresionFisica,
-        statAgresionVerbal: !!statAgresionVerbal,
-        statBullying: !!statBullying,
-        statCyberBullying: !!statCyberBullying
-    });
-    
-    // Si no existen los elementos, salir
-    if (!statAgresionFisica && !statAgresionVerbal && !statBullying && !statCyberBullying) {
-        console.log('⚠️ No se encontraron elementos de estadísticas de conductas');
-        return;
-    }
-    
-    console.log('📊 Total incidencias disponibles:', datosIncidencias.length);
-    
-    // Obtener fecha actual
-    const ahora = new Date();
-    const mesActual = ahora.getMonth(); // 0-11
-    const añoActual = ahora.getFullYear();
-    
-    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    
-    // Actualizar badge del mes actual
-    const badgeMesActual = document.getElementById('badgeMesActual');
-    if (badgeMesActual) {
-        badgeMesActual.textContent = `${meses[mesActual]} ${añoActual}`;
-    }
-    
-    console.log('📅 Filtrando por mes:', mesActual, 'año:', añoActual);
-    
-    // Filtrar incidencias del mes actual
-    const incidenciasMesActual = datosIncidencias.filter(i => {
-        const fechaInc = new Date(i['Fecha y Hora'] || i.fecha || '');
-        return fechaInc.getMonth() === mesActual && fechaInc.getFullYear() === añoActual;
-    });
-    
-    console.log('📊 Incidencias del mes actual:', incidenciasMesActual.length);
-    console.log('📋 Primera incidencia del mes:', incidenciasMesActual[0]);
-    
-    // Mostrar los valores de Tipo de Conducta de las primeras 3 incidencias
-    console.log('🔍 Verificando campo "Tipo de Conducta":');
-    incidenciasMesActual.slice(0, 3).forEach((inc, idx) => {
-        console.log(`  Incidencia ${idx + 1}:`, {
-            'Tipo de Conducta': inc['Tipo de Conducta'],
-            'tipo de conducta': inc['tipo de conducta'],
-            'tipoConducta': inc['tipoConducta'],
-            'Columnas disponibles': Object.keys(inc),
-            'TODAS LAS CLAVES Y VALORES': inc
-        });
-    });
-    
-    // Actualizar estadísticas del MES ACTUAL
-    if (statAgresionFisica) {
-        const countAgresionFisica = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
-        ).length;
-        console.log('🔴 Agresión física:', countAgresionFisica);
-        statAgresionFisica.textContent = countAgresionFisica;
-    }
-    
-    if (statAgresionVerbal) {
-        const countAgresionVerbal = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
-        ).length;
-        console.log('🟠 Agresión verbal:', countAgresionVerbal);
-        statAgresionVerbal.textContent = countAgresionVerbal;
-    }
-    
-    if (statBullying) {
-        const countBullying = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
-        ).length;
-        console.log('🟢 Bullying:', countBullying);
-        statBullying.textContent = countBullying;
-    }
-    
-    if (statCyberBullying) {
-        const countCyberBullying = incidenciasMesActual.filter(i => 
-            (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
-        ).length;
-        console.log('🔵 Cyber bullying:', countCyberBullying);
-        statCyberBullying.textContent = countCyberBullying;
-    }
-    
-    // GENERAR HISTORIAL DE MESES
     generarHistorialMeses();
-    
-    console.log('✅ actualizarEstadisticasConductas completada');
 }
 
 // Nueva función para generar el historial de meses
