@@ -18,6 +18,7 @@ let CONFIG = {
     urlNotasRapidas: 'https://script.google.com/macros/s/AKfycbz-Dka2Nj27ArjgQhR72s5wl8AohebgppDmnWux4rnLrEG5zQyOco9uwxlJqgAzJtW17Q/exec',
      // 👉 URL de Maestros
     urlMaestros: 'https://script.google.com/macros/s/AKfycbxTKAwY9m_AuxV-d9IsOaa_IDv1ZAvWv26RdgiIzD2Y6ucX_CtKVjrWbnR5Fefd12uV/exec',
+    urlHorarios: 'https://script.google.com/macros/s/AKfycbxF3w0jVliGMHStLYA5Sp_K5CHaamF1EM26_ilaab8rulNdENEZffU_N2wsgIe-fM65/exec', // 👉 URL de Horarios de Maestros
      // 👉 URL de Notificaciones
     urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec'
 };
@@ -3059,6 +3060,34 @@ function crearModalMaestros() {
                 </button>
             </form>
             
+            <hr style="margin:40px 0;">
+            
+            <!-- SECCIÓN 3: CONSULTA DE HORARIOS -->
+            <h3>📅 Consulta de Horarios</h3>
+            <p style="color:#666;font-size:0.9em;margin-bottom:20px;">Selecciona un curso para ver qué docente se encuentra en él ahora mismo</p>
+            
+            <div id="seccionHorarios">
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 18px;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:8px;height:8px;background:#10b981;border-radius:50%;display:inline-block;animation:pulseVerde 1.5s infinite;"></span>
+                        <span style="font-size:0.8em;color:#059669;font-weight:600;">EN VIVO</span>
+                    </div>
+                    <div style="font-family:monospace;font-size:1.2em;font-weight:700;color:#065f46;" id="relojHorario">--:--:--</div>
+                    <div style="background:#dcfce7;color:#166534;padding:4px 12px;border-radius:20px;font-size:0.82em;font-weight:600;" id="periodoHorario">Calculando...</div>
+                </div>
+                
+                <p style="font-size:0.85em;color:#555;margin-bottom:10px;font-weight:600;">Selecciona un curso:</p>
+                <div id="cursosHorarioGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+                <div id="resultadoHorario" style="display:none;"></div>
+            </div>
+            
+            <style>
+                @keyframes pulseVerde { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+                .curso-horario-btn { padding:8px 14px;border-radius:8px;border:1px solid #d1d5db;background:#f9fafb;cursor:pointer;font-size:0.85em;font-weight:600;transition:all 0.2s;font-family:inherit; }
+                .curso-horario-btn:hover { background:#d1fae5;border-color:#10b981;color:#065f46; }
+                .curso-horario-btn.activo { background:#10b981;border-color:#10b981;color:white; }
+            </style>
+            
         </div>
     </div>
 </div>`;
@@ -3074,6 +3103,9 @@ function crearModalMaestros() {
             console.error('Error al cargar maestros:', err);
         });
     }
+    
+    // Inicializar sección de horarios
+    inicializarConsultaHorarios();
 }
 
 // Registrar nuevo maestro
@@ -3564,6 +3596,15 @@ function crearModalConfiguracion() {
                                     <span class="label-text">Maestros</span>
                                 </label>
                                 <input type="url" id="urlMaestros" value="${CONFIG.urlMaestros || ''}" 
+                                       placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                            
+                            <div class="url-input-group">
+                                <label>
+                                    <span class="label-icon">📅</span>
+                                    <span class="label-text">Horarios Maestros</span>
+                                </label>
+                                <input type="url" id="urlHorarios" value="${CONFIG.urlHorarios || ''}" 
                                        placeholder="https://script.google.com/macros/s/...">
                             </div>
                         </div>
@@ -4156,6 +4197,7 @@ function guardarConfig(e) {
     CONFIG.urlNotasRapidas = document.getElementById('urlNotas').value;
     CONFIG.urlNotificaciones = document.getElementById('urlNotificaciones').value;
     CONFIG.urlMaestros = document.getElementById('urlMaestros').value;
+    CONFIG.urlHorarios = document.getElementById('urlHorarios').value;
     
     // Actualizar también las variables globales
     urlNotasRapidas = CONFIG.urlNotasRapidas;
@@ -4191,6 +4233,7 @@ function restaurarURLsPredeterminadas() {
     document.getElementById('urlReun').value = CONFIG.urlReuniones;
     document.getElementById('urlNotas').value = CONFIG.urlNotasRapidas;
     document.getElementById('urlMaestros').value = CONFIG.urlMaestros;
+    document.getElementById('urlHorarios').value = CONFIG.urlHorarios || '';
     
     // Guardar en localStorage
     localStorage.setItem('censaConfig', JSON.stringify(CONFIG));
@@ -7986,3 +8029,248 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Página cargada. Iniciando carga de datos...');
     cargarTodosDatosAlInicio();
 });
+
+// ============================================================
+// MODULO DE CONSULTA DE HORARIOS DE MAESTROS
+// Los horarios se cargan dinamicamente desde Google Sheets
+// ============================================================
+
+// Cache de horarios cargados desde Sheets
+let horariosCache = null;
+
+const PERIODOS_HORARIO = [
+    { num: 1, inicio: '08:00', fin: '08:50' },
+    { num: 2, inicio: '08:50', fin: '09:40' },
+    { num: 3, inicio: '09:40', fin: '10:30' },
+    { num: 4, inicio: '10:50', fin: '11:40' },
+    { num: 5, inicio: '11:40', fin: '12:30' },
+    { num: 6, inicio: '13:30', fin: '14:20' },
+    { num: 7, inicio: '14:20', fin: '15:10' },
+    { num: 8, inicio: '15:10', fin: '16:00' },
+];
+
+const DIAS_HORARIO = ['Lu', 'Mar', 'Mi', 'Jue', 'Vie'];
+
+const TODOS_CURSOS_HORARIO = [
+    '1roA','1roB','1roC',
+    '2doA','2doB','2doC',
+    '3roA','3roB','3roC',
+    '4toA','4toB','4toC',
+    '5toA','5toB','5toC',
+    '6toA','6toB','6toC'
+];
+
+let intervaloRelojHorario = null;
+let cursoHorarioSeleccionado = null;
+
+// ── Helpers de tiempo ──
+
+function getDiaHorarioActual() {
+    const d = new Date().getDay();
+    if (d === 0 || d === 6) return null;
+    return DIAS_HORARIO[d - 1];
+}
+
+function getPeriodoHorarioActual() {
+    const ahora = new Date();
+    const totalMin = ahora.getHours() * 60 + ahora.getMinutes();
+    for (const p of PERIODOS_HORARIO) {
+        const [ih, im] = p.inicio.split(':').map(Number);
+        const [fh, fm] = p.fin.split(':').map(Number);
+        if (totalMin >= ih * 60 + im && totalMin < fh * 60 + fm) return p.num;
+    }
+    return null;
+}
+
+// ── Buscar maestro en el cache ──
+
+function getMaestroEnCursoAhora(curso) {
+    if (!horariosCache) return null;
+    const dia = getDiaHorarioActual();
+    const periodo = getPeriodoHorarioActual();
+    if (!dia || !periodo) return null;
+    for (const [nombre, horario] of Object.entries(horariosCache)) {
+        if (horario[dia] && String(horario[dia][String(periodo)]) === curso) {
+            return nombre;
+        }
+    }
+    return null;
+}
+
+// ── Cargar horarios desde Google Sheets ──
+// La hoja "Horarios" tiene columnas: Maestro | Dia | P1 | P2 | P3 | P4 | P5 | P6 | P7 | P8
+
+function cargarHorariosDesdeSheets() {
+    const grid = document.getElementById('cursosHorarioGrid');
+
+    if (!CONFIG.urlHorarios) {
+        if (grid) grid.innerHTML = '<p style="color:#f59e0b;font-size:0.9em;">⚠️ URL de Horarios no configurada.</p>';
+        return;
+    }
+
+    if (grid) grid.innerHTML = '<p style="color:#6b7280;font-size:0.9em;">⏳ Cargando horarios...</p>';
+
+    // Llamada directa con fetch porque el Apps Script de horarios
+    // devuelve { success: true, data: [...] }, no un array directo
+    fetch(CONFIG.urlHorarios)
+        .then(function(response) { return response.json(); })
+        .then(function(respuesta) {
+            // Aceptar tanto { success, data: [...] } como array directo
+            const filas = Array.isArray(respuesta) ? respuesta
+                        : (respuesta.data && Array.isArray(respuesta.data)) ? respuesta.data
+                        : [];
+
+            if (filas.length === 0) {
+                console.warn('Horarios: la hoja devolvio 0 filas. Verifica que poblarHorariosIniciales() fue ejecutado.');
+                if (grid) grid.innerHTML = '<p style="color:#f59e0b;font-size:0.9em;">⚠️ La hoja de horarios esta vacia. Ejecuta poblarHorariosIniciales() en Apps Script.</p>';
+                return;
+            }
+
+            // Convertir filas planas → { Maestro: { Dia: { '1'...'8': curso } } }
+            const cache = {};
+            filas.forEach(function(fila) {
+                const maestro = (fila['Maestro'] || '').trim();
+                const dia     = (fila['Dia']     || '').trim();
+                if (!maestro || !dia) return;
+                if (!cache[maestro]) cache[maestro] = {};
+                cache[maestro][dia] = {
+                    '1': fila['P1'] || null,
+                    '2': fila['P2'] || null,
+                    '3': fila['P3'] || null,
+                    '4': fila['P4'] || null,
+                    '5': fila['P5'] || null,
+                    '6': fila['P6'] || null,
+                    '7': fila['P7'] || null,
+                    '8': fila['P8'] || null,
+                };
+            });
+
+            horariosCache = cache;
+            console.log('✅ Horarios cargados:', Object.keys(cache).length, 'maestros,', filas.length, 'filas');
+            renderCursosHorario();
+        })
+        .catch(function(err) {
+            console.error('Error cargando horarios:', err);
+            if (grid) grid.innerHTML = '<p style="color:#ef4444;font-size:0.9em;">❌ Error de conexion al cargar horarios. Revisa la consola del navegador (F12) para mas detalles.</p>';
+        });
+}
+
+// ── Render grilla de cursos ──
+
+function renderCursosHorario() {
+    const grid = document.getElementById('cursosHorarioGrid');
+    if (!grid) return;
+    grid.innerHTML = TODOS_CURSOS_HORARIO.map(function(c) {
+        return '<button class="curso-horario-btn" onclick="consultarCursoHorario(\'' + c + '\')">' + c + '</button>';
+    }).join('');
+    // Restaurar seleccion previa si habia
+    if (cursoHorarioSeleccionado) {
+        consultarCursoHorario(cursoHorarioSeleccionado);
+    }
+}
+
+// ── Inicializar la seccion ──
+
+function inicializarConsultaHorarios() {
+    if (intervaloRelojHorario) clearInterval(intervaloRelojHorario);
+    actualizarRelojHorario();
+    intervaloRelojHorario = setInterval(actualizarRelojHorario, 1000);
+    cargarHorariosDesdeSheets();
+}
+
+// ── Reloj en vivo ──
+
+function actualizarRelojHorario() {
+    const reloj = document.getElementById('relojHorario');
+    const periodoEl = document.getElementById('periodoHorario');
+    if (!reloj || !periodoEl) {
+        clearInterval(intervaloRelojHorario);
+        return;
+    }
+    const ahora = new Date();
+    const hh = String(ahora.getHours()).padStart(2, '0');
+    const mm = String(ahora.getMinutes()).padStart(2, '0');
+    const ss = String(ahora.getSeconds()).padStart(2, '0');
+    reloj.textContent = hh + ':' + mm + ':' + ss;
+
+    const dia = getDiaHorarioActual();
+    const periodo = getPeriodoHorarioActual();
+
+    if (!dia) {
+        periodoEl.textContent = 'Fin de semana';
+    } else if (!periodo) {
+        // Detectar si estamos en recreo o almuerzo
+        const ahora = new Date();
+        const totalMin = ahora.getHours() * 60 + ahora.getMinutes();
+        if (totalMin >= 630 && totalMin < 650) {         // 10:30-10:50
+            periodoEl.textContent = 'Recreo';
+        } else if (totalMin >= 750 && totalMin < 810) {  // 12:30-13:30
+            periodoEl.textContent = 'Almuerzo';
+        } else if (totalMin < 480) {                      // antes 8:00
+            periodoEl.textContent = 'Antes de clases';
+        } else {
+            periodoEl.textContent = 'Fin de clases';
+        }
+    } else {
+        const p = PERIODOS_HORARIO.find(function(x) { return x.num === periodo; });
+        periodoEl.textContent = 'Periodo ' + periodo + '  ' + p.inicio + '-' + p.fin;
+    }
+
+    // Auto-refresh resultado si cambio el periodo
+    if (cursoHorarioSeleccionado) {
+        const prev = document.getElementById('resultadoHorario');
+        if (prev && prev.dataset.ultimoPeriodo !== String(periodo)) {
+            mostrarResultadoHorario(cursoHorarioSeleccionado);
+        }
+    }
+}
+
+// ── Consultar curso ──
+
+function consultarCursoHorario(curso) {
+    cursoHorarioSeleccionado = curso;
+    document.querySelectorAll('.curso-horario-btn').forEach(function(btn) {
+        btn.classList.toggle('activo', btn.textContent.trim() === curso);
+    });
+    mostrarResultadoHorario(curso);
+}
+
+// ── Mostrar resultado ──
+
+function mostrarResultadoHorario(curso) {
+    const contenedor = document.getElementById('resultadoHorario');
+    if (!contenedor) return;
+
+    const dia = getDiaHorarioActual();
+    const periodo = getPeriodoHorarioActual();
+    const maestro = getMaestroEnCursoAhora(curso);
+
+    contenedor.dataset.ultimoPeriodo = String(periodo);
+    contenedor.style.display = 'block';
+
+    let html = '';
+
+    if (!horariosCache) {
+        html = '<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:16px 20px;color:#92400e;">⏳ Los horarios aun se estan cargando...</div>';
+    } else if (!dia) {
+        html = '<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:16px 20px;color:#92400e;">🌅 Hoy es fin de semana, no hay clases programadas.</div>';
+    } else if (!periodo) {
+        html = '<div style="background:#f3f4f6;border:1px solid #d1d5db;border-radius:10px;padding:16px 20px;color:#6b7280;">🕐 Fuera del horario de clases.</div>';
+    } else if (!maestro) {
+        const p = PERIODOS_HORARIO.find(function(x) { return x.num === periodo; });
+        html = '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px 20px;">'
+             + '<div style="font-size:0.8em;color:#991b1b;font-weight:600;margin-bottom:6px;">PERIODO ' + periodo + ' &bull; ' + p.inicio + '-' + p.fin + ' &bull; ' + dia + '</div>'
+             + '<div style="color:#7f1d1d;">📭 Ningun docente tiene clase asignada en <strong>' + curso + '</strong> en este periodo.</div></div>';
+    } else {
+        const p = PERIODOS_HORARIO.find(function(x) { return x.num === periodo; });
+        html = '<div style="background:#f0fdf4;border:2px solid #10b981;border-radius:12px;padding:20px 24px;">'
+             + '<div style="font-size:0.78em;color:#059669;font-weight:700;letter-spacing:1px;margin-bottom:10px;">PERIODO ' + periodo + ' &bull; ' + p.inicio + '-' + p.fin + ' &bull; ' + dia + '</div>'
+             + '<div style="display:flex;align-items:center;gap:14px;">'
+             + '<div style="width:52px;height:52px;background:linear-gradient(135deg,#1e3c72,#059669);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5em;flex-shrink:0;">&#128104;&#8205;&#127979;</div>'
+             + '<div><div style="font-size:1.2em;font-weight:700;color:#065f46;">' + maestro + '</div>'
+             + '<div style="font-size:0.85em;color:#6b7280;margin-top:3px;">Docente asignado al curso <strong style=\"color:#065f46;\">' + curso + '</strong> ahora mismo</div>'
+             + '</div></div></div>';
+    }
+
+    contenedor.innerHTML = html;
+}
