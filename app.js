@@ -8558,7 +8558,12 @@ function toggleAccionesSeguimiento() {
     const chevron  = document.getElementById('accionesChevron');
     if (!dropdown) return;
     const abierto = dropdown.style.display !== 'none';
-    dropdown.style.display = abierto ? 'none' : 'block';
+    if (abierto) {
+        dropdown.style.display = 'none';
+        dropdown.scrollTop = 0; // volver al inicio al cerrar
+    } else {
+        dropdown.style.display = 'block';
+    }
     if (chevron) chevron.style.transform = abierto ? '' : 'rotate(180deg)';
 }
 
@@ -8594,7 +8599,9 @@ function aplicarAccionesSeguimiento() {
     const nuevas    = acciones.map(function(a, i) { return (i + 1) + '. ' + a; }).join('\n');
     ugcField.value  = existente ? existente + '\n' + nuevas : nuevas;
 
-    // Cerrar el panel y limpiar checks
+    // Cerrar el panel, volver al inicio y limpiar checks
+    const dropdown = document.getElementById('accionesDropdown');
+    if (dropdown) dropdown.scrollTop = 0;
     toggleAccionesSeguimiento();
     document.querySelectorAll('.accion-check').forEach(function(c) { c.checked = false; });
     const otrosTexto = document.getElementById('otrosTexto');
