@@ -895,7 +895,7 @@ function crearModalTardanzas() {
                     </label>
                     <label style="display:flex;align-items:center;cursor:pointer;gap:4px;">
                         <input type="radio" name="filtroTardanzas" value="mas10" onchange="aplicarFiltroTardanzas()" style="margin-right:8px;cursor:pointer;width:18px;height:18px;">
-                        <span style="font-size:1em;">🔴 Más de 10 tardanzas acumuladas</span>
+                        <span style="font-size:1em;">🔴 Más de 12 tardanzas acumuladas</span>
                     </label>
                 </div>
             </div>
@@ -1329,11 +1329,11 @@ function cargarTablaTardanzas() {
             }
             acumulado[g.estudiante].total += g.total;
         });
-        const conMas10 = Object.values(acumulado).filter(e => e.total > 10)
+        const conMas10 = Object.values(acumulado).filter(e => e.total > 12)
             .sort((a, b) => b.total - a.total);
 
         if (conMas10.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con más de 10 tardanzas acumuladas</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con más de 12 tardanzas acumuladas</td></tr>';
             return;
         }
         tbody.innerHTML = conMas10.map((e, idx) => `
@@ -1492,11 +1492,11 @@ function buscarTardanzas() {
             }
             acumulado[g.estudiante].total += g.total;
         });
-        const conMas10 = Object.values(acumulado).filter(e => e.total > 10)
+        const conMas10 = Object.values(acumulado).filter(e => e.total > 12)
             .sort((a, b) => b.total - a.total);
 
         if (conMas10.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con más de 10 tardanzas acumuladas</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con más de 12 tardanzas acumuladas</td></tr>';
             return;
         }
         tbody.innerHTML = conMas10.map((e, idx) => `
@@ -6180,17 +6180,17 @@ function exportarTardanzasPDF() {
             if (!acumulado[est]) acumulado[est] = { estudiante: est, curso: cur, total: 0 };
             acumulado[est].total++;
         });
-        const conMas10 = Object.values(acumulado).filter(e => e.total > 10)
+        const conMas10 = Object.values(acumulado).filter(e => e.total > 12)
             .sort((a, b) => b.total - a.total);
 
         if (conMas10.length === 0) {
-            alert('No hay estudiantes con más de 10 tardanzas acumuladas');
+            alert('No hay estudiantes con más de 12 tardanzas acumuladas');
             return;
         }
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        const startY = agregarEncabezadoCENSA(doc, 'Reporte — Estudiantes con Más de 10 Tardanzas Acumuladas');
+        const startY = agregarEncabezadoCENSA(doc, 'Reporte — Estudiantes con Más de 12 Tardanzas Acumuladas');
 
         doc.autoTable({
             startY: startY,
@@ -6208,7 +6208,7 @@ function exportarTardanzasPDF() {
         });
 
         const fecha = new Date().toISOString().split('T')[0];
-        doc.save(`Tardanzas_Acumuladas_Mas10_${fecha}.pdf`);
+        doc.save(`Tardanzas_Acumuladas_Mas12_${fecha}.pdf`);
         return;
     }
     
@@ -6223,7 +6223,7 @@ function exportarTardanzasPDF() {
     // Título personalizado según filtros
     let titulo = 'Reporte de Tardanzas';
     const filtrosActivos = [];
-    if (filtroTardanzas === 'mas10') filtrosActivos.push('Más de 10 tardanzas acumuladas');
+    if (filtroTardanzas === 'mas10') filtrosActivos.push('Más de 12 tardanzas acumuladas');
     if (cursoFiltro) filtrosActivos.push(cursoFiltro);
     if (mesFiltro) filtrosActivos.push(mesFiltro.charAt(0).toUpperCase() + mesFiltro.slice(1));
     if (buscar) filtrosActivos.push(buscar.charAt(0).toUpperCase() + buscar.slice(1));
