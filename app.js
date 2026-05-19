@@ -893,6 +893,10 @@ function crearModalTardanzas() {
                         <input type="radio" name="filtroTardanzas" value="mas3" onchange="aplicarFiltroTardanzas()" style="margin-right:8px;cursor:pointer;width:18px;height:18px;">
                         <span style="font-size:1em;">🚨 Más de 3 tardanzas</span>
                     </label>
+                    <label style="display:flex;align-items:center;cursor:pointer;gap:4px;">
+                        <input type="radio" name="filtroTardanzas" value="mas10" onchange="aplicarFiltroTardanzas()" style="margin-right:8px;cursor:pointer;width:18px;height:18px;">
+                        <span style="font-size:1em;">🔴 Más de 10 tardanzas acumuladas</span>
+                    </label>
                 </div>
             </div>
             
@@ -1315,15 +1319,45 @@ function cargarTablaTardanzas() {
     
     // Aplicar filtro de cantidad de tardanzas
     const filtroTardanzas = document.querySelector('input[name="filtroTardanzas"]:checked')?.value || 'todas';
-    const gruposFiltrados = Object.values(agrupado).filter(g => {
-        if (filtroTardanzas === '3') {
-            return g.total === 3;
-        } else if (filtroTardanzas === 'mas3') {
-            return g.total > 3;
+
+    // Para "mas10": vista consolidada — una fila por estudiante con total acumulado
+    if (filtroTardanzas === 'mas10') {
+        const acumulado = {};
+        Object.values(agrupado).forEach(g => {
+            if (!acumulado[g.estudiante]) {
+                acumulado[g.estudiante] = { estudiante: g.estudiante, curso: g.curso, total: 0 };
+            }
+            acumulado[g.estudiante].total += g.total;
+        });
+        const conMas10 = Object.values(acumulado).filter(e => e.total > 10)
+            .sort((a, b) => b.total - a.total);
+
+        if (conMas10.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con más de 10 tardanzas acumuladas</td></tr>';
+            return;
         }
-        return true; // 'todas'
+        tbody.innerHTML = conMas10.map((e, idx) => `
+            <tr style="background-color:#f8d7da;">
+                <td style="color:#999;font-size:0.85em;">${idx + 1}</td>
+                <td><strong>🔴 ${e.estudiante}</strong></td>
+                <td>${e.curso}</td>
+                <td colspan="2">
+                    <span style="background:#dc2626;color:white;padding:3px 10px;border-radius:12px;font-weight:700;font-size:0.95em;">
+                        ${e.total} tardanzas acumuladas
+                    </span>
+                </td>
+                <td><span style="color:#999;font-size:0.85em;">-</span></td>
+            </tr>
+        `).join('');
+        return;
+    }
+
+    let gruposFiltrados = Object.values(agrupado).filter(g => {
+        if (filtroTardanzas === '3') return g.total === 3;
+        if (filtroTardanzas === 'mas3') return g.total > 3;
+        return true;
     });
-    
+
     if (gruposFiltrados.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con el criterio seleccionado</td></tr>';
         return;
@@ -1448,15 +1482,45 @@ function buscarTardanzas() {
     
     // Aplicar filtro de cantidad de tardanzas
     const filtroTardanzas = document.querySelector('input[name="filtroTardanzas"]:checked')?.value || 'todas';
-    const gruposFiltrados = Object.values(agrupado).filter(g => {
-        if (filtroTardanzas === '3') {
-            return g.total === 3;
-        } else if (filtroTardanzas === 'mas3') {
-            return g.total > 3;
+
+    // Para "mas10": vista consolidada — una fila por estudiante con total acumulado
+    if (filtroTardanzas === 'mas10') {
+        const acumulado = {};
+        Object.values(agrupado).forEach(g => {
+            if (!acumulado[g.estudiante]) {
+                acumulado[g.estudiante] = { estudiante: g.estudiante, curso: g.curso, total: 0 };
+            }
+            acumulado[g.estudiante].total += g.total;
+        });
+        const conMas10 = Object.values(acumulado).filter(e => e.total > 10)
+            .sort((a, b) => b.total - a.total);
+
+        if (conMas10.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">No hay estudiantes con más de 10 tardanzas acumuladas</td></tr>';
+            return;
         }
-        return true; // 'todas'
+        tbody.innerHTML = conMas10.map((e, idx) => `
+            <tr style="background-color:#f8d7da;">
+                <td style="color:#999;font-size:0.85em;">${idx + 1}</td>
+                <td><strong>🔴 ${e.estudiante}</strong></td>
+                <td>${e.curso}</td>
+                <td colspan="2">
+                    <span style="background:#dc2626;color:white;padding:3px 10px;border-radius:12px;font-weight:700;font-size:0.95em;">
+                        ${e.total} tardanzas acumuladas
+                    </span>
+                </td>
+                <td><span style="color:#999;font-size:0.85em;">-</span></td>
+            </tr>
+        `).join('');
+        return;
+    }
+
+    let gruposFiltrados = Object.values(agrupado).filter(g => {
+        if (filtroTardanzas === '3') return g.total === 3;
+        if (filtroTardanzas === 'mas3') return g.total > 3;
+        return true;
     });
-    
+
     console.log(`✅ Grupos finales a mostrar: ${gruposFiltrados.length}`);
     
     if (gruposFiltrados.length === 0) {
@@ -1464,7 +1528,8 @@ function buscarTardanzas() {
         return;
     }
     
-    tbody.innerHTML = gruposFiltrados.map(g => {
+    // Construir filas normales
+    const filasHTML = gruposFiltrados.map(g => {
         const fechaUltima = g.fechas[g.fechas.length-1] ? new Date(g.fechas[g.fechas.length-1]).toLocaleDateString('es-DO') : '-';
         let colorFondo = '';
         let icono = '';
@@ -1499,6 +1564,24 @@ function buscarTardanzas() {
         </tr>
     `;
     }).join('');
+
+    // Fila de total acumulado (solo si se buscó un estudiante específico)
+    const buscarVal = document.getElementById('buscarTard').value.trim();
+    let filaTotal = '';
+    if (buscarVal && gruposFiltrados.length > 0) {
+        const totalAcumulado = gruposFiltrados.reduce((sum, g) => sum + g.total, 0);
+        const nombreEstudiante = gruposFiltrados[0].estudiante;
+        filaTotal = `
+        <tr style="background-color:#1e3a5f;color:white;">
+            <td colspan="4" style="text-align:right;font-weight:700;padding:10px 14px;font-size:0.95em;">
+                📊 Total acumulado de tardanzas — ${nombreEstudiante}
+            </td>
+            <td style="font-weight:700;font-size:1.1em;padding:10px 14px;">${totalAcumulado}</td>
+            <td></td>
+        </tr>`;
+    }
+
+    tbody.innerHTML = filasHTML + filaTotal;
     
     // Agregar event listeners a los botones de circular
     setTimeout(() => {
@@ -6072,7 +6155,8 @@ function exportarTardanzasPDF() {
     
     // Filtrar tardanzas según filtros activos
     let tardanzasAExportar = datosTardanzas;
-    
+    const filtroTardanzas = document.querySelector('input[name="filtroTardanzas"]:checked')?.value || 'todas';
+
     if (buscar || cursoFiltro || mesFiltro) {
         tardanzasAExportar = datosTardanzas.filter(t => {
             const estudiante = (t['Nombre Estudiante'] || t.estudiante || '').toLowerCase();
@@ -6086,6 +6170,47 @@ function exportarTardanzasPDF() {
             return matchNombre && matchCurso && matchMes;
         });
     }
+
+    // Aplicar filtro de acumulado >10: genera PDF consolidado (una fila por estudiante)
+    if (filtroTardanzas === 'mas10') {
+        const acumulado = {};
+        tardanzasAExportar.forEach(t => {
+            const est = t['Nombre Estudiante'] || t.estudiante || '';
+            const cur = t['Curso'] || t.curso || '';
+            if (!acumulado[est]) acumulado[est] = { estudiante: est, curso: cur, total: 0 };
+            acumulado[est].total++;
+        });
+        const conMas10 = Object.values(acumulado).filter(e => e.total > 10)
+            .sort((a, b) => b.total - a.total);
+
+        if (conMas10.length === 0) {
+            alert('No hay estudiantes con más de 10 tardanzas acumuladas');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const startY = agregarEncabezadoCENSA(doc, 'Reporte — Estudiantes con Más de 10 Tardanzas Acumuladas');
+
+        doc.autoTable({
+            startY: startY,
+            head: [['#', 'Estudiante', 'Curso', 'Total Acumulado']],
+            body: conMas10.map((e, i) => [i + 1, e.estudiante, e.curso, e.total]),
+            theme: 'grid',
+            headStyles: { fillColor: [220, 38, 38] },
+            styles: { fontSize: 9 },
+            columnStyles: {
+                0: { cellWidth: 12 },
+                1: { cellWidth: 90 },
+                2: { cellWidth: 30 },
+                3: { cellWidth: 40, halign: 'center', fontStyle: 'bold' }
+            }
+        });
+
+        const fecha = new Date().toISOString().split('T')[0];
+        doc.save(`Tardanzas_Acumuladas_Mas10_${fecha}.pdf`);
+        return;
+    }
     
     if (tardanzasAExportar.length === 0) {
         alert('No hay tardanzas que coincidan con los filtros aplicados');
@@ -6098,6 +6223,7 @@ function exportarTardanzasPDF() {
     // Título personalizado según filtros
     let titulo = 'Reporte de Tardanzas';
     const filtrosActivos = [];
+    if (filtroTardanzas === 'mas10') filtrosActivos.push('Más de 10 tardanzas acumuladas');
     if (cursoFiltro) filtrosActivos.push(cursoFiltro);
     if (mesFiltro) filtrosActivos.push(mesFiltro.charAt(0).toUpperCase() + mesFiltro.slice(1));
     if (buscar) filtrosActivos.push(buscar.charAt(0).toUpperCase() + buscar.slice(1));
