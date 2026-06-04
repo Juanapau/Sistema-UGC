@@ -356,11 +356,11 @@ placeholder="Número de emergencia"
 // ==========================================
 
 const CONFIG = {
-urlContactos: 'https://script.google.com/macros/s/AKfycbz2WK2rAH99oKd16ZBNjhPbWgBypMw7006Q497kpQrUW6ixvtJt0BTtORNCjOtzw43D/exec',
-urlEstudiantes: 'https://script.google.com/macros/s/AKfycby-ceKgHZzTxQzcVcNiOWaN5aNDoqtIlihVcOZAp0_5hIVcv115GKHtfdjFPq43ttCEuA/exec',
-urlAppsScript: 'https://script.google.com/macros/s/AKfycbz2WK2rAH99oKd16ZBNjhPbWgBypMw7006Q497kpQrUW6ixvtJt0BTtORNCjOtzw43D/exec',
+urlContactos: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Contactos',
+urlEstudiantes: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Estudiantes',
+urlAppsScript: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Contactos',
 // 🆕 URL de notificaciones
-urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxza27B1vj81BpWe_8qrsQusxE0YC2FzoY1j4yAKkG3uq89gA1xIljm3PuWCQljJojZ2Q/exec'
+urlNotificaciones: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Notificaciones'
 };
 
 // Hacer que urlNotificaciones esté disponible globalmente
@@ -510,6 +510,7 @@ const contacto = {
 console.log('📤 Enviando contacto...');
 
 const formData = new FormData();
+formData.append('hoja', 'Contactos');
 formData.append('accion', 'guardarContacto');
 formData.append('datos', JSON.stringify(contacto));
 
