@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estudiantes - Consulta</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+min-height: 100vh;
+padding: 20px;
+position: relative;
+overflow-x: hidden;
+}
+
+/* LOGO DE FONDO COMO MARCA DE AGUA */
+body::before {
+content: '';
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 900px;
+height: 900px;
+background-image: url('./logo.png');
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+opacity: 0.08;
+z-index: 0;
+pointer-events: none;
+filter: brightness(1.2);
+}
+
+.container {
+max-width: none;
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+
+header,
+.card,
+table {
+position: relative;
+z-index: 2;
+}
+
+header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 30px;
+border-radius: 15px;
+margin-bottom: 25px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+
+.header-left { display: flex; align-items: center; gap: 15px; }
+.header-left img { width: 50px; height: 50px; }
+.header-title h1 { font-size: 1.6em; margin-bottom: 3px; }
+.header-title p { color: #4a9eff; font-size: 0.85em; }
+
+.btn-back {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.9em;
+font-weight: 600;
+transition: all 0.3s;
+text-decoration: none;
+display: inline-block;
+}
+
+.btn-back:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+.content-card {
+background: white;
+border-radius: 15px;
+padding: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.search-bar { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+
+.search-bar input,
+.search-bar select {
+flex: 1;
+min-width: 200px;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-size: 0.95em;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+outline: none;
+border-color: #2a5298;
+box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
+}
+
+/* Forzar que los filtros estén habilitados */
+.filter-select {
+pointer-events: auto !important;
+opacity: 1 !important;
+cursor: pointer !important;
+background: white !important;
+}
+
+.btn {
+padding: 12px 24px;
+border: none;
+border-radius: 8px;
+font-size: 0.95em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+white-space: nowrap;
+}
+
+.btn-secondary {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+}
+
+.btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+
+.table-container { overflow-x: auto; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+table { width: 100%; border-collapse: collapse; background: white; }
+
+table th {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 15px 12px;
+text-align: left;
+font-weight: 600;
+font-size: 0.9em;
+white-space: nowrap;
+}
+
+table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+table tbody tr:hover { background: #f8f9fa; }
+
+.badge {
+display: inline-block;
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 0.8em;
+font-weight: 600;
+white-space: nowrap;
+background: #e8f5e9;
+color: #2e7d32;
+}
+
+.loading, .empty {
+text-align: center;
+padding: 40px;
+color: #666;
+font-size: 1.05em;
+}
+
+@media (max-width: 768px) {
+header { flex-direction: column; text-align: center; }
+.search-bar { flex-direction: column; }
+.search-bar input, .search-bar select, .btn { width: 100%; min-width: 100%; }
+table { font-size: 0.85em; }
+table th, table td { padding: 8px 6px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<header>
+<div class="header-left">
+<img src="./logo.png" alt="Logo" onerror="this.style.display='none'">
+<div class="header-title">
+<h1>Listado de Estudiantes</h1>
+<p>Solo Lectura - PNSA</p>
+</div>
+</div>
+<a href="consulta.html" class="btn-back">← Volver al Dashboard</a>
+</header>
+
+<div class="content-card">
+<div class="search-bar">
+<input type="text" id="buscar" placeholder="🔍 Buscar por nombre de estudiante..." autocomplete="off" oninput="render()">
+<select id="filtroCurso" class="filter-select" onchange="render()">
+<option value="">Todos los cursos</option>
+</select>
+<button class="btn btn-secondary" onclick="recargar()">🔄 Recargar</button>
+</div>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="width:70px;">#</th>
+<th>Nombre Completo</th>
+<th style="width:170px;">Curso</th>
+</tr>
+</thead>
+<tbody id="tbody">
+<tr><td colspan="3" class="loading">📥 Cargando estudiantes...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<script>
+const URL_BASE = 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec';
+const ANIO_CONSULTA = new URLSearchParams(location.search).get('anio') || '';
+let ESTUDIANTES = [];
+
+function norm(s){ return (s||'').toString().toLowerCase().trim(); }
+function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function cargar(){
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '<tr><td colspan="3" class="loading">📥 Cargando estudiantes...</td></tr>';
+  let url = URL_BASE + '?hoja=Estudiantes';
+  if (ANIO_CONSULTA) url += '&anio=' + encodeURIComponent(ANIO_CONSULTA);
+  try{
+    const resp = await fetch(url);
+    const data = await resp.json();
+    ESTUDIANTES = Array.isArray(data) ? data : [];
+  }catch(e){
+    tb.innerHTML = '<tr><td colspan="3" class="empty">⚠️ Error al cargar los datos.</td></tr>';
+    return;
+  }
+  const cursos = [...new Set(ESTUDIANTES.map(e => (e['Curso']||'').toString().trim()).filter(Boolean))].sort();
+  const sel = document.getElementById('filtroCurso');
+  const valActual = sel.value;
+  sel.innerHTML = '<option value="">Todos los cursos</option>' + cursos.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
+  if (cursos.includes(valActual)) sel.value = valActual;
+  render();
+}
+
+function render(){
+  const q = norm(document.getElementById('buscar').value);
+  const curso = document.getElementById('filtroCurso').value;
+  let lista = ESTUDIANTES.slice();
+  if (curso) lista = lista.filter(e => (e['Curso']||'').toString().trim() === curso);
+  if (q) lista = lista.filter(e => norm(e['Nombre Completo']).includes(q));
+  lista.sort((a,b)=>{
+    const ca=(a['Curso']||'').toString(), cb=(b['Curso']||'').toString();
+    if(ca!==cb) return ca.localeCompare(cb);
+    return norm(a['Nombre Completo']).localeCompare(norm(b['Nombre Completo']));
+  });
+  const tb = document.getElementById('tbody');
+  if(!lista.length){ tb.innerHTML='<tr><td colspan="3" class="empty">No se encontraron resultados.</td></tr>'; return; }
+  tb.innerHTML = lista.map((e,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc(e['Nombre Completo'])+'</strong></td><td><span class="badge">'+esc(e['Curso'])+'</span></td></tr>').join('');
+}
+
+function recargar(){
+  document.getElementById('buscar').value = '';
+  document.getElementById('filtroCurso').value = '';
+  cargar();
+}
+
+document.addEventListener('DOMContentLoaded', cargar);
+</script>
+
+<script src="./auth-guard.js"></script>
+<script>
+// Re-habilitar filtros (después de auth-guard)
+setTimeout(function() {
+  document.querySelectorAll('.filter-select').forEach(function(f){
+    f.disabled = false; f.style.opacity = '1'; f.style.cursor = 'pointer';
+    f.style.background = 'white'; f.style.pointerEvents = 'auto';
+  });
+}, 1000);
+const _intervaloFiltros = setInterval(function() {
+  var todos = true;
+  document.querySelectorAll('.filter-select').forEach(function(f){
+    if (f.disabled) {
+      f.disabled = false; f.style.opacity = '1'; f.style.cursor = 'pointer';
+      f.style.background = 'white'; f.style.pointerEvents = 'auto';
+      todos = false;
+    }
+  });
+  if (todos) clearInterval(_intervaloFiltros);
+}, 500);
+</script>
+
+<script>
+// Banner azul superior + botón "Volver" dinámico (admin en modo consulta / usuario de consulta.html)
+(function(){
+  var a = new URLSearchParams(location.search).get('anio');
+  var btn = document.querySelector('.btn-back');
+  var rolUGC = ''; try { rolUGC = (JSON.parse(localStorage.getItem('usuarioUGC') || '{}').rol) || ''; } catch(e) {}
+  if (btn) btn.setAttribute('href', (rolUGC === 'administrador' && a) ? ('admin.html?anio=' + encodeURIComponent(a)) : 'consulta.html');
+  if(!a) return;
+  var b=document.createElement('div');
+  b.textContent='🔒 Consultando el año '+a+' — solo lectura';
+  b.style.cssText='position:sticky;top:0;z-index:9999;background:#e3f2fd;color:#1976D2;font-weight:700;text-align:center;padding:8px 12px;font-size:1em;';
+  document.body.insertBefore(b, document.body.firstChild);
+})();
+</script>
+</body>
+</html>
