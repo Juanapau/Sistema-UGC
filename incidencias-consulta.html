@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incidencias - Consulta</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+min-height: 100vh;
+padding: 20px;
+position: relative;
+overflow-x: hidden;
+}
+
+/* LOGO DE FONDO COMO MARCA DE AGUA */
+body::before {
+content: '';
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 900px;
+height: 900px;
+background-image: url('./logo.png');
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+opacity: 0.08;
+z-index: 0;
+pointer-events: none;
+filter: brightness(1.2);
+}
+
+.container {
+max-width: 1400px;
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+
+header,
+.card,
+table {
+position: relative;
+z-index: 2;
+}
+
+header {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 20px 30px;
+border-radius: 15px;
+margin-bottom: 25px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 15px;
+}
+
+.header-left {
+display: flex;
+align-items: center;
+gap: 15px;
+}
+
+.header-left img {
+width: 50px;
+height: 50px;
+}
+
+.header-title h1 {
+font-size: 1.6em;
+margin-bottom: 3px;
+}
+
+.header-title p {
+color: #4a9eff;
+font-size: 0.85em;
+}
+
+.btn-back {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.9em;
+font-weight: 600;
+transition: all 0.3s;
+text-decoration: none;
+display: inline-block;
+}
+
+.btn-back:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.content-card {
+background: white;
+border-radius: 15px;
+padding: 30px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.page-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 30px;
+padding-bottom: 20px;
+border-bottom: 2px solid #e5e7eb;
+}
+
+.page-header h2 {
+color: #000000;
+font-size: 1.8em;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.alert-readonly {
+background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+border: 2px solid #fbbf24;
+border-radius: 12px;
+padding: 15px 20px;
+margin-bottom: 25px;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.alert-readonly .icon {
+font-size: 1.8em;
+}
+
+.alert-readonly p {
+color: #92400e;
+font-size: 0.9em;
+margin: 0;
+}
+
+.search-bar {
+display: flex;
+gap: 15px;
+margin-bottom: 25px;
+flex-wrap: wrap;
+}
+
+.search-bar input,
+.search-bar select {
+flex: 1;
+min-width: 200px;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-size: 0.95em;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+outline: none;
+border-color: #2a5298;
+box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
+}
+
+/* Forzar que los filtros estén habilitados */
+.filter-select {
+pointer-events: auto !important;
+opacity: 1 !important;
+cursor: pointer !important;
+background: white !important;
+}
+
+.btn {
+padding: 12px 24px;
+border: none;
+border-radius: 8px;
+font-size: 0.95em;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+white-space: nowrap;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+color: white;
+}
+
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(42,82,152,0.4);
+}
+
+.btn-secondary {
+background: linear-gradient(135deg, #000000 0%, #333333 100%);
+color: white;
+}
+
+.btn-secondary:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+}
+
+.btn-success {
+background: linear-gradient(135deg, #059669 0%, #047857 100%);
+color: white;
+}
+
+.btn-success:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(5,150,105,0.4);
+}
+
+.table-container {
+overflow-x: auto;
+border-radius: 12px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+background: white;
+}
+
+table th {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 15px 12px;
+text-align: left;
+font-weight: 600;
+font-size: 0.9em;
+white-space: nowrap;
+}
+
+table td {
+padding: 12px;
+border-bottom: 1px solid #eee;
+font-size: 0.9em;
+vertical-align: top;
+}
+
+table tbody tr {
+cursor: pointer;
+transition: all 0.2s;
+}
+
+table tbody tr:hover {
+background: #e3f2fd;
+transform: scale(1.005);
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.status-badge {
+display: inline-block;
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 0.85em;
+font-weight: 600;
+white-space: nowrap;
+}
+
+.badge-leve {
+background: #d4edda;
+color: #155724;
+}
+
+.badge-grave {
+background: #fff3cd;
+color: #856404;
+}
+
+.badge-muy-grave {
+background: #f8d7da;
+color: #721c24;
+}
+
+.loading {
+text-align: center;
+padding: 40px;
+color: #666;
+font-size: 1.1em;
+}
+
+.no-data {
+text-align: center;
+padding: 60px 20px;
+color: #999;
+}
+
+.no-data-icon {
+font-size: 4em;
+margin-bottom: 15px;
+opacity: 0.5;
+}
+
+/* ESTILOS DEL MODAL */
+.modal {
+display: none;
+position: fixed;
+z-index: 9999;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,0.7);
+overflow-y: auto;
+}
+
+.modal-content {
+background: white;
+margin: 20px auto;
+padding: 0;
+border-radius: 15px;
+max-width: 1200px;
+box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+from {
+transform: translateY(-50px);
+opacity: 0;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+
+.modal-header {
+background: linear-gradient(135deg, #059669 0%, #047857 100%);
+color: white;
+padding: 25px 30px;
+border-radius: 15px 15px 0 0;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.modal-header h2 {
+font-size: 1.8em;
+margin: 0;
+}
+
+.close {
+color: white;
+font-size: 35px;
+font-weight: bold;
+cursor: pointer;
+transition: all 0.3s;
+line-height: 1;
+}
+
+.close:hover {
+color: #4a9eff;
+transform: rotate(90deg);
+}
+
+.modal-body {
+padding: 30px;
+max-height: 70vh;
+overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+header {
+flex-direction: column;
+text-align: center;
+}
+
+.page-header {
+flex-direction: column;
+align-items: flex-start;
+gap: 15px;
+}
+
+.search-bar {
+flex-direction: column;
+}
+
+.search-bar input,
+.search-bar select,
+.btn {
+width: 100%;
+min-width: 100%;
+}
+
+table {
+font-size: 0.85em;
+}
+
+table th,
+table td {
+padding: 8px 6px;
+vertical-align: top;
+}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<!-- HEADER -->
+<header>
+<div class="header-left">
+<img src="./logo.png" alt="Logo" onerror="this.style.display='none'">
+<div class="header-title">
+<h1>Registro de Incidencias</h1>
+<p>Solo Lectura - PNSA</p>
+</div>
+</div>
+
+<a href="consulta.html" class="btn-back">
+← Volver al Dashboard
+</a>
+</header>
+
+<!-- CONTENIDO -->
+<div class="content-card">
+
+
+
+
+<!-- BARRA DE BÚSQUEDA Y FILTROS -->
+<div class="search-bar">
+<div style="position: relative; flex: 1; min-width: 200px;">
+<input type="text" 
+id="buscarEstudiante" 
+placeholder="🔍 Buscar por nombre de estudiante..."
+autocomplete="off"
+oninput="filtrarSugerencias(); buscarIncidencias();"
+onfocus="mostrarSugerencias()"
+style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95em;">
+<div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
+</div>
+<select id="filtrarCurso" class="filter-select" onchange="buscarIncidencias()">
+<option value="">Todos los cursos</option>
+<option value="1roA">1roA</option>
+<option value="1roB">1roB</option>
+<option value="1roC">1roC</option>
+<option value="2doA">2doA</option>
+<option value="2doB">2doB</option>
+<option value="2doC">2doC</option>
+<option value="3roA">3roA</option>
+<option value="3roB">3roB</option>
+<option value="3roC">3roC</option>
+<option value="4toA">4toA</option>
+<option value="4toB">4toB</option>
+<option value="4toC">4toC</option>
+<option value="5toA">5toA</option>
+<option value="5toB">5toB</option>
+<option value="5toC">5toC</option>
+<option value="6toA">6toA</option>
+<option value="6toB">6toB</option>
+<option value="6toC">6toC</option>
+</select>
+<select id="filtrarTipo" class="filter-select" onchange="buscarIncidencias()">
+<option value="">Todos los tipos</option>
+<option value="Leve">Leve</option>
+<option value="Grave">Grave</option>
+<option value="Muy Grave">Muy Grave</option>
+</select>
+<button class="btn btn-secondary" onclick="recargarIncidencias()">🔄 Recargar</button>
+</div>
+
+<!-- TABLA DE INCIDENCIAS -->
+<div class="table-container">
+<table id="tablaIncidencias">
+<thead>
+<tr>
+<th>Fecha</th>
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Tipo</th>
+<th>Docente</th>
+<th>Tipo de Conducta</th>
+<th>Descripción</th>
+<th>Acciones Docente</th>
+<th>Seguimiento UGC</th>
+</tr>
+</thead>
+<tbody id="bodyIncidencias">
+<tr>
+<td colspan="9" class="loading">📥 Cargando incidencias...</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- CONTENEDOR PARA MODALES (usado por app.js) -->
+<div id="modalContainer"></div>
+
+<script src="./auth-guard.js"></script>
+<script src="./app.js"></script>
+<script>
+// Datos de incidencias locales
+let incidenciasFiltradas = [];
+
+// Cargar configuración
+window.addEventListener('load', function() {
+const configGuardada = localStorage.getItem('censaConfig');
+if (configGuardada) {
+const configTemp = JSON.parse(configGuardada);
+// Solo sobrescribir si tiene valor
+if (configTemp.urlIncidencias) {
+CONFIG.urlIncidencias = configTemp.urlIncidencias;
+}
+console.log('✅ Configuración actualizada desde localStorage');
+}
+console.log('📋 URL Incidencias:', CONFIG.urlIncidencias);
+
+cargarIncidencias();
+});
+
+// Cargar datos desde Google Sheets
+async function cargarDatosDesdeGoogleSheets(url) {
+// Filtro por año escolar recibido en la URL (?anio=)
+const ANIO_CONSULTA = new URLSearchParams(location.search).get('anio') || '';
+const HOJAS_CON_ANIO = ['Incidencias','Tardanzas','Reuniones','Estudiantes'];
+const mHoja = url.match(/[?&]hoja=([^&]+)/);
+const hojaUrl = mHoja ? decodeURIComponent(mHoja[1]) : '';
+if (ANIO_CONSULTA && HOJAS_CON_ANIO.includes(hojaUrl) && !/[?&]anio=/.test(url)) {
+    url += '&anio=' + encodeURIComponent(ANIO_CONSULTA);
+}
+console.log('🔗 Intentando cargar desde:', url);
+
+try {
+const response = await fetch(url);
+console.log('📡 Respuesta recibida:', response.status, response.statusText);
+
+if (!response.ok) {
+throw new Error(`HTTP error! status: ${response.status}`);
+}
+
+const data = await response.json();
+console.log('✅ Datos recibidos:', data.length, 'registros');
+return data;
+} catch (error) {
+console.error('❌ Error detallado:', error);
+console.error('❌ Tipo de error:', error.name);
+console.error('❌ Mensaje:', error.message);
+return [];
+}
+}
+
+// Cargar incidencias
+async function cargarIncidencias() {
+const tbody = document.getElementById('bodyIncidencias');
+console.log('📋 Iniciando carga de incidencias...');
+console.log('🔗 URL configurada:', CONFIG.urlIncidencias);
+
+if (!CONFIG.urlIncidencias || CONFIG.urlIncidencias === '') {
+console.error('❌ No hay URL configurada');
+tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No hay URL de Google Sheets configurada. Contacta al administrador.</td></tr>';
+return;
+}
+
+tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#666;">📥 Cargando incidencias desde Google Sheets...</td></tr>';
+
+try {
+const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias);
+console.log('📊 Datos recibidos:', datos);
+
+if (datos && datos.length > 0) {
+datosIncidencias = datos;
+incidenciasFiltradas = datos;
+console.log('✅ Incidencias cargadas:', datos.length);
+console.log('🔍 ESTRUCTURA DEL PRIMER REGISTRO:', datos[0]);
+console.log('🔍 PROPIEDADES DISPONIBLES:', Object.keys(datos[0]));
+mostrarIncidencias();
+} else {
+console.log('⚠️ No hay datos o la respuesta está vacía');
+mostrarSinDatos();
+}
+} catch (error) {
+console.error('❌ Error fatal:', error);
+tbody.innerHTML = `
+<tr>
+<td colspan="9" style="text-align:center;padding:40px;color:#dc3545;">
+<div style="font-size:2em;margin-bottom:10px;">⚠️</div>
+<p style="font-weight:600;margin-bottom:10px;">Error al cargar datos</p>
+<p style="font-size:0.9em;margin-bottom:15px;">${error.message}</p>
+<p style="font-size:0.85em;color:#666;">
+Abre la consola del navegador (F12) para ver detalles técnicos.
+</p>
+</td>
+</tr>
+`;
+}
+}
+
+// Mostrar incidencias en la tabla
+function mostrarIncidencias() {
+const tbody = document.getElementById('bodyIncidencias');
+
+if (incidenciasFiltradas.length === 0) {
+mostrarSinDatos();
+return;
+}
+
+tbody.innerHTML = incidenciasFiltradas.map(inc => {
+const tipo = inc['Tipo de falta'] || 'N/A';
+const tipoClass = tipo !== 'N/A' ? tipo.toLowerCase().replace(/ /g, '-') : 'leve';
+const nombreEstudiante = inc['Nombre Estudiante'] || 'N/A';
+
+return `
+<tr onclick="abrirHistorialEstudiante('${nombreEstudiante.replace(/'/g, "\\'")}')">
+<td>${formatearFecha(inc['Fecha y Hora'])}</td>
+<td><strong>${nombreEstudiante}</strong></td>
+<td>${inc['Curso'] || 'N/A'}</td>
+<td><span class="status-badge badge-${tipoClass}">${tipo}</span></td>
+<td>${inc['Docente'] || 'N/A'}</td>
+<td>${inc['Tipo de Conducta'] || 'N/A'}</td>
+<td style="max-width:250px;">${inc['Descripción'] || 'N/A'}</td>
+<td style="max-width:200px;">${inc['Acciones Docente'] || '-'}</td>
+<td style="max-width:200px;">${inc['Seguimiento UGC'] || '-'}</td>
+</tr>
+`;
+}).join('');
+
+console.log(`📊 Mostrando ${incidenciasFiltradas.length} incidencias`);
+}
+
+// Mostrar mensaje cuando no hay datos
+function mostrarSinDatos() {
+const tbody = document.getElementById('bodyIncidencias');
+tbody.innerHTML = `
+<tr>
+<td colspan="9">
+<div class="no-data">
+<div class="no-data-icon">📭</div>
+<p style="font-size:1.2em;font-weight:600;margin-bottom:5px;">No hay incidencias registradas</p>
+<p style="font-size:0.9em;">O no se encontraron resultados con los filtros aplicados.</p>
+</div>
+</td>
+</tr>
+`;
+}
+
+// Buscar incidencias con filtros
+function buscarIncidencias() {
+const buscarEstudiante = document.getElementById('buscarEstudiante').value.toLowerCase();
+const filtrarCurso = document.getElementById('filtrarCurso').value;
+const filtrarTipo = document.getElementById('filtrarTipo').value;
+
+incidenciasFiltradas = datosIncidencias.filter(inc => {
+const cumpleEstudiante = !buscarEstudiante || (inc['Nombre Estudiante'] && inc['Nombre Estudiante'].toLowerCase().includes(buscarEstudiante));
+const cumpleCurso = !filtrarCurso || inc['Curso'] === filtrarCurso;
+const cumpleTipo = !filtrarTipo || inc['Tipo de falta'] === filtrarTipo;
+
+return cumpleEstudiante && cumpleCurso && cumpleTipo;
+});
+
+mostrarIncidencias();
+console.log(`🔍 Filtrado: ${incidenciasFiltradas.length} de ${datosIncidencias.length} incidencias`);
+}
+
+// Recargar incidencias
+function recargarIncidencias() {
+document.getElementById('buscarEstudiante').value = '';
+document.getElementById('filtrarCurso').value = '';
+document.getElementById('filtrarTipo').value = '';
+
+incidenciasFiltradas = datosIncidencias;
+mostrarIncidencias();
+console.log('🔄 Filtros limpiados');
+}
+
+// Formatear fecha
+function formatearFecha(fechaStr) {
+if (!fechaStr) return 'N/A';
+
+try {
+const fecha = new Date(fechaStr);
+const dia = String(fecha.getDate()).padStart(2, '0');
+const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+const año = fecha.getFullYear();
+const hora = String(fecha.getHours()).padStart(2, '0');
+const minutos = String(fecha.getMinutes()).padStart(2, '0');
+
+return `${dia}/${mes}/${año} ${hora}:${minutos}`;
+} catch (error) {
+return fechaStr;
+}
+}
+
+// ==========================================
+// AUTOCOMPLETADO DINÁMICO
+// ==========================================
+
+function filtrarSugerencias() {
+const input = document.getElementById('buscarEstudiante');
+const sugerencias = document.getElementById('sugerenciasEstudiantes');
+const texto = input.value.toLowerCase().trim();
+
+if (texto.length === 0) {
+sugerencias.style.display = 'none';
+return;
+}
+
+// Obtener estudiantes únicos de las incidencias
+const estudiantesUnicos = [...new Set(datosIncidencias
+.map(inc => inc['Nombre Estudiante'])
+.filter(nombre => nombre && nombre.toLowerCase().includes(texto))
+)].sort();
+
+if (estudiantesUnicos.length === 0) {
+sugerencias.style.display = 'none';
+return;
+}
+
+// Mostrar sugerencias
+sugerencias.innerHTML = estudiantesUnicos.map(nombre => `
+<div onclick="seleccionarEstudiante('${nombre.replace(/'/g, "\\'")}')" 
+style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s;"
+onmouseover="this.style.background='#f0f0f0'"
+onmouseout="this.style.background='white'">
+${nombre}
+</div>
+`).join('');
+
+sugerencias.style.display = 'block';
+}
+
+function mostrarSugerencias() {
+const input = document.getElementById('buscarEstudiante');
+if (input.value.trim().length > 0) {
+filtrarSugerencias();
+}
+}
+
+function seleccionarEstudiante(nombre) {
+document.getElementById('buscarEstudiante').value = nombre;
+document.getElementById('sugerenciasEstudiantes').style.display = 'none';
+buscarIncidencias();
+}
+
+// Cerrar sugerencias al hacer clic fuera
+document.addEventListener('click', function(e) {
+const sugerencias = document.getElementById('sugerenciasEstudiantes');
+const input = document.getElementById('buscarEstudiante');
+if (e.target !== input && e.target !== sugerencias) {
+sugerencias.style.display = 'none';
+}
+});
+
+// ==========================================
+// SOBRESCRIBIR FUNCIÓN DE APP.JS PARA LIMPIAR MODALES ANTERIORES
+// ==========================================
+
+// Guardar la función original
+const abrirHistorialEstudianteOriginal = window.abrirHistorialEstudiante;
+
+// Sobrescribir para cerrar modales anteriores y personalizar para esta página
+window.abrirHistorialEstudiante = function(nombreEstudiante) {
+// Cerrar cualquier modal anterior
+const modalAnterior = document.getElementById('modalHistorialEstudiante');
+if (modalAnterior) {
+modalAnterior.remove();
+}
+
+// Buscar información del estudiante
+const estudiante = datosEstudiantes.find(e => {
+const nombre = e['Nombre Completo'] || e.nombre || '';
+return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+if (!estudiante) {
+alert('⚠️ No se encontró información del estudiante en la base de datos.');
+return;
+}
+
+const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
+const curso = estudiante['Curso'] || estudiante.curso || '';
+
+// Recopilar toda la información del estudiante
+const incidencias = datosIncidencias.filter(i => {
+const nom = i['Nombre Estudiante'] || i.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+const tardanzas = datosTardanzas.filter(t => {
+const nom = t['Nombre Estudiante'] || t.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+const reuniones = datosReuniones.filter(r => {
+const nom = r['Nombre Estudiante'] || r.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+const contacto = datosContactos.find(c => {
+const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+});
+
+// Contar incidencias por tipo
+const incidenciasLeves = incidencias.filter(i => {
+const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
+return tipo === 'Leve';
+}).length;
+
+const incidenciasGraves = incidencias.filter(i => {
+const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
+return tipo === 'Grave';
+}).length;
+
+const incidenciasMuyGraves = incidencias.filter(i => {
+const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
+return tipo === 'Muy Grave';
+}).length;
+
+// Total de tardanzas
+const tardanzasTotales = tardanzas.length;
+
+// Determinar estado basado en tardanzas y faltas graves/muy graves
+const faltasGravesYMuyGraves = incidenciasGraves + incidenciasMuyGraves;
+let estadoColor = '#059669';
+let estadoTexto = 'Normal';
+let estadoIcono = '✅';
+
+if (faltasGravesYMuyGraves >= 3 || tardanzasTotales >= 10) {
+estadoColor = '#dc2626';
+estadoTexto = 'Requiere Atención Urgente';
+estadoIcono = '🚨';
+} else if (faltasGravesYMuyGraves >= 1 || tardanzasTotales >= 5) {
+estadoColor = '#f59e0b';
+estadoTexto = 'Requiere Atención';
+estadoIcono = '⚠️';
+}
+
+// Generar HTML de contactos
+let htmlContactos = '';
+if (contacto) {
+const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || '';
+const telPadre = contacto['Contacto Padre'] || contacto.telPadre || '';
+const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || '';
+const telMadre = contacto['Contacto Madre'] || contacto.telMadre || '';
+const telEmergencia = contacto['Contacto Emergencia'] || contacto.telEmergencia || '';
+
+if (nombrePadre && telPadre) {
+htmlContactos += `
+<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+<h4 style="color:#333;margin-bottom:8px;">👨 Padre</h4>
+<p style="margin-bottom:10px;">${nombrePadre}<br>☎️ ${telPadre}</p>
+<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telPadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+</div>
+`;
+}
+
+if (nombreMadre && telMadre) {
+htmlContactos += `
+<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+<h4 style="color:#333;margin-bottom:8px;">👩 Madre</h4>
+<p style="margin-bottom:10px;">${nombreMadre}<br>☎️ ${telMadre}</p>
+<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telMadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+</div>
+`;
+}
+
+if (telEmergencia) {
+htmlContactos += `
+<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
+<h4 style="color:#333;margin-bottom:8px;">🚨 Emergencia</h4>
+<p style="margin-bottom:10px;">☎️ ${telEmergencia}</p>
+<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telEmergencia}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
+</div>
+`;
+}
+}
+
+if (!htmlContactos) {
+htmlContactos = '<p style="color:#f59e0b;font-style:italic;">⚠️ Sin contactos registrados</p>';
+}
+
+// Generar línea de tiempo combinando todo
+let eventos = [];
+
+incidencias.forEach(inc => {
+eventos.push({
+fecha: new Date(inc['Fecha y Hora'] || inc['Fecha'] || inc.fecha || ''),
+tipo: 'incidencia',
+titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
+descripcion: inc['Descripción'] || inc.descripcion || '',
+gravedad: inc['Tipo'] || inc['Tipo de falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
+docente: inc['Docente'] || inc['Docente que Reporta'] || inc.docenteReporta || inc.docente || 'No especificado'
+});
+});
+
+tardanzas.forEach(tard => {
+eventos.push({
+fecha: new Date(tard['Fecha'] || tard.fecha || ''),
+tipo: 'tardanza',
+titulo: 'Tardanza',
+descripcion: 'Llegada tardía',
+motivo: tard['Motivo'] || tard.motivo || ''
+});
+});
+
+reuniones.forEach(reun => {
+eventos.push({
+fecha: new Date(reun['Fecha'] || reun.fecha || ''),
+tipo: 'reunion',
+titulo: 'Reunión con Padres',
+descripcion: reun['Motivo'] || reun.motivo || '',
+asistio: reun['Asistió'] || reun.asistio || '',
+acuerdos: reun['Acuerdos'] || reun.acuerdos || ''
+});
+});
+
+// Ordenar por fecha (más reciente primero)
+eventos.sort((a, b) => b.fecha - a.fecha);
+
+// Generar HTML de línea de tiempo - MOSTRAR TODOS LOS EVENTOS
+let htmlTimeline = '';
+if (eventos.length === 0) {
+htmlTimeline = '<p style="color:#999;text-align:center;padding:40px;">No hay eventos registrados</p>';
+} else {
+// MOSTRAR TODOS LOS EVENTOS (sin límite)
+eventos.forEach(evento => {
+const fechaTexto = evento.fecha.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
+const horaTexto = evento.fecha.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+
+let iconoTipo = '';
+let colorBorde = '';
+let labelTipo = '';
+let detalles = '';
+
+if (evento.tipo === 'incidencia') {
+iconoTipo = '📋';
+colorBorde = evento.gravedad === 'Grave' || evento.gravedad === 'Muy Grave' ? '#dc2626' : '#f59e0b';
+labelTipo = `<span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">📋 Incidencia</span>`;
+detalles = `
+<strong>${evento.titulo}</strong><br>
+${evento.descripcion}<br>
+<span style="color:#666;font-size:0.9em;">Tipo de Falta: ${evento.gravedad} | Docente: ${evento.docente}</span>
+`;
+} else if (evento.tipo === 'tardanza') {
+iconoTipo = '⏰';
+colorBorde = '#f59e0b';
+labelTipo = `<span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">⏰ Tardanza</span>`;
+detalles = `<strong>${evento.titulo}</strong><br>${evento.descripcion}${evento.motivo ? '<br><span style="color:#666;font-size:0.9em;">Motivo: ' + evento.motivo + '</span>' : ''}`;
+} else {
+iconoTipo = '🤝';
+colorBorde = '#3b82f6';
+labelTipo = `<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">🤝 Reunión</span>`;
+detalles = `
+<strong>${evento.titulo}</strong><br>
+${evento.descripcion}<br>
+<span style="color:#666;font-size:0.9em;">Asistió: ${evento.asistio === 'Sí' ? '✅ Sí' : '❌ No'}</span>
+${evento.acuerdos ? '<br><span style="color:#666;font-size:0.9em;">Acuerdos: ' + evento.acuerdos + '</span>' : ''}
+`;
+}
+
+htmlTimeline += `
+<div style="position:relative;margin-bottom:25px;background:#f8f9fa;padding:15px;border-radius:8px;border-left:4px solid ${colorBorde};">
+<div style="color:#666;font-size:0.85em;margin-bottom:8px;">${fechaTexto} - ${horaTexto}</div>
+${labelTipo}
+<div style="margin-top:10px;color:#333;line-height:1.6;">${detalles}</div>
+</div>
+`;
+});
+}
+
+// Crear modal - SIN BOTÓN DE EXPORTAR PDF
+const modalHTML = `
+<div id="modalHistorialEstudiante" class="modal" style="display:block;">
+<div class="modal-content" style="max-width:1000px;max-height:90vh;display:flex;flex-direction:column;">
+<div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;flex-shrink:0;">
+<h2>👤 ${nombre}</h2>
+<span class="close" onclick="cerrarHistorialEstudiante()">&times;</span>
+</div>
+<div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;flex-shrink:0;">
+<p style="font-size:1.1em;opacity:0.9;">${curso}</p>
+</div>
+<div class="modal-body" style="overflow-y:auto;flex:1;max-height:calc(90vh - 180px);">
+
+<!-- RESUMEN GENERAL -->
+<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+📊 Resumen General
+</h3>
+<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:15px;margin-bottom:30px;">
+<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidencias.length}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Incidencias Totales</div>
+</div>
+<div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${tardanzasTotales}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Tardanzas Totales</div>
+</div>
+<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${reuniones.length}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Reuniones con Padres</div>
+</div>
+<div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasLeves}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Leves</div>
+</div>
+<div style="background:#fff7ed;border-left:4px solid #f97316;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasGraves}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Graves</div>
+</div>
+<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasMuyGraves}</div>
+<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Muy Graves</div>
+</div>
+</div>
+
+<!-- ESTADO DEL ESTUDIANTE -->
+<div style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;margin-bottom:30px;text-align:center;">
+<div style="font-size:2.5em;font-weight:bold;color:#333;">${estadoIcono}</div>
+<div style="color:#666;font-size:1.1em;margin-top:5px;font-weight:600;">${estadoTexto}</div>
+</div>
+
+<!-- CONTACTOS -->
+<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+📞 Información de Contacto
+</h3>
+<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:15px;margin-bottom:30px;">
+${htmlContactos}
+</div>
+
+<!-- LÍNEA DE TIEMPO -->
+<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+📅 Línea de Tiempo (Últimos eventos)
+</h3>
+<div style="position:relative;padding-left:40px;">
+<div style="position:absolute;left:15px;top:0;bottom:0;width:2px;background:#e0e0e0;"></div>
+${htmlTimeline}
+</div>
+
+</div>
+</div>
+</div>`;
+
+document.getElementById('modalContainer').innerHTML = modalHTML;
+};
+
+// Función para abrir WhatsApp (necesaria para los botones de contacto)
+function abrirWhatsApp(numero, mensaje) {
+const numeroLimpio = numero.replace(/[\s\-\(\)]/g, '');
+const mensajeCodificado = encodeURIComponent(mensaje);
+window.open(`https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`, '_blank');
+}
+
+// Función para cerrar el historial
+function cerrarHistorialEstudiante() {
+const modal = document.getElementById('modalHistorialEstudiante');
+if (modal) {
+modal.remove();
+}
+}
+
+// ==========================================
+// RE-HABILITAR FILTROS (después de auth-guard)
+// ==========================================
+
+// Esperar a que auth-guard deshabilite controles, luego re-habilitar los filtros
+setTimeout(function() {
+const filtros = document.querySelectorAll('.filter-select');
+filtros.forEach(filtro => {
+filtro.disabled = false;
+filtro.style.opacity = '1';
+filtro.style.cursor = 'pointer';
+filtro.style.background = 'white';
+filtro.style.pointerEvents = 'auto';
+});
+console.log('✅ Filtros re-habilitados');
+}, 1000);
+
+// También re-habilitar cada 500ms por si auth-guard se ejecuta tarde
+const intervalo = setInterval(function() {
+const filtros = document.querySelectorAll('.filter-select');
+let todosHabilitados = true;
+
+filtros.forEach(filtro => {
+if (filtro.disabled) {
+filtro.disabled = false;
+filtro.style.opacity = '1';
+filtro.style.cursor = 'pointer';
+filtro.style.background = 'white';
+filtro.style.pointerEvents = 'auto';
+todosHabilitados = false;
+}
+});
+
+// Si todos están habilitados por 3 ciclos, detener el intervalo
+if (todosHabilitados) {
+clearInterval(intervalo);
+console.log('✅ Filtros permanentemente habilitados');
+}
+}, 500);
+
+console.log('📋 Módulo de incidencias (consulta) cargado');
+</script>
+
+<script>
+(function(){
+  var a = new URLSearchParams(location.search).get('anio');
+  var btn = document.querySelector('.btn-back');
+  var rolUGC = ''; try { rolUGC = (JSON.parse(localStorage.getItem('usuarioUGC') || '{}').rol) || ''; } catch(e) {}
+  if (btn) btn.setAttribute('href', (rolUGC === 'administrador' && a) ? ('admin.html?anio=' + encodeURIComponent(a)) : 'consulta.html');
+  if(!a) return;
+  var b=document.createElement('div');
+  b.textContent='🔒 Consultando el año '+a+' — solo lectura';
+  b.style.cssText='position:sticky;top:0;z-index:9999;background:#e3f2fd;color:#1976D2;font-weight:700;text-align:center;padding:8px 12px;font-size:1em;';
+  document.body.insertBefore(b, document.body.firstChild);
+})();
+</script>
+</body>
+</html>
