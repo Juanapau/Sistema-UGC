@@ -1659,6 +1659,126 @@
             border: 2px solid white;
         }
 
+        /* ===== Menú flotante (Notas · Año · Configuración) ===== */
+        .fab-menu {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+        .fab-items {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(12px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+        .fab-menu.open .fab-items {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .fab-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .fab-label {
+            background: rgba(0, 0, 0, 0.78);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .fab-action {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s;
+        }
+        .fab-action:hover { transform: scale(1.08); }
+        .fab-notas  { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+        .fab-config { background: linear-gradient(135deg, #000000 0%, #333333 100%); }
+        .fab-anio-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            padding: 8px 14px;
+            border-radius: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .fab-anio-wrap span {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #1976D2;
+            white-space: nowrap;
+        }
+        .fab-anio-wrap select {
+            border: none;
+            background: transparent;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #1976D2;
+            cursor: pointer;
+            outline: none;
+        }
+        .fab-main {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: #fff;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.45);
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .fab-main:hover { transform: scale(1.08); }
+        .fab-main .badge-contador {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.42em;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+        /* En modo consulta (año pasado) se ocultan Notas y Configuración; el Año queda disponible */
+        .fab-menu.modo-consulta #fabNotas,
+        .fab-menu.modo-consulta #fabConfig { display: none; }
+        .fab-menu.modo-consulta .fab-main .badge-contador { display: none; }
+
         /* Overlay del panel de notas */
         .notas-overlay {
             position: fixed;
@@ -2293,7 +2413,6 @@ header img {
     <style>
       html.pre-modo-consulta #cardMaestros,
       html.pre-modo-consulta #cardContactos,
-      html.pre-modo-consulta .btn-notas-flotante,
       html.pre-modo-consulta .notificaciones-btn { display: none !important; }
     </style>
 </head>
@@ -2301,14 +2420,6 @@ header img {
     <div class="container">
         <header>
             <img src="./logo.png" alt="Logo PNSA" class="logo-header" id="logoHeader">
-            <div class="config-icon" onclick="openModule('configuracion')" title="Configuración">
-                ⚙️
-            </div>
-
-            <div id="selectorAnioWrap" style="position:absolute; top:80px; right:30px; z-index:50; display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.15); padding:6px 10px; border-radius:10px;">
-                <span style="color:#fff; font-size:13px; font-weight:600;">📅 Año:</span>
-                <select id="selectorAnio" onchange="cambiarAnioVista(this.value)" style="padding:4px 8px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; background:#fff; color:#1976D2;"></select>
-            </div>
             <h1>Sistema de Gestión de Convivencia</h1>
             <p>Politécnico Nuestra Señora de la Altagracia (PNSA)</p>
         </header>
@@ -2573,11 +2684,51 @@ header img {
     <!-- Contenedor de Notificaciones -->
     <div class="notificacion-container" id="notificacionContainer"></div>
 
-    <!-- Botón Flotante de Notas Rápidas -->
-    <button class="btn-notas-flotante" onclick="toggleNotasPanel()" title="Notas Rápidas">
-        📝
-        <span class="badge-contador" id="contadorNotas">0</span>
-    </button>
+    <!-- Menú Flotante: Notas · Año · Configuración -->
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-items">
+            <div class="fab-item" id="fabNotas">
+                <span class="fab-label">Notas</span>
+                <button class="fab-action fab-notas" onclick="toggleNotasPanel(); cerrarFabMenu();" title="Notas Rápidas">📝</button>
+            </div>
+            <div class="fab-item" id="fabAnio">
+                <div class="fab-anio-wrap">
+                    <span>📅 Año:</span>
+                    <select id="selectorAnio" onchange="cambiarAnioVista(this.value)"></select>
+                </div>
+            </div>
+            <div class="fab-item" id="fabConfig">
+                <span class="fab-label">Configuración</span>
+                <button class="fab-action fab-config" onclick="openModule('configuracion'); cerrarFabMenu();" title="Configuración">⚙️</button>
+            </div>
+        </div>
+        <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" title="Menú" aria-label="Menú">
+            <span id="fabMainIcon">☰</span>
+            <span class="badge-contador" id="contadorNotas">0</span>
+        </button>
+    </div>
+
+    <script>
+        function toggleFabMenu() {
+            const m = document.getElementById('fabMenu');
+            if (!m) return;
+            m.classList.toggle('open');
+            const ic = document.getElementById('fabMainIcon');
+            if (ic) ic.textContent = m.classList.contains('open') ? '✕' : '☰';
+        }
+        function cerrarFabMenu() {
+            const m = document.getElementById('fabMenu');
+            if (!m) return;
+            m.classList.remove('open');
+            const ic = document.getElementById('fabMainIcon');
+            if (ic) ic.textContent = '☰';
+        }
+        // Cerrar el menú al tocar fuera de él
+        document.addEventListener('click', function(e) {
+            const m = document.getElementById('fabMenu');
+            if (m && m.classList.contains('open') && !m.contains(e.target)) cerrarFabMenu();
+        });
+    </script>
 
     <!-- Panel Lateral de Notas -->
     <div class="notas-overlay" id="notasOverlay"></div>
