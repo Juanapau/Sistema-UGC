@@ -2687,10 +2687,6 @@ header img {
     <!-- Menú Flotante: Notas · Año · Configuración -->
     <div class="fab-menu" id="fabMenu">
         <div class="fab-items">
-            <div class="fab-item" id="fabNotas">
-                <span class="fab-label">Notas</span>
-                <button class="fab-action fab-notas" onclick="toggleNotasPanel(); cerrarFabMenu();" title="Notas Rápidas">📝</button>
-            </div>
             <div class="fab-item" id="fabAnio">
                 <div class="fab-anio-wrap">
                     <span>📅 Año:</span>
@@ -2700,6 +2696,10 @@ header img {
             <div class="fab-item" id="fabConfig">
                 <span class="fab-label">Configuración</span>
                 <button class="fab-action fab-config" onclick="openModule('configuracion'); cerrarFabMenu();" title="Configuración">⚙️</button>
+            </div>
+            <div class="fab-item" id="fabNotas">
+                <span class="fab-label">Notas</span>
+                <button class="fab-action fab-notas" onclick="toggleNotasPanel(); cerrarFabMenu();" title="Notas Rápidas">📝</button>
             </div>
         </div>
         <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" title="Menú" aria-label="Menú">
