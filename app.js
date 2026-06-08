@@ -2279,10 +2279,10 @@ function crearModalContactos() {
         <div class="modal-body">
             <div class="alert alert-success" id="alertContactos" style="display:none;"></div>
             
-            <h3>Importar desde Excel</h3>
-            <div class="file-upload-area" onclick="document.getElementById('fileContactos').click()">
-                <div style="font-size:3em;">📁</div>
-                <p><strong>Click para seleccionar archivo Excel</strong></p>
+            <h3 style="margin-bottom:8px;">Importar desde Excel</h3>
+            <div class="file-upload-area file-upload-compact" onclick="document.getElementById('fileContactos').click()">
+                <span style="font-size:1.5em;">📁</span>
+                <strong>Click para seleccionar archivo Excel</strong>
                 <input type="file" id="fileContactos" style="display:none;" accept=".xlsx,.xls" onchange="importarContactos(event)">
             </div>
             
@@ -2862,10 +2862,10 @@ function crearModalEstudiantes() {
         <div class="modal-body">
             <div class="alert alert-success" id="alertEstudiantes" style="display:none;"></div>
             
-            <h3>Importar desde Excel</h3>
-            <div class="file-upload-area" onclick="document.getElementById('fileEstudiantes').click()">
-                <div style="font-size:3em;">📁</div>
-                <p><strong>Click para seleccionar archivo Excel</strong></p>
+            <h3 style="margin-bottom:8px;">Importar desde Excel</h3>
+            <div class="file-upload-area file-upload-compact" onclick="document.getElementById('fileEstudiantes').click()">
+                <span style="font-size:1.5em;">📁</span>
+                <strong>Click para seleccionar archivo Excel</strong>
                 <input type="file" id="fileEstudiantes" style="display:none;" accept=".xlsx,.xls" onchange="importarEstudiantes(event)">
             </div>
             
