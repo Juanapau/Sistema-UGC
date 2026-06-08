@@ -102,12 +102,12 @@ function aplicarModoVista(anio) {
     const cardContactos = document.getElementById('cardContactos');
     const banner        = document.getElementById('bannerConsulta');
     const bannerAnio    = document.getElementById('bannerConsultaAnio');
-    const btnNota       = document.querySelector('.btn-notas-flotante');
+    const fabMenu       = document.getElementById('fabMenu');
     const btnCampana    = document.querySelector('.notificaciones-btn');
 
     if (cardMaestros)  cardMaestros.style.display  = esConsulta ? 'none' : '';
     if (cardContactos) cardContactos.style.display = esConsulta ? 'none' : '';
-    if (btnNota)       btnNota.style.display       = esConsulta ? 'none' : '';
+    if (fabMenu)       fabMenu.classList.toggle('modo-consulta', esConsulta);
     if (btnCampana)    btnCampana.style.display    = esConsulta ? 'none' : '';
     if (banner)        banner.style.display        = esConsulta ? 'block' : 'none';
     if (esConsulta && bannerAnio) bannerAnio.textContent = anio;
