@@ -19,6 +19,7 @@ let CONFIG = {
     urlMaestros:      URL_BASE + '?hoja=Maestros',
     urlHorarios:      URL_BASE + '?hoja=Horarios',
     urlNotificaciones: URL_BASE + '?hoja=Notificaciones',
+    urlCondicionales: URL_BASE + '?hoja=Condicionales',
     urlConfig:        URL_BASE + '?hoja=Config'
 };
 
@@ -34,7 +35,7 @@ const CONFIG_PREDETERMINADO = { ...CONFIG };
 let ANIO_ACTIVO = '';
 let ANIOS_DISPONIBLES = [];
 // Hojas cuyos datos se filtran y se sellan por año escolar
-const HOJAS_CON_ANIO = ['Incidencias', 'Tardanzas', 'Reuniones', 'Estudiantes'];
+const HOJAS_CON_ANIO = ['Incidencias', 'Tardanzas', 'Reuniones', 'Estudiantes', 'Condicionales'];
 
 // Lee la hoja Config y guarda el año activo y la lista de años disponibles
 async function cargarConfig() {
@@ -340,7 +341,7 @@ async function recargarContactos() {
 
 async function recargarEstudiantes() {
     const tbody = document.getElementById('bodyEstudiantes');
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
     
     if (CONFIG.urlEstudiantes) {
         const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes);
@@ -765,8 +766,8 @@ function filtrarEstudiantesIncidencia() {
         const cursoEscapado = curso.replace(/'/g, "\\'");
         return `<div onclick="seleccionarEstudianteIncidencia('${nombreEscapado}', '${cursoEscapado}')" 
                      style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
-                     onmouseover="this.style.background='#f0f0f0'" 
-                     onmouseout="this.style.background='white'">
+                     class="sugerencia-item" 
+                     >
                     <strong>${nombre}</strong><br>
                     <small style="color:#666;">${curso}</small>
                 </div>`;
@@ -792,7 +793,7 @@ function seleccionarEstudianteIncidencia(nombre, curso) {
     cursoSelect.value = curso;
     
     // Indicador visual
-    cursoSelect.style.background = '#e8f5e9';
+    cursoSelect.style.background = '';
     setTimeout(() => {
         cursoSelect.style.background = '';
     }, 1000);
@@ -923,7 +924,7 @@ function editarIncidencia(indice) {
     
     // Resaltar el formulario
     const form = document.getElementById('formIncidencia');
-    form.style.background = '#fff3cd';
+    form.style.background = '';
     setTimeout(() => {
         form.style.background = '';
     }, 2000);
@@ -1257,7 +1258,7 @@ function autocompletarCursoTardanza() {
             cursoSelect.value = curso;
             
             // Cambiar color del select para indicar que se autocompletó
-            cursoSelect.style.background = '#e8f5e9';
+            cursoSelect.style.background = '';
             setTimeout(() => {
                 cursoSelect.style.background = '';
             }, 1000);
@@ -1273,7 +1274,7 @@ function autocompletarCursoTardanza() {
             const curso = estudianteParcial['Curso'] || estudianteParcial.curso || '';
             if (curso) {
                 cursoSelect.value = curso;
-                cursoSelect.style.background = '#fff3cd'; // Color amarillo para indicar coincidencia parcial
+                cursoSelect.style.background = ''; // Color amarillo para indicar coincidencia parcial
                 setTimeout(() => {
                     cursoSelect.style.background = '';
                 }, 1000);
@@ -1316,8 +1317,8 @@ function filtrarEstudiantesTardanza() {
         const cursoEscapado = curso.replace(/'/g, "\\'");
         return `<div onclick="seleccionarEstudianteTardanza('${nombreEscapado}', '${cursoEscapado}')" 
                      style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
-                     onmouseover="this.style.background='#f0f0f0'" 
-                     onmouseout="this.style.background='white'">
+                     class="sugerencia-item" 
+                     >
                     <strong>${nombre}</strong><br>
                     <small style="color:#666;">${curso}</small>
                 </div>`;
@@ -1343,7 +1344,7 @@ function seleccionarEstudianteTardanza(nombre, curso) {
     cursoSelect.value = curso;
     
     // Indicador visual
-    cursoSelect.style.background = '#e8f5e9';
+    cursoSelect.style.background = '';
     setTimeout(() => {
         cursoSelect.style.background = '';
     }, 1000);
@@ -1387,8 +1388,8 @@ function crearAutocompletadoBusqueda(inputId, sugerenciasId, callbackSeleccion) 
             const nombreEscapado = nombre.replace(/'/g, "\\'");
             return `<div onclick="seleccionarEstudianteBusqueda('${inputId}', '${sugerenciasId}', '${nombreEscapado}', '${callbackSeleccion || ''}')" 
                          style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
-                         onmouseover="this.style.background='#f0f0f0'" 
-                         onmouseout="this.style.background='white'">
+                         class="sugerencia-item" 
+                         >
                         <strong>${nombre}</strong><br>
                         <small style="color:#666;">${curso}</small>
                     </div>`;
@@ -2111,7 +2112,7 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
             '<div style="margin-bottom:20px;">' +
                 botonesHTML +
             '</div>' +
-            '<button class="btn" onclick="this.closest(\'.modal\').remove()" style="width:100%;padding:12px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1em;">Cancelar</button>' +
+            '<button class="btn" onclick="this.closest(\'.modal\').remove()" style="width:100%;padding:12px;background:#000000;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1em;">Cancelar</button>' +
         '</div>';
     
     document.body.appendChild(modal);
@@ -2498,7 +2499,7 @@ function editarContacto(indice) {
     
     // Resaltar el formulario
     const form = document.getElementById('formContacto');
-    form.style.background = '#fff3cd';
+    form.style.background = '';
     setTimeout(() => {
         form.style.background = '';
     }, 2000);
@@ -2809,10 +2810,10 @@ function mostrarEstudiantesSinContactos(estudiantes) {
         const curso = est.Curso || est.curso || '-';
         
         return `
-        <tr style="background:#fef2f2;">
-            <td><strong style="color:#991b1b;">${nombre}</strong></td>
+        <tr>
+            <td><strong>${nombre}</strong></td>
             <td>${curso}</td>
-            <td style="color:#7f1d1d;font-style:italic;">Sin contacto registrado</td>
+            <td style="font-style:italic;">Sin contacto registrado</td>
             <td>
                 <button class="btn btn-sm" onclick="agregarContactoRapido('${nombre.replace(/'/g, "\\'")}', '${curso}')" 
                         style="background:#059669;color:white;padding:5px 12px;font-size:0.85em;">
@@ -2901,6 +2902,7 @@ function crearModalEstudiantes() {
                 </select>
                 <button class="btn" onclick="recargarEstudiantes()" style="background:#17a2b8;color:white;">🔄 Recargar</button>
                 <button class="btn btn-success" onclick="exportarEstudiantesPDF()">📥 Exportar</button>
+                <button class="btn" onclick="verCondicionales()" style="background:#d97706;color:white;">⚠️ Condicionales</button>
             </div>
             <div class="table-container">
                 <table>
@@ -2908,6 +2910,7 @@ function crearModalEstudiantes() {
                         <tr>
                             <th>Nombre</th>
                             <th>Curso</th>
+                            <th>Estado</th>
                         </tr>
                     </thead>
                     <tbody id="bodyEstudiantes"></tbody>
@@ -2920,7 +2923,7 @@ function crearModalEstudiantes() {
     
     // Mostrar mensaje de carga
     const tbody = document.getElementById('bodyEstudiantes');
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#666;">📥 Cargando estudiantes...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:40px;color:#666;">📥 Cargando estudiantes...</td></tr>';
     
     // Cargar datos desde Google Sheets
     if (CONFIG.urlEstudiantes) {
@@ -3048,20 +3051,10 @@ const actualizarListasEstudiantes = actualizarDatalistsEstudiantes;
 function cargarTablaEstudiantes() {
     const tbody = document.getElementById('bodyEstudiantes');
     if (datosEstudiantes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#999;">No hay estudiantes</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:40px;color:#999;">No hay estudiantes</td></tr>';
         return;
     }
-    tbody.innerHTML = datosEstudiantes.map(e => {
-        const nombre = e['Nombre Completo'] || e.nombre || '-';
-        const curso = e['Curso'] || e.curso || '-';
-        
-        return `
-        <tr>
-            <td><strong>${nombre}</strong></td>
-            <td>${curso}</td>
-        </tr>
-    `;
-    }).join('');
+    tbody.innerHTML = datosEstudiantes.map(filaEstudianteHTML).join('');
 }
 
 function buscarEstudiantes() {
@@ -3079,19 +3072,10 @@ function buscarEstudiantes() {
     
     const tbody = document.getElementById('bodyEstudiantes');
     if (filtrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
         return;
     }
-    tbody.innerHTML = filtrados.map(e => {
-        const nombre = e['Nombre Completo'] || e.nombre || '-';
-        const curso = e['Curso'] || e.curso || '-';
-        return `
-        <tr>
-            <td><strong>${nombre}</strong></td>
-            <td>${curso}</td>
-        </tr>
-    `;
-    }).join('');
+    tbody.innerHTML = filtrados.map(filaEstudianteHTML).join('');
 }
 
 function exportarEstudiantes() {
@@ -3118,21 +3102,21 @@ function crearModalReuniones() {
             
             <!-- Estadísticas -->
             <div class="stats-grid">
-                <div class="stat-card">
-                    <h4>Total de Reuniones</h4>
-                    <div class="number" id="totalReuniones">0</div>
+                <div class="stat-card" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);color:white;border-radius:12px;">
+                    <h4 style="color:#1e3a5f;margin:0 0 8px;">Total de Reuniones</h4>
+                    <div class="number" id="totalReuniones" style="color:#1e3a5f;font-size:2em;font-weight:700;">0</div>
                 </div>
-                <div class="stat-card">
-                    <h4>Este Mes</h4>
-                    <div class="number" id="reunionesMes">0</div>
+                <div class="stat-card" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:white;border-radius:12px;">
+                    <h4 style="color:#059669;margin:0 0 8px;">Este Mes</h4>
+                    <div class="number" id="reunionesMes" style="color:#059669;font-size:2em;font-weight:700;">0</div>
                 </div>
-                <div class="stat-card">
-                    <h4>Acuerdos Activos</h4>
-                    <div class="number" id="acuerdosActivos">0</div>
+                <div class="stat-card" style="background:linear-gradient(135deg,#faf5ff,#ede9fe);color:white;border-radius:12px;">
+                    <h4 style="color:#7c3aed;margin:0 0 8px;">Acuerdos Activos</h4>
+                    <div class="number" id="acuerdosActivos" style="color:#7c3aed;font-size:2em;font-weight:700;">0</div>
                 </div>
-                <div class="stat-card">
-                    <h4>Seguimientos Pendientes</h4>
-                    <div class="number" id="seguimientosPendientes">0</div>
+                <div class="stat-card" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);color:white;border-radius:12px;">
+                    <h4 style="color:#d97706;margin:0 0 8px;">Seguimientos Pendientes</h4>
+                    <div class="number" id="seguimientosPendientes" style="color:#d97706;font-size:2em;font-weight:700;">0</div>
                 </div>
             </div>
             
@@ -3547,8 +3531,8 @@ function filtrarMaestros() {
         const telefono = m['Teléfono Docente'] || '';
         return `
             <div style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;" 
-                 onmouseover="this.style.background='#f0f0f0'" 
-                 onmouseout="this.style.background='white'"
+                 class="sugerencia-item" 
+                 
                  onclick="seleccionarMaestro('${nombre.replace(/'/g, "\\'")}', '${telefono}')">
                 <strong>${nombre}</strong><br>
                 <small style="color:#666;">${telefono}</small>
@@ -3598,8 +3582,8 @@ function filtrarEstudiantesMaestros() {
         const curso = e.Curso || e.curso || '';
         return `
             <div style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;" 
-                 onmouseover="this.style.background='#f0f0f0'" 
-                 onmouseout="this.style.background='white'"
+                 class="sugerencia-item" 
+                 
                  onclick="seleccionarEstudianteMaestro('${nombre.replace(/'/g, "\\'")}')">
                 <strong>${nombre}</strong>
                 ${curso ? `<br><small style="color:#666;">${curso}</small>` : ''}
@@ -4373,8 +4357,10 @@ function cambiarTema(tema) {
 function aplicarTema(tema) {
     if (tema === 'oscuro') {
         document.body.classList.add('dark-mode');
+        document.documentElement.classList.add('tema-oscuro-pre');
     } else {
         document.body.classList.remove('dark-mode');
+        document.documentElement.classList.remove('tema-oscuro-pre');
     }
 }
 
@@ -4566,26 +4552,6 @@ function crearModalReportes() {
             </div>
             
             <hr style="margin:40px 0;">
-            <h3>Reporte por Curso</h3>
-            <div class="form-group">
-                <label>Seleccione Curso</label>
-                <select id="cursoReporte">
-                    <option value="">Todos</option>
-                    ${CURSOS.map(c => `<option value="${c}">${c}</option>`).join('')}
-                </select>
-            </div>
-            <button class="btn btn-primary" onclick="generarReporte()">📊 Generar Reporte por Curso</button>
-            
-            <hr style="margin:40px 0;">
-            <h3>Reporte por Estudiante</h3>
-            <div class="form-group" style="position:relative;">
-                <label>Buscar Estudiante</label>
-                <input type="text" id="estudianteReporte" data-sugerencias="sugerenciasReporte" placeholder="Escriba el nombre del estudiante..." style="width:100%;">
-                <div id="sugerenciasReporte" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
-            </div>
-            <button class="btn btn-primary" onclick="generarReporteEstudiante()">📊 Generar Reporte Individual</button>
-            
-            <hr style="margin:40px 0;">
             
             <!-- HISTORIAL DE CONDUCTAS POR MES -->
             <div style="margin-top:40px;">
@@ -4599,25 +4565,23 @@ function crearModalReportes() {
                 <!-- Grid compacto de estadísticas del mes seleccionado -->
                 <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:12px;">
                     <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
-                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Agresión Física</h5>
-                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialAgresionFisica">0</div>
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#4b5563;font-weight:600;">Agresión Física</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#1f2937;" id="historialAgresionFisica">0</div>
                     </div>
                     <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
-                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Agresión Verbal</h5>
-                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialAgresionVerbal">0</div>
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#4b5563;font-weight:600;">Agresión Verbal</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#1f2937;" id="historialAgresionVerbal">0</div>
                     </div>
                     <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
-                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Bullying</h5>
-                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialBullying">0</div>
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#4b5563;font-weight:600;">Bullying</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#1f2937;" id="historialBullying">0</div>
                     </div>
                     <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
-                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Cyber Bullying</h5>
-                        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialCyberBullying">0</div>
+                        <h5 style="font-size:0.85em;margin-bottom:8px;color:#4b5563;font-weight:600;">Cyber Bullying</h5>
+                        <div style="font-size:1.8em;font-weight:bold;color:#1f2937;" id="historialCyberBullying">0</div>
                     </div>
                 </div>
             </div>
-            
-            <div id="contenidoReporte" style="margin-top:30px;"></div>
             
             <hr style="margin:40px 0;">
             
@@ -4702,6 +4666,18 @@ function crearModalReportes() {
             <p style="font-size:0.78em;color:#9ca3af;margin-top:8px;">
                 * El <strong>Índice de Riesgo</strong> (0–100%) combina tres factores con igual peso: <strong>Gravedad</strong> (qué tan graves son las faltas en promedio), <strong>Cobertura</strong> (qué % del curso tiene incidencias) y <strong>Reincidencia</strong> (faltas promedio por alumno afectado). El curso con mayor riesgo marca 100% y los demás se escalan proporcionalmente.
             </p>
+            
+            
+            <hr style="margin:40px 0;">
+            <h3>Historial del Estudiante</h3>
+            <div class="form-group" style="position:relative;">
+                <label>Buscar Estudiante</label>
+                <input type="text" id="estudianteReporte" data-sugerencias="sugerenciasReporte" placeholder="Escriba el nombre del estudiante..." style="width:100%;">
+                <div id="sugerenciasReporte" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+            </div>
+            <button class="btn btn-primary" onclick="generarReporteEstudiante()">📋 Ver Historial Completo</button>
+            
+            <div id="contenidoReporte" style="margin-top:30px;"></div>
         </div>
     </div>
 </div>`;
@@ -4959,151 +4935,27 @@ function generarReporte() {
 function generarReporteEstudiante() {
     const estudiante = document.getElementById('estudianteReporte').value;
     const contenedor = document.getElementById('contenidoReporte');
-    
+
     if (!estudiante) {
         contenedor.innerHTML = '<div class="alert alert-info" style="display:block;">Escriba el nombre de un estudiante</div>';
         return;
     }
-    
-    // Buscar información del estudiante con compatibilidad de nombres
+
+    // Buscar el estudiante (compatibilidad de nombres)
     const infoEstudiante = datosEstudiantes.find(e => {
         const nombre = e['Nombre Completo'] || e.nombre || '';
         return nombre.toLowerCase() === estudiante.toLowerCase();
     });
-    
+
     if (!infoEstudiante) {
         contenedor.innerHTML = '<div class="alert alert-info" style="display:block;">Estudiante no encontrado en el sistema</div>';
         return;
     }
-    
-    const cursoEst = infoEstudiante['Curso'] || infoEstudiante.curso || '';
-    
-    // Buscar incidencias del estudiante
-    const incEstudiante = datosIncidencias.filter(i => {
-        const nombre = i['Nombre Estudiante'] || i.estudiante || '';
-        return nombre.toLowerCase() === estudiante.toLowerCase();
-    });
-    
-    // Buscar tardanzas del estudiante
-    const tardEstudiante = datosTardanzas.filter(t => {
-        const nombre = t['Nombre Estudiante'] || t.estudiante || '';
-        return nombre.toLowerCase() === estudiante.toLowerCase();
-    });
-    
-    // Buscar contactos
-    const contactoEstudiante = datosContactos.find(c => {
-        const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-        return nombre.toLowerCase() === estudiante.toLowerCase();
-    });
-    
-    // Generar reporte detallado
-    let htmlIncidencias = '';
-    if (incEstudiante.length > 0) {
-        htmlIncidencias = '<h4>Incidencias Registradas:</h4><ul style="line-height:2;">';
-        incEstudiante.forEach(inc => {
-            const fechaInc = inc['Fecha y Hora'] || inc.fecha || '';
-            const tipoFalta = inc['Tipo de falta'] || inc.tipoFalta || '';
-            const descripcion = inc['Descripción'] || inc.descripcion || '';
-            const fecha = fechaInc ? new Date(fechaInc).toLocaleDateString('es-DO') : '';
-            htmlIncidencias += `<li><strong>${fecha}</strong> - ${tipoFalta}: ${descripcion}</li>`;
-        });
-        htmlIncidencias += '</ul>';
-    } else {
-        htmlIncidencias = '<p style="color:#28a745;">✅ Sin incidencias registradas</p>';
-    }
-    
-    let htmlTardanzas = '';
-    if (tardEstudiante.length > 0) {
-        // Agrupar por mes
-        const tardanzasPorMes = {};
-        tardEstudiante.forEach(t => {
-            const mes = t['Mes'] || t.mes || '';
-            const año = t['Año'] || t.año || '';
-            const fecha = t['Fecha'] || t.fecha || '';
-            const key = `${mes} ${año}`;
-            if (!tardanzasPorMes[key]) tardanzasPorMes[key] = [];
-            tardanzasPorMes[key].push(fecha);
-        });
-        
-        htmlTardanzas = '<h4>Tardanzas Registradas:</h4><ul style="line-height:2;">';
-        Object.keys(tardanzasPorMes).forEach(mes => {
-            const cantidad = tardanzasPorMes[mes].length;
-            const alerta = cantidad >= 3 ? ' <span style="color:#dc3545;font-weight:bold;">⚠️ REQUIERE ACCIÓN</span>' : '';
-            htmlTardanzas += `<li><strong>${mes}</strong>: ${cantidad} tardanza(s)${alerta}</li>`;
-        });
-        htmlTardanzas += '</ul>';
-        htmlTardanzas += `<p><strong>Total de tardanzas:</strong> ${tardEstudiante.length}</p>`;
-    } else {
-        htmlTardanzas = '<p style="color:#28a745;">✅ Sin tardanzas registradas</p>';
-    }
-    
-    let htmlContacto = '';
-    if (contactoEstudiante) {
-        const nombrePadre = contactoEstudiante['Nombre Padre'] || contactoEstudiante.nombrePadre || 'No registrado';
-        const telPadre = contactoEstudiante['Contacto Padre'] || contactoEstudiante.telPadre || 'Sin teléfono';
-        const nombreMadre = contactoEstudiante['Nombre Madre'] || contactoEstudiante.nombreMadre || 'No registrado';
-        const telMadre = contactoEstudiante['Contacto Madre'] || contactoEstudiante.telMadre || 'Sin teléfono';
-        const telEmergencia = contactoEstudiante['Contacto Emergencia'] || contactoEstudiante.telEmergencia || 'No registrado';
-        
-        htmlContacto = `
-            <h4>Información de Contacto:</h4>
-            <ul style="line-height:2;">
-                <li><strong>Padre:</strong> ${nombrePadre} - ${telPadre}</li>
-                <li><strong>Madre:</strong> ${nombreMadre} - ${telMadre}</li>
-                <li><strong>Contacto de Emergencia:</strong> ${telEmergencia}</li>
-            </ul>
-        `;
-    } else {
-        htmlContacto = '<p style="color:#ffc107;">⚠️ Sin contactos registrados</p>';
-    }
-    
-    contenedor.innerHTML = `
-        <div class="config-section">
-            <h3>📋 Reporte Individual: ${estudiante}</h3>
-            <p><strong>Curso:</strong> ${cursoEst}</p>
-            
-            <hr style="margin:20px 0;">
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h4>Incidencias</h4>
-                    <div class="number" style="color:${incEstudiante.length > 0 ? '#dc3545' : '#28a745'}">${incEstudiante.length}</div>
-                </div>
-                <div class="stat-card">
-                    <h4>Tardanzas</h4>
-                    <div class="number" style="color:${tardEstudiante.length >= 3 ? '#dc3545' : '#28a745'}">${tardEstudiante.length}</div>
-                </div>
-                <div class="stat-card">
-                    <h4>Faltas Leves</h4>
-                    <div class="number">${incEstudiante.filter(i => (i['Tipo de falta'] || i.tipoFalta) === 'Leve').length}</div>
-                </div>
-                <div class="stat-card">
-                    <h4>Faltas Graves</h4>
-                    <div class="number">${incEstudiante.filter(i => {
-                        const tipo = i['Tipo de falta'] || i.tipoFalta || '';
-                        return tipo === 'Grave' || tipo === 'Muy Grave';
-                    }).length}</div>
-                </div>
-            </div>
-            
-            <hr style="margin:30px 0;">
-            
-            ${htmlIncidencias}
-            
-            <hr style="margin:30px 0;">
-            
-            ${htmlTardanzas}
-            
-            <hr style="margin:30px 0;">
-            
-            ${htmlContacto}
-            
-            <div style="margin-top:30px;display:flex;gap:15px;flex-wrap:wrap;">
-                <button class="btn btn-success" onclick="exportarReporteIndividualPDF()">📄 Exportar Reporte a PDF</button>
-                <button class="btn btn-primary" onclick="abrirHistorialEstudiante('${estudiante.replace(/'/g, "\\'")}')">📋 Ver Historial Completo</button>
-            </div>
-        </div>
-    `;
+
+    // El reporte individual fue reemplazado: ahora se abre directamente el Historial Completo
+    contenedor.innerHTML = '';
+    const nombreCanonico = infoEstudiante['Nombre Completo'] || infoEstudiante.nombre || estudiante;
+    abrirHistorialEstudiante(nombreCanonico);
 }
 
 function exportarReporteEstudiante(estudiante) {
@@ -5376,6 +5228,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
         </div>
         <div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;flex-shrink:0;">
             <p style="font-size:1.1em;opacity:0.9;">${curso}</p>
+            <div id="condicionalHistorialArea">${htmlCondicionalEncabezadoInner(nombre, curso)}</div>
         </div>
         <div class="modal-body" style="overflow-y:auto;flex:1;max-height:calc(90vh - 180px);">
             
@@ -5384,34 +5237,34 @@ function abrirHistorialEstudiante(nombreEstudiante) {
                 📊 Resumen General
             </h3>
             <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:15px;margin-bottom:30px;">
-                <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+                <div class="resumen-card" style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${incidencias.length}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Incidencias Totales</div>
                 </div>
-                <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:20px;border-radius:8px;">
+                <div class="resumen-card" style="background:#fffbeb;border-left:4px solid #f59e0b;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${tardanzasTotales}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Tardanzas Totales</div>
                 </div>
-                <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;">
+                <div class="resumen-card" style="background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${reuniones.length}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Reuniones con Padres</div>
                 </div>
-                <div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:20px;border-radius:8px;">
+                <div class="resumen-card" style="background:#f0fdf4;border-left:4px solid #22c55e;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasLeves}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Leves</div>
                 </div>
-                <div style="background:#fff7ed;border-left:4px solid #f97316;padding:20px;border-radius:8px;">
+                <div class="resumen-card" style="background:#fff7ed;border-left:4px solid #f97316;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasGraves}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Graves</div>
                 </div>
-                <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
+                <div class="resumen-card" style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
                     <div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasMuyGraves}</div>
                     <div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Muy Graves</div>
                 </div>
             </div>
             
             <!-- ESTADO DEL ESTUDIANTE -->
-            <div style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;margin-bottom:30px;text-align:center;">
+            <div class="resumen-card" style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;margin-bottom:30px;text-align:center;">
                 <div style="font-size:2.5em;font-weight:bold;color:#333;">${estadoIcono}</div>
                 <div style="color:#666;font-size:1.1em;margin-top:5px;font-weight:600;">${estadoTexto}</div>
             </div>
@@ -5433,6 +5286,14 @@ function abrirHistorialEstudiante(nombreEstudiante) {
                 ${htmlTimeline}
             </div>
             
+            <!-- COMPARATIVA POR AÑO ESCOLAR -->
+            <h3 style="color:#333;margin-top:30px;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+                📈 Comparativa por Año Escolar
+            </h3>
+            <div id="comparativaAnualContent" style="margin-bottom:10px;">
+                <p style="text-align:center;color:#9ca3af;padding:24px;">⏳ Cargando comparativa por año...</p>
+            </div>
+            
             <!-- BOTÓN EXPORTAR -->
             <div style="margin-top:30px;text-align:center;">
                 <button class="btn btn-success" onclick="exportarHistorialPDF('${nombre.replace(/'/g, "\\'")}')">📄 Exportar Historial Completo a PDF</button>
@@ -5442,7 +5303,732 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     </div>
 </div>`;
     
-    document.getElementById('modalContainer').innerHTML += modalHTML;
+    // Anexar sin re-serializar el contenedor (innerHTML += destruiría los event listeners
+    // del autocompletado de la sección Reportes y Estadísticas que también vive aquí).
+    document.getElementById('modalContainer').insertAdjacentHTML('beforeend', modalHTML);
+
+    // Comparativa de comportamiento por año escolar (carga asíncrona al final del historial)
+    renderComparativaAnual(nombre);
+}
+
+// ===== Comparativa de comportamiento por año escolar (historial del estudiante) =====
+// Caché del último estudiante consultado, para que el PDF reutilice lo ya cargado.
+let _comparativaAnualCache = { nombre: null, datos: null };
+
+// Trae los registros del estudiante de TODOS los años y devuelve el conteo por año.
+async function obtenerComparativaAnual(nombreEstudiante) {
+    const nombreLC = (nombreEstudiante || '').toLowerCase();
+    if (_comparativaAnualCache.nombre === nombreLC && _comparativaAnualCache.datos) {
+        return _comparativaAnualCache.datos;
+    }
+
+    const anios = (ANIOS_DISPONIBLES && ANIOS_DISPONIBLES.length)
+        ? ANIOS_DISPONIBLES.slice()
+        : (ANIO_ACTIVO ? [ANIO_ACTIVO] : []);
+    if (!anios.length) return [];
+
+    // Ordenar cronológicamente por el año de inicio (ej. "2025-2026" -> 2025)
+    anios.sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0));
+
+    const tipoDe = (i) => (i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '');
+    const nombreDe = (r) => (r['Nombre Estudiante'] || r.estudiante || '');
+
+    const datos = await Promise.all(anios.map(async (anio) => {
+        let inc = [], tar = [];
+        if (CONFIG.urlIncidencias) {
+            inc = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias + '&anio=' + encodeURIComponent(anio)) || [];
+        }
+        if (CONFIG.urlTardanzas) {
+            tar = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas + '&anio=' + encodeURIComponent(anio)) || [];
+        }
+        const incEst = inc.filter(i => nombreDe(i).toLowerCase() === nombreLC);
+        const tarEst = tar.filter(t => nombreDe(t).toLowerCase() === nombreLC);
+        return {
+            anio,
+            leves:     incEst.filter(i => tipoDe(i) === 'Leve').length,
+            graves:    incEst.filter(i => tipoDe(i) === 'Grave').length,
+            muyGraves: incEst.filter(i => tipoDe(i) === 'Muy Grave').length,
+            tardanzas: tarEst.length
+        };
+    }));
+
+    _comparativaAnualCache = { nombre: nombreLC, datos };
+    return datos;
+}
+
+async function renderComparativaAnual(nombreEstudiante) {
+    const cont = document.getElementById('comparativaAnualContent');
+    if (!cont) return;
+    try {
+        const datos = await obtenerComparativaAnual(nombreEstudiante);
+        if (!datos.length) {
+            cont.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:24px;">No hay años escolares configurados para comparar.</p>';
+            return;
+        }
+        cont.innerHTML = construirGraficoComparativa(datos);
+    } catch (e) {
+        console.error('Error al cargar comparativa anual:', e);
+        cont.innerHTML = '<p style="text-align:center;color:#dc3545;padding:24px;">No se pudo cargar la comparativa por año. Intenta recargar el historial.</p>';
+    }
+}
+
+function construirGraficoComparativa(datos) {
+    const esOscuro  = document.body.classList.contains('dark-mode');
+    const cText     = esOscuro ? '#e2e8f0' : '#374151';
+    const cTextSoft = esOscuro ? '#94a3b8' : '#6b7280';
+    const cGrid     = esOscuro ? '#334155' : '#e5e7eb';
+    const cAxis     = esOscuro ? '#475569' : '#9ca3af';
+    const cPanel    = esOscuro ? '#0f172a' : '#f8fafc';
+
+    const series = [
+        { key: 'leves',     label: 'Leves',      color: '#22c55e' },
+        { key: 'graves',    label: 'Graves',     color: '#f97316' },
+        { key: 'muyGraves', label: 'Muy Graves', color: '#dc2626' },
+        { key: 'tardanzas', label: 'Tardanzas',  color: '#f59e0b' }
+    ];
+
+    const totalGlobal = datos.reduce((s, d) => s + d.leves + d.graves + d.muyGraves + d.tardanzas, 0);
+    if (totalGlobal === 0) {
+        return '<p style="text-align:center;color:' + cTextSoft + ';padding:30px;">Este estudiante no tiene incidencias ni tardanzas registradas en ningún año escolar.</p>';
+    }
+
+    // ---- Texto de tendencia: compara los dos últimos años CON registros ----
+    const conDatos = datos.filter(d => (d.leves + d.graves + d.muyGraves + d.tardanzas) > 0);
+    let trendHTML = '';
+    if (conDatos.length >= 2) {
+        const ult  = conDatos[conDatos.length - 1];
+        const prev = conDatos[conDatos.length - 2];
+        const fUlt  = ult.leves + ult.graves + ult.muyGraves;
+        const fPrev = prev.leves + prev.graves + prev.muyGraves;
+        const diff = fUlt - fPrev;
+        const enCurso = (ult.anio === ANIO_ACTIVO) ? ' (año en curso, aún incompleto)' : '';
+        let icono, color, texto;
+        if (diff < 0)      { icono = '▼'; color = '#16a34a'; texto = 'Mejoría: las faltas bajaron de ' + fPrev + ' a ' + fUlt; }
+        else if (diff > 0) { icono = '▲'; color = '#dc2626'; texto = 'Atención: las faltas subieron de ' + fPrev + ' a ' + fUlt; }
+        else               { icono = '='; color = cTextSoft; texto = 'Las faltas se mantuvieron en ' + fUlt; }
+        trendHTML =
+            '<div style="background:' + cPanel + ';border-left:4px solid ' + color + ';padding:12px 16px;border-radius:8px;margin-bottom:18px;">' +
+                '<span style="color:' + color + ';font-weight:700;font-size:1.1em;margin-right:6px;">' + icono + '</span>' +
+                '<span style="color:' + cText + ';font-weight:600;">' + texto + '</span>' +
+                '<span style="color:' + cTextSoft + ';"> en ' + ult.anio + ' respecto a ' + prev.anio + enCurso + '.</span>' +
+            '</div>';
+    } else {
+        trendHTML = '<div style="background:' + cPanel + ';border-left:4px solid ' + cAxis + ';padding:12px 16px;border-radius:8px;margin-bottom:18px;color:' + cTextSoft + ';">Aún no hay otro año escolar con registros para comparar.</div>';
+    }
+
+    // ---- Gráfico de barras agrupadas (SVG, compatible con modo claro/oscuro) ----
+    const W = 720, H = 360;
+    const padL = 44, padR = 16, padT = 24, padB = 64;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+    const nGroups = datos.length;
+    const groupW = plotW / nGroups;
+    const innerPad = groupW * 0.14;
+    const barGap = 4;
+    const barsAreaW = groupW - innerPad * 2;
+    const barW = Math.max(6, (barsAreaW - barGap * (series.length - 1)) / series.length);
+
+    const maxVal = Math.max(1, ...datos.flatMap(d => series.map(s => d[s.key])));
+    const steps = 4;
+    const yTop = Math.max(steps, Math.ceil(maxVal / steps) * steps);
+    const yToPix = (v) => padT + plotH - (v / yTop) * plotH;
+
+    let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit;display:block;">';
+
+    // Líneas guía y etiquetas del eje Y
+    for (let i = 0; i <= steps; i++) {
+        const val = Math.round(yTop * i / steps);
+        const y = yToPix(val);
+        svg += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + y.toFixed(1) + '" stroke="' + cGrid + '" stroke-width="1"/>';
+        svg += '<text x="' + (padL - 8) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end" font-size="11" fill="' + cTextSoft + '">' + val + '</text>';
+    }
+
+    // Grupos de barras por año
+    datos.forEach((d, gi) => {
+        const gx = padL + gi * groupW;
+        series.forEach((s, si) => {
+            const v = d[s.key];
+            const bx = gx + innerPad + si * (barW + barGap);
+            const by = yToPix(v);
+            const bh = (padT + plotH) - by;
+            if (v > 0) {
+                svg += '<rect x="' + bx.toFixed(1) + '" y="' + by.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + s.color + '"/>';
+                svg += '<text x="' + (bx + barW / 2).toFixed(1) + '" y="' + (by - 4).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="700" fill="' + cText + '">' + v + '</text>';
+            }
+        });
+        const etiqueta = d.anio + (d.anio === ANIO_ACTIVO ? ' • en curso' : '');
+        svg += '<text x="' + (gx + groupW / 2).toFixed(1) + '" y="' + (padT + plotH + 20) + '" text-anchor="middle" font-size="12" font-weight="600" fill="' + cText + '">' + etiqueta + '</text>';
+    });
+
+    // Eje X
+    svg += '<line x1="' + padL + '" y1="' + (padT + plotH) + '" x2="' + (W - padR) + '" y2="' + (padT + plotH) + '" stroke="' + cAxis + '" stroke-width="1.5"/>';
+
+    // Leyenda
+    const legendY = H - 22;
+    let lx = padL;
+    series.forEach(s => {
+        svg += '<rect x="' + lx + '" y="' + (legendY - 10) + '" width="12" height="12" rx="2" fill="' + s.color + '"/>';
+        svg += '<text x="' + (lx + 17) + '" y="' + legendY + '" font-size="12" fill="' + cTextSoft + '">' + s.label + '</text>';
+        lx += 17 + s.label.length * 7 + 20;
+    });
+
+    svg += '</svg>';
+    return trendHTML + '<div style="overflow-x:auto;">' + svg + '</div>';
+}
+
+// Dibuja la comparativa por año escolar de forma nativa (vectorial) en el PDF.
+function dibujarGraficoComparativaPDF(doc, datos, yPos) {
+    // Salto de página si no cabe la sección completa (~85mm)
+    if (yPos > 190) { doc.addPage(); yPos = 20; }
+
+    // Título de sección
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 138);
+    doc.text('COMPARATIVA POR AÑO ESCOLAR', 14, yPos);
+    yPos += 6;
+
+    const series = [
+        { key: 'leves',     label: 'Leves',      color: [34, 197, 94] },
+        { key: 'graves',    label: 'Graves',     color: [249, 115, 22] },
+        { key: 'muyGraves', label: 'Muy Graves', color: [220, 38, 38] },
+        { key: 'tardanzas', label: 'Tardanzas',  color: [245, 158, 11] }
+    ];
+
+    const totalGlobal = (datos || []).reduce((s, d) => s + d.leves + d.graves + d.muyGraves + d.tardanzas, 0);
+    if (!datos || !datos.length || totalGlobal === 0) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Sin incidencias ni tardanzas registradas en ningún año escolar.', 14, yPos);
+        doc.setTextColor(0, 0, 0);
+        return yPos + 8;
+    }
+
+    // Texto de tendencia (compara los dos últimos años con registros)
+    const conDatos = datos.filter(d => (d.leves + d.graves + d.muyGraves + d.tardanzas) > 0);
+    doc.setFontSize(9);
+    if (conDatos.length >= 2) {
+        const ult = conDatos[conDatos.length - 1];
+        const prev = conDatos[conDatos.length - 2];
+        const fUlt = ult.leves + ult.graves + ult.muyGraves;
+        const fPrev = prev.leves + prev.graves + prev.muyGraves;
+        const diff = fUlt - fPrev;
+        let color, texto;
+        if (diff < 0)      { color = [22, 163, 74];  texto = `Mejoría: las faltas bajaron de ${fPrev} a ${fUlt}`; }
+        else if (diff > 0) { color = [220, 38, 38];  texto = `Atención: las faltas subieron de ${fPrev} a ${fUlt}`; }
+        else               { color = [100, 100, 100]; texto = `Las faltas se mantuvieron en ${fUlt}`; }
+        const enCurso = (ult.anio === ANIO_ACTIVO) ? ' (año en curso, aún incompleto)' : '';
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lineas = doc.splitTextToSize(`${texto} en ${ult.anio} respecto a ${prev.anio}${enCurso}.`, 182);
+        doc.text(lineas, 14, yPos);
+        yPos += lineas.length * 5 + 1;
+    } else {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Aún no hay otro año escolar con registros para comparar.', 14, yPos);
+        yPos += 6;
+    }
+
+    // Área del gráfico
+    const plotLeft = 22, plotRight = 196;
+    const plotW = plotRight - plotLeft;
+    const plotTop = yPos + 2;
+    const plotH = 50;
+    const plotBottom = plotTop + plotH;
+
+    const maxVal = Math.max(1, ...datos.flatMap(d => series.map(s => d[s.key])));
+    const steps = 4;
+    const yTop = Math.max(steps, Math.ceil(maxVal / steps) * steps);
+
+    // Líneas guía + etiquetas del eje Y
+    doc.setDrawColor(225, 225, 225);
+    doc.setLineWidth(0.2);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    for (let i = 0; i <= steps; i++) {
+        const val = Math.round(yTop * i / steps);
+        const yy = plotBottom - (val / yTop) * plotH;
+        doc.line(plotLeft, yy, plotRight, yy);
+        doc.text(String(val), plotLeft - 2, yy + 1, { align: 'right' });
+    }
+
+    // Barras agrupadas
+    const nGroups = datos.length;
+    const groupW = plotW / nGroups;
+    const innerPad = groupW * 0.14;
+    const barGap = 1.5;
+    const barsAreaW = groupW - innerPad * 2;
+    const barW = Math.max(2, (barsAreaW - barGap * (series.length - 1)) / series.length);
+
+    datos.forEach((d, gi) => {
+        const gx = plotLeft + gi * groupW;
+        series.forEach((s, si) => {
+            const v = d[s.key];
+            if (v > 0) {
+                const bh = (v / yTop) * plotH;
+                const bx = gx + innerPad + si * (barW + barGap);
+                const by = plotBottom - bh;
+                doc.setFillColor(s.color[0], s.color[1], s.color[2]);
+                doc.rect(bx, by, barW, bh, 'F');
+                doc.setFontSize(6);
+                doc.setTextColor(60, 60, 60);
+                doc.text(String(v), bx + barW / 2, by - 1, { align: 'center' });
+            }
+        });
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(40, 40, 40);
+        const etiqueta = d.anio + (d.anio === ANIO_ACTIVO ? ' (en curso)' : '');
+        doc.text(etiqueta, gx + groupW / 2, plotBottom + 5, { align: 'center' });
+    });
+
+    // Eje X
+    doc.setDrawColor(150, 150, 150);
+    doc.setLineWidth(0.3);
+    doc.line(plotLeft, plotBottom, plotRight, plotBottom);
+
+    yPos = plotBottom + 10;
+
+    // Leyenda
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    let lx = plotLeft;
+    series.forEach(s => {
+        doc.setFillColor(s.color[0], s.color[1], s.color[2]);
+        doc.rect(lx, yPos - 3, 4, 4, 'F');
+        doc.setTextColor(60, 60, 60);
+        doc.text(s.label, lx + 6, yPos);
+        lx += 6 + s.label.length * 1.9 + 8;
+    });
+    yPos += 8;
+
+    doc.setTextColor(0, 0, 0);
+    return yPos;
+}
+
+// Dibuja la comparativa por año escolar de forma nativa en el PDF (mismo estilo del resto).
+function dibujarComparativaAnualPDF(doc, datos, yPos) {
+    const totalGlobal = datos.reduce((s, d) => s + d.leves + d.graves + d.muyGraves + d.tardanzas, 0);
+
+    // Reservar espacio: si el bloque no cabe en la página, pasar a una nueva
+    const espacioNecesario = (totalGlobal === 0) ? 24 : 92;
+    if (yPos > 277 - espacioNecesario) {
+        doc.addPage();
+        yPos = 20;
+    }
+
+    // Encabezado de sección
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 58, 138);
+    doc.text('COMPARATIVA POR AÑO ESCOLAR', 14, yPos);
+    yPos += 6;
+    doc.setTextColor(0, 0, 0);
+
+    if (totalGlobal === 0) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Sin incidencias ni tardanzas registradas en ningún año escolar.', 14, yPos);
+        doc.setTextColor(0, 0, 0);
+        return yPos + 6;
+    }
+
+    // Texto de tendencia (compara los dos últimos años con registros)
+    const conDatos = datos.filter(d => (d.leves + d.graves + d.muyGraves + d.tardanzas) > 0);
+    if (conDatos.length >= 2) {
+        const ult = conDatos[conDatos.length - 1];
+        const prev = conDatos[conDatos.length - 2];
+        const fUlt = ult.leves + ult.graves + ult.muyGraves;
+        const fPrev = prev.leves + prev.graves + prev.muyGraves;
+        const diff = fUlt - fPrev;
+        const enCurso = (ult.anio === ANIO_ACTIVO) ? ' (en curso, aún incompleto)' : '';
+        let texto, rgb;
+        if (diff < 0)      { rgb = [22, 163, 74];  texto = 'Mejoría: las faltas bajaron de ' + fPrev + ' a ' + fUlt + ' en ' + ult.anio + ' respecto a ' + prev.anio + enCurso + '.'; }
+        else if (diff > 0) { rgb = [220, 38, 38];  texto = 'Atención: las faltas subieron de ' + fPrev + ' a ' + fUlt + ' en ' + ult.anio + ' respecto a ' + prev.anio + enCurso + '.'; }
+        else               { rgb = [90, 90, 90];   texto = 'Las faltas se mantuvieron en ' + fUlt + ' en ' + ult.anio + ' respecto a ' + prev.anio + enCurso + '.'; }
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+        const lineas = doc.splitTextToSize(texto, 182);
+        doc.text(lineas, 14, yPos);
+        yPos += lineas.length * 4 + 3;
+        doc.setTextColor(0, 0, 0);
+    } else {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Aún no hay otro año escolar con registros para comparar.', 14, yPos);
+        yPos += 6;
+        doc.setTextColor(0, 0, 0);
+    }
+
+    // Gráfico de barras agrupadas (nativo, mismos colores que en pantalla)
+    const series = [
+        { key: 'leves',     label: 'Leves',      rgb: [34, 197, 94] },
+        { key: 'graves',    label: 'Graves',     rgb: [249, 115, 22] },
+        { key: 'muyGraves', label: 'Muy Graves', rgb: [220, 38, 38] },
+        { key: 'tardanzas', label: 'Tardanzas',  rgb: [245, 158, 11] }
+    ];
+    const axisX = 24, rightX = 196;
+    const plotW = rightX - axisX;
+    const topY = yPos + 2;
+    const plotH = 48;
+    const baseY = topY + plotH;
+
+    const maxVal = Math.max(1, ...datos.flatMap(d => series.map(s => d[s.key])));
+    const steps = 4;
+    const yTop = Math.max(steps, Math.ceil(maxVal / steps) * steps);
+
+    // Líneas guía + etiquetas del eje Y
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    for (let i = 0; i <= steps; i++) {
+        const val = Math.round(yTop * i / steps);
+        const gy = baseY - (val / yTop) * plotH;
+        doc.setDrawColor(226, 228, 232);
+        doc.setLineWidth(0.2);
+        doc.line(axisX, gy, rightX, gy);
+        doc.setTextColor(120, 120, 120);
+        doc.text(String(val), axisX - 2, gy + 1.4, { align: 'right' });
+    }
+
+    // Barras por año
+    const nGroups = datos.length;
+    const groupW = plotW / nGroups;
+    const innerPad = groupW * 0.14;
+    const barGap = 1.5;
+    const barsAreaW = groupW - innerPad * 2;
+    const barW = Math.max(2, (barsAreaW - barGap * (series.length - 1)) / series.length);
+
+    datos.forEach((d, gi) => {
+        const gx = axisX + gi * groupW;
+        series.forEach((s, si) => {
+            const v = d[s.key];
+            if (v > 0) {
+                const bh = (v / yTop) * plotH;
+                const bx = gx + innerPad + si * (barW + barGap);
+                const by = baseY - bh;
+                doc.setFillColor(s.rgb[0], s.rgb[1], s.rgb[2]);
+                doc.rect(bx, by, barW, bh, 'F');
+                doc.setTextColor(70, 70, 70);
+                doc.setFontSize(6);
+                doc.text(String(v), bx + barW / 2, by - 1, { align: 'center' });
+            }
+        });
+        doc.setTextColor(40, 40, 40);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        const etq = d.anio + (d.anio === ANIO_ACTIVO ? ' (en curso)' : '');
+        doc.text(etq, gx + groupW / 2, baseY + 4, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+    });
+
+    // Eje X
+    doc.setDrawColor(150, 150, 150);
+    doc.setLineWidth(0.3);
+    doc.line(axisX, baseY, rightX, baseY);
+
+    // Leyenda
+    let ly = baseY + 9, lx = axisX;
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    series.forEach(s => {
+        doc.setFillColor(s.rgb[0], s.rgb[1], s.rgb[2]);
+        doc.rect(lx, ly - 2.5, 3, 3, 'F');
+        doc.setTextColor(80, 80, 80);
+        doc.text(s.label, lx + 4.5, ly);
+        lx += 4.5 + doc.getTextWidth(s.label) + 6;
+    });
+
+    doc.setTextColor(0, 0, 0);
+    return ly + 6;
+}
+
+// ============================================================
+// MÓDULO: ESTUDIANTES CONDICIONALES (por año escolar)
+// Hoja "Condicionales": Año Escolar | Nombre Estudiante | Curso | Motivo |
+// Faltas de referencia | Fecha registro | Estado (Vigente/Levantado/Incumplido) |
+// Observaciones | Registrado por
+// ============================================================
+let datosCondicionales = [];
+
+async function recargarCondicionales() {
+    if (!CONFIG.urlCondicionales) return;
+    try {
+        const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlCondicionales);
+        datosCondicionales = Array.isArray(datos) ? datos : [];
+    } catch (e) {
+        console.error('Error al cargar condicionales:', e);
+    }
+}
+
+// Devuelve el registro condicional VIGENTE del estudiante en el año activo, o null
+function esCondicional(nombreEstudiante) {
+    if (!Array.isArray(datosCondicionales)) return null;
+    const nLC = (nombreEstudiante || '').toLowerCase().trim();
+    return datosCondicionales.find(c => {
+        const nom = (c['Nombre Estudiante'] || c.estudiante || '').toLowerCase().trim();
+        const estado = (c['Estado'] || c.estado || 'Vigente');
+        return nom === nLC && estado === 'Vigente';
+    }) || null;
+}
+
+// Insignia + botón para el encabezado del historial (contenido interno, sin el div contenedor)
+function htmlCondicionalEncabezadoInner(nombre, curso) {
+    const nEsc = (nombre || '').replace(/'/g, "\\'");
+    const cEsc = (curso || '').replace(/'/g, "\\'");
+    if (esCondicional(nombre)) {
+        return `<div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <span style="background:#f59e0b;color:#1a1a1a;font-weight:700;padding:6px 14px;border-radius:20px;font-size:0.95em;">⚠️ CONDICIONAL</span>
+                    <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.5);padding:6px 14px;font-size:0.85em;" onclick="levantarCondicionalDesde('${nEsc}')">Levantar condición</button>
+                </div>`;
+    }
+    return `<div style="margin-top:12px;">
+                <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.5);padding:6px 14px;font-size:0.9em;" onclick="abrirMarcarCondicional('${nEsc}','${cEsc}')">⚠️ Marcar como condicional</button>
+            </div>`;
+}
+
+// Fila del listado de estudiantes (con celda de estado/acción condicional)
+function filaEstudianteHTML(e) {
+    const nombre = e['Nombre Completo'] || e.nombre || '-';
+    const curso = e['Curso'] || e.curso || '-';
+    const nEsc = nombre.replace(/'/g, "\\'");
+    const cEsc = (curso === '-' ? '' : curso).replace(/'/g, "\\'");
+    const estadoCell = esCondicional(nombre)
+        ? `<span style="background:#f59e0b;color:#1a1a1a;font-weight:700;padding:3px 10px;border-radius:12px;font-size:0.8em;white-space:nowrap;">⚠️ Condicional</span>`
+        : `<button class="btn" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;padding:4px 10px;font-size:0.8em;white-space:nowrap;" onclick="abrirMarcarCondicional('${nEsc}','${cEsc}')">Marcar condicional</button>`;
+    return `
+        <tr>
+            <td><strong>${nombre}</strong></td>
+            <td>${curso}</td>
+            <td>${estadoCell}</td>
+        </tr>`;
+}
+
+// Abre el formulario para marcar a un estudiante como condicional
+function abrirMarcarCondicional(nombreEstudiante, cursoEstudiante) {
+    let curso = cursoEstudiante || '';
+    if (!curso) {
+        const est = datosEstudiantes.find(e => (e['Nombre Completo'] || e.nombre || '').toLowerCase() === (nombreEstudiante || '').toLowerCase());
+        curso = est ? (est['Curso'] || est.curso || '') : '';
+    }
+    if (esCondicional(nombreEstudiante)) {
+        alert('Este estudiante ya está marcado como condicional en el año activo.');
+        return;
+    }
+    const hoy = new Date().toLocaleDateString('es-DO');
+    const existente = document.getElementById('modalMarcarCondicional');
+    if (existente) existente.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modalMarcarCondicional';
+    overlay.className = 'modal';
+    overlay.style.cssText = 'display:block;z-index:3000;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:560px;">
+        <div class="modal-header" style="background:linear-gradient(135deg,#d97706,#b45309);color:white;">
+            <h2>⚠️ Marcar como Condicional</h2>
+            <span class="close" onclick="cerrarMarcarCondicional()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom:6px;"><strong>Estudiante:</strong> ${nombreEstudiante}</p>
+            <p style="margin-bottom:16px;color:#666;"><strong>Curso:</strong> ${curso || '-'} &nbsp;·&nbsp; <strong>Año:</strong> ${ANIO_ACTIVO || '-'}</p>
+            <form id="formCondicional" onsubmit="guardarCondicional(event)">
+                <input type="hidden" id="condNombre" value="${nombreEstudiante.replace(/"/g, '&quot;')}">
+                <input type="hidden" id="condCurso" value="${(curso || '').replace(/"/g, '&quot;')}">
+                <div class="form-group">
+                    <label>Motivo *</label>
+                    <textarea id="condMotivo" required rows="3" placeholder="Ej: Reincidencia en faltas graves durante el año anterior..." style="width:100%;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Faltas de referencia (año anterior)</label>
+                    <textarea id="condFaltasRef" rows="2" placeholder="Cargando resumen del año anterior..." style="width:100%;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea id="condObs" rows="2" style="width:100%;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de registro</label>
+                    <input type="text" id="condFecha" value="${hoy}" style="width:100%;">
+                </div>
+                <div style="display:flex;gap:10px;margin-top:10px;">
+                    <button type="submit" class="btn btn-primary" style="background:#d97706;">💾 Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarMarcarCondicional()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    // Autollenar "faltas de referencia" desde el historial del año anterior
+    prefillFaltasReferencia(nombreEstudiante);
+}
+
+function cerrarMarcarCondicional() {
+    const m = document.getElementById('modalMarcarCondicional');
+    if (m) m.remove();
+}
+
+// Rellena el resumen del año anterior usando la comparativa por año ya existente
+async function prefillFaltasReferencia(nombre) {
+    try {
+        const datos = await obtenerComparativaAnual(nombre);
+        const ta = document.getElementById('condFaltasRef');
+        if (!ta || !Array.isArray(datos)) return;
+        let ref = null;
+        const idxActivo = datos.findIndex(d => d.anio === ANIO_ACTIVO);
+        if (idxActivo > 0) {
+            ref = datos[idxActivo - 1];
+        } else {
+            const previos = datos.filter(d => d.anio !== ANIO_ACTIVO && (d.leves + d.graves + d.muyGraves + d.tardanzas) > 0);
+            if (previos.length) ref = previos[previos.length - 1];
+        }
+        if (ref && (ref.leves + ref.graves + ref.muyGraves + ref.tardanzas) > 0) {
+            ta.value = `${ref.anio}: ${ref.leves} leves, ${ref.graves} graves, ${ref.muyGraves} muy graves, ${ref.tardanzas} tardanzas.`;
+        } else {
+            ta.placeholder = 'Sin datos del año anterior.';
+        }
+    } catch (e) {
+        const ta = document.getElementById('condFaltasRef');
+        if (ta) ta.placeholder = '';
+    }
+}
+
+async function guardarCondicional(event) {
+    event.preventDefault();
+    const nombre = document.getElementById('condNombre').value;
+    const curso = document.getElementById('condCurso').value;
+    const motivo = document.getElementById('condMotivo').value.trim();
+    const faltasRef = document.getElementById('condFaltasRef').value.trim();
+    const obs = document.getElementById('condObs').value.trim();
+    const fecha = document.getElementById('condFecha').value.trim();
+    if (!motivo) { alert('Indique el motivo.'); return; }
+
+    const registro = {
+        'Año Escolar': ANIO_ACTIVO,
+        'Nombre Estudiante': nombre,
+        'Curso': curso,
+        'Motivo': motivo,
+        'Faltas de referencia': faltasRef,
+        'Fecha registro': fecha,
+        'Estado': 'Vigente',
+        'Observaciones': obs,
+        'Registrado por': ''
+    };
+
+    const btn = event.submitter;
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+    try {
+        await enviarGoogleSheets(CONFIG.urlCondicionales, registro, 'agregar');
+        // Actualización optimista en memoria (la hoja ya lo tiene; se sincroniza al recargar la página)
+        datosCondicionales.push(registro);
+        cerrarMarcarCondicional();
+        refrescarVistasCondicional(nombre);
+        alert('✅ Estudiante marcado como condicional.');
+    } catch (e) {
+        console.error('Error al guardar condicional:', e);
+        alert('No se pudo guardar. Intenta de nuevo.');
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar'; }
+    }
+}
+
+// Levantar la condición (cambia Estado a "Levantado") desde el historial
+function levantarCondicionalDesde(nombre) {
+    const cond = esCondicional(nombre);
+    if (!cond) { alert('Este estudiante no tiene una condición vigente.'); return; }
+    levantarCondicional(datosCondicionales.indexOf(cond));
+}
+
+async function levantarCondicional(indice) {
+    if (indice < 0 || indice >= datosCondicionales.length) return;
+    if (!confirm('¿Levantar la condición de este estudiante? Su estado pasará a "Levantado".')) return;
+    const cond = datosCondicionales[indice];
+    const actualizado = Object.assign({}, cond, { 'Estado': 'Levantado' });
+    try {
+        await enviarGoogleSheets(CONFIG.urlCondicionales, actualizado, 'actualizar', indice);
+        datosCondicionales[indice] = actualizado; // optimista
+        const nombre = cond['Nombre Estudiante'] || cond.estudiante || '';
+        refrescarVistasCondicional(nombre);
+        if (document.getElementById('modalCondicionales')) verCondicionales();
+        alert('✅ Condición levantada.');
+    } catch (e) {
+        console.error('Error al levantar condicional:', e);
+        alert('No se pudo actualizar. Intenta de nuevo.');
+    }
+}
+
+// Refresca insignias/botones donde aparezca el estudiante
+function refrescarVistasCondicional(nombre) {
+    // Listado de estudiantes (si está abierto)
+    if (document.getElementById('bodyEstudiantes')) {
+        if (document.getElementById('buscarEst') && typeof buscarEstudiantes === 'function') {
+            buscarEstudiantes();
+        } else if (typeof cargarTablaEstudiantes === 'function') {
+            cargarTablaEstudiantes();
+        }
+    }
+    // Encabezado del historial (si está abierto)
+    const area = document.getElementById('condicionalHistorialArea');
+    if (area) {
+        const est = datosEstudiantes.find(x => (x['Nombre Completo'] || x.nombre || '').toLowerCase() === (nombre || '').toLowerCase());
+        const curso = est ? (est['Curso'] || est.curso || '') : '';
+        area.innerHTML = htmlCondicionalEncabezadoInner(nombre, curso);
+    }
+}
+
+// Vista de todos los condicionales del año activo
+function verCondicionales() {
+    const existente = document.getElementById('modalCondicionales');
+    if (existente) existente.remove();
+
+    const vigentes = datosCondicionales.filter(c => (c['Estado'] || c.estado || 'Vigente') === 'Vigente');
+    const filas = datosCondicionales.length ? datosCondicionales.map((c, i) => {
+        const nom = c['Nombre Estudiante'] || c.estudiante || '-';
+        const cur = c['Curso'] || c.curso || '-';
+        const mot = c['Motivo'] || c.motivo || '';
+        const fec = c['Fecha registro'] || c.fecha || '';
+        const est = c['Estado'] || c.estado || 'Vigente';
+        const colorEst = est === 'Vigente' ? '#f59e0b' : (est === 'Incumplido' ? '#dc2626' : '#16a34a');
+        const accion = est === 'Vigente'
+            ? `<button class="btn" style="background:#16a34a;color:white;padding:4px 10px;font-size:0.8em;" onclick="levantarCondicional(${i})">Levantar</button>`
+            : '';
+        return `<tr>
+            <td><strong>${nom}</strong></td>
+            <td>${cur}</td>
+            <td style="max-width:300px;">${mot}</td>
+            <td style="white-space:nowrap;">${fec}</td>
+            <td><span style="background:${colorEst};color:white;padding:3px 10px;border-radius:12px;font-size:0.8em;">${est}</span></td>
+            <td>${accion}</td>
+        </tr>`;
+    }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#999;">No hay estudiantes condicionales registrados en el año activo.</td></tr>';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modalCondicionales';
+    overlay.className = 'modal';
+    overlay.style.cssText = 'display:block;z-index:2500;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:920px;">
+        <div class="modal-header" style="background:linear-gradient(135deg,#d97706,#b45309);color:white;">
+            <h2>⚠️ Estudiantes Condicionales · ${ANIO_ACTIVO || ''}</h2>
+            <span class="close" onclick="document.getElementById('modalCondicionales').remove()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom:14px;color:#666;">Condicionales vigentes: <strong>${vigentes.length}</strong></p>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Nombre</th><th>Curso</th><th>Motivo</th><th>Fecha</th><th>Estado</th><th></th></tr></thead>
+                    <tbody>${filas}</tbody>
+                </table>
+            </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
 }
 
 function cerrarHistorialEstudiante() {
@@ -5452,7 +6038,7 @@ function cerrarHistorialEstudiante() {
     }
 }
 
-function exportarHistorialPDF(nombreEstudiante) {
+async function exportarHistorialPDF(nombreEstudiante) {
     // Buscar información del estudiante
     const estudiante = datosEstudiantes.find(e => {
         const nombre = e['Nombre Completo'] || e.nombre || '';
@@ -5732,10 +6318,12 @@ function exportarHistorialPDF(nombreEstudiante) {
             
             if (evento.tipo === 'incidencia') {
                 icono = 'INCIDENCIA';
-                if (evento.gravedad === 'Grave' || evento.gravedad === 'Muy Grave') {
+                if (evento.gravedad === 'Muy Grave') {
                     colorFondo = [220, 38, 38]; // Rojo
+                } else if (evento.gravedad === 'Grave') {
+                    colorFondo = [249, 115, 22]; // Naranja
                 } else {
-                    colorFondo = [245, 158, 11]; // Naranja
+                    colorFondo = [34, 197, 94]; // Verde (Leve)
                 }
             } else if (evento.tipo === 'tardanza') {
                 icono = 'TARDANZA';
@@ -5805,6 +6393,14 @@ function exportarHistorialPDF(nombreEstudiante) {
             
             doc.setTextColor(0, 0, 0);
         });
+    }
+    
+    // SECCIÓN: COMPARATIVA POR AÑO ESCOLAR (gráfico de evolución por año)
+    try {
+        const datosComparativa = await obtenerComparativaAnual(nombreEstudiante);
+        yPos = dibujarComparativaAnualPDF(doc, datosComparativa, yPos + 4);
+    } catch (e) {
+        console.error('No se pudo incluir la comparativa anual en el PDF:', e);
     }
     
     // Pie de página con fecha de generación
@@ -7011,8 +7607,8 @@ function filtrarEstudiantesReunion() {
         const cursoEscapado = curso.replace(/'/g, "\\'");
         return `<div onclick="seleccionarEstudianteReunion('${nombreEscapado}', '${cursoEscapado}')" 
                      style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
-                     onmouseover="this.style.background='#f0f0f0'" 
-                     onmouseout="this.style.background='white'">
+                     class="sugerencia-item" 
+                     >
                     <strong>${nombre}</strong><br>
                     <small style="color:#666;">${curso}</small>
                 </div>`;
@@ -7036,7 +7632,7 @@ function seleccionarEstudianteReunion(nombre, curso) {
     input.value = nombre;
     cursoSelect.value = curso;
     
-    cursoSelect.style.background = '#e8f5e9';
+    cursoSelect.style.background = '';
     setTimeout(() => {
         cursoSelect.style.background = '';
     }, 1000);
@@ -7267,7 +7863,7 @@ function editarReunion(indice) {
     
     // Resaltar el formulario
     const form = document.getElementById('formReunion');
-    form.style.background = '#fff3cd';
+    form.style.background = '';
     setTimeout(() => {
         form.style.background = '';
     }, 2000);
@@ -7598,6 +8194,7 @@ function verDetalleReunion(index) {
     const fechaSeg = r['Fecha Seguimiento'] || r.fechaSeguimiento || '';
     const observaciones = r['Observaciones'] || r.observaciones || '';
     const asistio = r['Asistió'] || r['asistio'] || r.asistio || 'No';
+    const esOscuro = document.body.classList.contains('dark-mode');
     
     // Icono según tipo
     const iconoTipo = tipo === 'Llamada telefónica' ? '📞' : '🏫';
@@ -7656,8 +8253,8 @@ function verDetalleReunion(index) {
             ${acuerdosLista}
         </div>
         
-        <div style="padding:15px;background:${estado === 'Cumplido' ? '#d4edda' : estado === 'En seguimiento' ? '#d1ecf1' : '#f8d7da'};border-radius:8px;margin-bottom:15px;">
-            <p><strong>Estado:</strong> <span style="color:${estado === 'Cumplido' ? '#155724' : estado === 'En seguimiento' ? '#0c5460' : '#721c24'}">${estado}</span></p>
+        <div style="padding:15px;background:${esOscuro ? '#0f172a' : (estado === 'Cumplido' ? '#d4edda' : estado === 'En seguimiento' ? '#d1ecf1' : '#f8d7da')};border-radius:8px;margin-bottom:15px;">
+            <p><strong>Estado:</strong> <span style="color:${esOscuro ? (estado === 'Cumplido' ? '#34d399' : estado === 'En seguimiento' ? '#38bdf8' : '#f87171') : (estado === 'Cumplido' ? '#155724' : estado === 'En seguimiento' ? '#0c5460' : '#721c24')}">${estado}</span></p>
             ${fechaSeg ? `<p><strong>Seguimiento:</strong> ${new Date(fechaSeg).toLocaleDateString('es-DO')}</p>` : ''}
             ${observaciones ? `<p><strong>Observaciones:</strong> ${observaciones}</p>` : ''}
         </div>
@@ -8311,6 +8908,19 @@ async function cargarTodosDatosAlInicio() {
         );
     }
     
+    // Cargar Estudiantes Condicionales (año activo)
+    if (CONFIG.urlCondicionales) {
+        if (loadingText) loadingText.textContent = '📥 Cargando condicionales...';
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(CONFIG.urlCondicionales)
+                .then(datos => {
+                    datosCondicionales = Array.isArray(datos) ? datos : [];
+                    console.log(`✅ ${datosCondicionales.length} condicionales cargados`);
+                })
+                .catch(err => console.error('❌ Error cargando condicionales:', err))
+        );
+    }
+    
     // Cargar Notas Rápidas
     if (CONFIG.urlNotasRapidas) {
         if (loadingText) loadingText.textContent = '📥 Cargando notas rápidas...';
@@ -8764,6 +9374,11 @@ function renderGraficoCursos() {
     if (conDatos.length === 0) {
         container.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:40px 20px;">No hay incidencias registradas para el período seleccionado.</p>';
     } else {
+        const esOscuro = document.body.classList.contains('dark-mode');
+        const colTxtBarra = esOscuro ? '#cbd5e1' : '#555';
+        const colCurso    = esOscuro ? '#e2e8f0' : '#374151';
+        const colGuiaTxt  = esOscuro ? '#94a3b8' : '#9ca3af';
+        const colGuiaLine = esOscuro ? '#334155' : '#e5e7eb';
         const maxVal = Math.max.apply(null, conDatos.map(function(d) { return Math.max(d.leves, d.graves, d.muyGraves, 1); }));
         const barW = 16, gap = 6, groupGap = 18;
         const groupW = barW * 3 + gap * 2 + groupGap;
@@ -8780,7 +9395,7 @@ function renderGraficoCursos() {
                 const y = topPad + chartH - h;
                 return '<rect x="' + (x + offset) + '" y="' + y + '" width="' + barW + '" height="' + h + '" fill="' + color + '" rx="3">' +
                        '<title>' + val + '</title></rect>' +
-                       '<text x="' + (x + offset + barW / 2) + '" y="' + (y - 4) + '" text-anchor="middle" font-size="9" fill="#555">' + (val > 0 ? val : '') + '</text>';
+                       '<text x="' + (x + offset + barW / 2) + '" y="' + (y - 4) + '" text-anchor="middle" font-size="9" fill="' + colTxtBarra + '">' + (val > 0 ? val : '') + '</text>';
             }
 
             svgBars += bar(d.leves,     '#22c55e', 0);
@@ -8796,7 +9411,7 @@ function renderGraficoCursos() {
             }
 
             // Curso label
-            svgBars += '<text x="' + (x + groupW / 2 - groupGap / 2) + '" y="' + (topPad + chartH + 14) + '" text-anchor="middle" font-size="10" fill="#374151" font-weight="600">' + d.curso + '</text>';
+            svgBars += '<text x="' + (x + groupW / 2 - groupGap / 2) + '" y="' + (topPad + chartH + 14) + '" text-anchor="middle" font-size="10" fill="' + colCurso + '" font-weight="600">' + d.curso + '</text>';
         });
 
         // Líneas guía horizontales
@@ -8804,8 +9419,8 @@ function renderGraficoCursos() {
         [0.25, 0.5, 0.75, 1].forEach(function(p) {
             const y = topPad + chartH - Math.round(p * chartH);
             const v = Math.round(p * maxVal);
-            guias += '<line x1="14" y1="' + y + '" x2="' + totalW + '" y2="' + y + '" stroke="#e5e7eb" stroke-width="1"/>';
-            guias += '<text x="10" y="' + (y + 4) + '" text-anchor="end" font-size="9" fill="#9ca3af">' + v + '</text>';
+            guias += '<line x1="14" y1="' + y + '" x2="' + totalW + '" y2="' + y + '" stroke="' + colGuiaLine + '" stroke-width="1"/>';
+            guias += '<text x="10" y="' + (y + 4) + '" text-anchor="end" font-size="9" fill="' + colGuiaTxt + '">' + v + '</text>';
         });
 
         container.innerHTML =
