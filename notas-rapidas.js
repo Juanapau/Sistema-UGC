@@ -573,7 +573,7 @@ class NotasRapidas {
                 textoFecha = `📅 ${this.formatearFechaAccion(fechaAccion)}`;
             }
             
-            const colorFecha = esVencida ? '#dc2626' : esHoy ? '#ea580c' : '#059669';
+            const colorFecha = esVencida ? '#f97316' : esHoy ? '#3b82f6' : '#059669';
             fechaAccionHTML = `<div style="font-weight:600;color:${colorFecha};margin-top:6px;font-size:0.9em;">${textoFecha}</div>`;
         }
         
@@ -1112,7 +1112,7 @@ function actualizarContadoresPestanas() {
     // Actualizar badges
     const badgeHoy = document.getElementById('countHoy');
     const badgeProximas = document.getElementById('countProximas');
-    const badgeTodas = document.getElementById('countTodas');
+    const badgeTodas = document.getElementById('countTodasNotas');
     
     if (badgeHoy) badgeHoy.textContent = countHoy;
     if (badgeProximas) badgeProximas.textContent = countProximas;
@@ -1272,8 +1272,8 @@ function inicializarAutocompletadoNotaRapida() {
             return `
                 <div onclick="seleccionarEstudianteNotaRapida('${nombreEscapado}', '${cursoEscapado}')" 
                      style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
-                     onmouseover="this.style.background='#f0fdf4'" 
-                     onmouseout="this.style.background='white'">
+                     class="sugerencia-item" 
+                     >
                     <div style="font-weight:600;">${nombre}</div>
                     <div style="font-size:0.85em;color:#666;">${curso}</div>
                 </div>
