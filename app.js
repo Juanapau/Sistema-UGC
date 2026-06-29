@@ -35,7 +35,7 @@ const CONFIG_PREDETERMINADO = { ...CONFIG };
 let ANIO_ACTIVO = '';
 let ANIOS_DISPONIBLES = [];
 // Hojas cuyos datos se filtran y se sellan por año escolar
-const HOJAS_CON_ANIO = ['Incidencias', 'Tardanzas', 'Reuniones', 'Estudiantes', 'Condicionales'];
+const HOJAS_CON_ANIO = ['Incidencias', 'Tardanzas', 'Reuniones', 'Estudiantes'];
 
 // Lee la hoja Config y guarda el año activo y la lista de años disponibles
 async function cargarConfig() {
@@ -853,6 +853,11 @@ const inc = {
             const docente = inc['Docente'];
             const curso = inc['Curso'] || inc['curso'] || '';
             notificarNuevaIncidencia(estudiante, tipoFalta, tipoConducta, docente, curso);
+        }
+
+        // Fase 2: si el estudiante está condicional vigente, avisar y ofrecer marcar Incumplido
+        if (typeof alertarCondicionalIncidencia === 'function') {
+            alertarCondicionalIncidencia(inc['Nombre Estudiante'], inc['Tipo de falta']);
         }
     }
     
@@ -5756,6 +5761,15 @@ function dibujarComparativaAnualPDF(doc, datos, yPos) {
 // ============================================================
 let datosCondicionales = [];
 
+// Aviso breve con el cuadro propio del sistema (cabecera verde, botón Aceptar)
+function avisoCondicional(mensaje, titulo = 'Aviso') {
+    if (typeof mostrarModalConfirmacion === 'function') {
+        mostrarModalConfirmacion(titulo, mensaje, false, null, 'Aceptar');
+    } else {
+        alert(mensaje);
+    }
+}
+
 async function recargarCondicionales() {
     if (!CONFIG.urlCondicionales) return;
     try {
@@ -5766,6 +5780,12 @@ async function recargarCondicionales() {
     }
 }
 
+// ¿El registro pertenece al año escolar activo? (rows sin año se incluyen por compatibilidad)
+function esAnioActivo(c) {
+    const a = String(c['Año Escolar'] || c['Ano Escolar'] || c.anio || '').trim();
+    return a === '' || a === String(ANIO_ACTIVO || '');
+}
+
 // Devuelve el registro condicional VIGENTE del estudiante en el año activo, o null
 function esCondicional(nombreEstudiante) {
     if (!Array.isArray(datosCondicionales)) return null;
@@ -5773,19 +5793,40 @@ function esCondicional(nombreEstudiante) {
     return datosCondicionales.find(c => {
         const nom = (c['Nombre Estudiante'] || c.estudiante || '').toLowerCase().trim();
         const estado = (c['Estado'] || c.estado || 'Vigente');
-        return nom === nLC && estado === 'Vigente';
+        return nom === nLC && estado === 'Vigente' && esAnioActivo(c);
     }) || null;
+}
+
+// Devuelve el registro condicional más relevante del estudiante en el año activo
+// (prioriza Vigente, luego Incumplido, luego el último), o null
+function condicionalDe(nombreEstudiante) {
+    if (!Array.isArray(datosCondicionales)) return null;
+    const nLC = (nombreEstudiante || '').toLowerCase().trim();
+    const regs = datosCondicionales.filter(c => (c['Nombre Estudiante'] || c.estudiante || '').toLowerCase().trim() === nLC && esAnioActivo(c));
+    if (!regs.length) return null;
+    return regs.find(c => (c['Estado'] || c.estado || 'Vigente') === 'Vigente')
+        || regs.find(c => (c['Estado'] || c.estado) === 'Incumplido')
+        || regs[regs.length - 1];
 }
 
 // Insignia + botón para el encabezado del historial (contenido interno, sin el div contenedor)
 function htmlCondicionalEncabezadoInner(nombre, curso) {
     const nEsc = (nombre || '').replace(/'/g, "\\'");
     const cEsc = (curso || '').replace(/'/g, "\\'");
-    if (esCondicional(nombre)) {
-        return `<div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    const cond = condicionalDe(nombre);
+    const estado = cond ? (cond['Estado'] || cond.estado || 'Vigente') : null;
+    if (estado === 'Vigente') {
+        return `<div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     <span style="background:#f59e0b;color:#1a1a1a;font-weight:700;padding:6px 14px;border-radius:20px;font-size:0.95em;">⚠️ CONDICIONAL</span>
                     <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.5);padding:6px 14px;font-size:0.85em;" onclick="levantarCondicionalDesde('${nEsc}')">Levantar condición</button>
+                    <button class="btn" style="background:rgba(220,38,38,0.85);color:white;border:1px solid rgba(255,255,255,0.4);padding:6px 14px;font-size:0.85em;" onclick="marcarIncumplidoDesde('${nEsc}')">Marcar incumplido</button>
                 </div>`;
+    }
+    if (estado === 'Incumplido') {
+        return `<div style="margin-top:12px;"><span style="background:#dc2626;color:white;font-weight:700;padding:6px 14px;border-radius:20px;font-size:0.95em;">⚠️ CONDICIONAL · INCUMPLIDO</span></div>`;
+    }
+    if (estado === 'Levantado') {
+        return `<div style="margin-top:12px;"><span style="background:#16a34a;color:white;font-weight:700;padding:6px 14px;border-radius:20px;font-size:0.95em;">✓ Condición levantada</span></div>`;
     }
     return `<div style="margin-top:12px;">
                 <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.5);padding:6px 14px;font-size:0.9em;" onclick="abrirMarcarCondicional('${nEsc}','${cEsc}')">⚠️ Marcar como condicional</button>
@@ -5798,9 +5839,18 @@ function filaEstudianteHTML(e) {
     const curso = e['Curso'] || e.curso || '-';
     const nEsc = nombre.replace(/'/g, "\\'");
     const cEsc = (curso === '-' ? '' : curso).replace(/'/g, "\\'");
-    const estadoCell = esCondicional(nombre)
-        ? `<span style="background:#f59e0b;color:#1a1a1a;font-weight:700;padding:3px 10px;border-radius:12px;font-size:0.8em;white-space:nowrap;">⚠️ Condicional</span>`
-        : `<button class="btn" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;padding:4px 10px;font-size:0.8em;white-space:nowrap;" onclick="abrirMarcarCondicional('${nEsc}','${cEsc}')">Marcar condicional</button>`;
+    const cond = condicionalDe(nombre);
+    const estado = cond ? (cond['Estado'] || cond.estado || 'Vigente') : null;
+    let estadoCell;
+    if (estado === 'Vigente') {
+        estadoCell = `<span style="background:#f59e0b;color:#1a1a1a;font-weight:700;padding:3px 10px;border-radius:12px;font-size:0.8em;white-space:nowrap;">⚠️ Condicional</span>`;
+    } else if (estado === 'Incumplido') {
+        estadoCell = `<span style="background:#dc2626;color:white;font-weight:700;padding:3px 10px;border-radius:12px;font-size:0.8em;white-space:nowrap;">Incumplido</span>`;
+    } else if (estado === 'Levantado') {
+        estadoCell = `<span style="background:#16a34a;color:white;font-weight:700;padding:3px 10px;border-radius:12px;font-size:0.8em;white-space:nowrap;">Levantado</span>`;
+    } else {
+        estadoCell = `<button class="btn btn-primary" style="padding:4px 12px;font-size:0.8em;margin:0;white-space:nowrap;" onclick="abrirMarcarCondicional('${nEsc}','${cEsc}')">Marcar condicional</button>`;
+    }
     return `
         <tr>
             <td><strong>${nombre}</strong></td>
@@ -5817,7 +5867,7 @@ function abrirMarcarCondicional(nombreEstudiante, cursoEstudiante) {
         curso = est ? (est['Curso'] || est.curso || '') : '';
     }
     if (esCondicional(nombreEstudiante)) {
-        alert('Este estudiante ya está marcado como condicional en el año activo.');
+        avisoCondicional('Este estudiante ya está marcado como condicional en el año activo.');
         return;
     }
     const hoy = new Date().toLocaleDateString('es-DO');
@@ -5830,7 +5880,7 @@ function abrirMarcarCondicional(nombreEstudiante, cursoEstudiante) {
     overlay.style.cssText = 'display:block;z-index:3000;';
     overlay.innerHTML = `
       <div class="modal-content" style="max-width:560px;">
-        <div class="modal-header" style="background:linear-gradient(135deg,#d97706,#b45309);color:white;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
             <h2>⚠️ Marcar como Condicional</h2>
             <span class="close" onclick="cerrarMarcarCondicional()" style="color:white;">&times;</span>
         </div>
@@ -5857,7 +5907,7 @@ function abrirMarcarCondicional(nombreEstudiante, cursoEstudiante) {
                     <input type="text" id="condFecha" value="${hoy}" style="width:100%;">
                 </div>
                 <div style="display:flex;gap:10px;margin-top:10px;">
-                    <button type="submit" class="btn btn-primary" style="background:#d97706;">💾 Guardar</button>
+                    <button type="submit" class="btn btn-primary">💾 Guardar</button>
                     <button type="button" class="btn btn-secondary" onclick="cerrarMarcarCondicional()">Cancelar</button>
                 </div>
             </form>
@@ -5907,7 +5957,7 @@ async function guardarCondicional(event) {
     const faltasRef = document.getElementById('condFaltasRef').value.trim();
     const obs = document.getElementById('condObs').value.trim();
     const fecha = document.getElementById('condFecha').value.trim();
-    if (!motivo) { alert('Indique el motivo.'); return; }
+    if (!motivo) { avisoCondicional('Indique el motivo.'); return; }
 
     const registro = {
         'Año Escolar': ANIO_ACTIVO,
@@ -5930,10 +5980,10 @@ async function guardarCondicional(event) {
         datosCondicionales.push(registro);
         cerrarMarcarCondicional();
         refrescarVistasCondicional(nombre);
-        alert('✅ Estudiante marcado como condicional.');
+        mostrarNotificacionToast('✅ Estudiante marcado como condicional.');
     } catch (e) {
         console.error('Error al guardar condicional:', e);
-        alert('No se pudo guardar. Intenta de nuevo.');
+        avisoCondicional('No se pudo guardar. Intenta de nuevo.');
         if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar'; }
     }
 }
@@ -5941,26 +5991,80 @@ async function guardarCondicional(event) {
 // Levantar la condición (cambia Estado a "Levantado") desde el historial
 function levantarCondicionalDesde(nombre) {
     const cond = esCondicional(nombre);
-    if (!cond) { alert('Este estudiante no tiene una condición vigente.'); return; }
+    if (!cond) { avisoCondicional('Este estudiante no tiene una condición vigente.'); return; }
     levantarCondicional(datosCondicionales.indexOf(cond));
 }
 
-async function levantarCondicional(indice) {
-    if (indice < 0 || indice >= datosCondicionales.length) return;
-    if (!confirm('¿Levantar la condición de este estudiante? Su estado pasará a "Levantado".')) return;
+function marcarIncumplidoDesde(nombre) {
+    const cond = esCondicional(nombre);
+    if (!cond) { avisoCondicional('Este estudiante no tiene una condición vigente.'); return; }
+    marcarIncumplido(datosCondicionales.indexOf(cond));
+}
+
+// Cambia el Estado de un registro condicional (Vigente/Levantado/Incumplido)
+async function cambiarEstadoCondicional(indice, nuevoEstado) {
+    if (indice < 0 || indice >= datosCondicionales.length) return false;
     const cond = datosCondicionales[indice];
-    const actualizado = Object.assign({}, cond, { 'Estado': 'Levantado' });
+    const actualizado = Object.assign({}, cond, { 'Estado': nuevoEstado });
     try {
         await enviarGoogleSheets(CONFIG.urlCondicionales, actualizado, 'actualizar', indice);
         datosCondicionales[indice] = actualizado; // optimista
         const nombre = cond['Nombre Estudiante'] || cond.estudiante || '';
         refrescarVistasCondicional(nombre);
         if (document.getElementById('modalCondicionales')) verCondicionales();
-        alert('✅ Condición levantada.');
+        return true;
     } catch (e) {
-        console.error('Error al levantar condicional:', e);
-        alert('No se pudo actualizar. Intenta de nuevo.');
+        console.error('Error al cambiar estado condicional:', e);
+        avisoCondicional('No se pudo actualizar. Intenta de nuevo.');
+        return false;
     }
+}
+
+function levantarCondicional(indice) {
+    if (indice < 0 || indice >= datosCondicionales.length) return;
+    mostrarModalConfirmacion('Levantar condición', '¿Levantar la condición de este estudiante? Su estado pasará a "Levantado".', true, async () => {
+        if (await cambiarEstadoCondicional(indice, 'Levantado')) mostrarNotificacionToast('✅ Condición levantada.');
+    }, 'Levantar');
+}
+
+function marcarIncumplido(indice) {
+    if (indice < 0 || indice >= datosCondicionales.length) return;
+    mostrarModalConfirmacion('Marcar incumplido', '¿Marcar la condición como INCUMPLIDA para este estudiante?', true, async () => {
+        if (await cambiarEstadoCondicional(indice, 'Incumplido')) mostrarNotificacionToast('✅ Estado actualizado a "Incumplido".');
+    }, 'Marcar incumplido');
+}
+
+// Aviso al registrar una incidencia a un estudiante condicional vigente (Fase 2)
+function alertarCondicionalIncidencia(nombre, gravedad) {
+    const cond = esCondicional(nombre);
+    if (!cond) return;
+    const idx = datosCondicionales.indexOf(cond);
+    const grav = gravedad || '';
+    const motivo = cond['Motivo'] || cond.motivo || '';
+    const existente = document.getElementById('modalAvisoCondicional');
+    if (existente) existente.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modalAvisoCondicional';
+    overlay.className = 'modal';
+    overlay.style.cssText = 'display:block;z-index:3200;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:520px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>⚠️ Estudiante Condicional</h2>
+            <span class="close" onclick="document.getElementById('modalAvisoCondicional').remove()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom:12px;"><strong>${nombre}</strong> está marcado como <strong>CONDICIONAL</strong> este año escolar.</p>
+            <p style="margin-bottom:16px;color:#555;">Acabas de registrarle una incidencia${grav ? ' <strong>' + grav + '</strong>' : ''}. Esto podría implicar el <strong>incumplimiento</strong> de su condición. Revisa y decide si corresponde marcarla como incumplida.</p>
+            ${motivo ? `<p style="margin-bottom:16px;color:#555;"><strong>Motivo de la condición:</strong> ${motivo}</p>` : ''}
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="document.getElementById('modalAvisoCondicional').remove(); marcarIncumplido(${idx});">Marcar Incumplido</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('modalAvisoCondicional').remove()">Continuar sin marcar</button>
+            </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
 }
 
 // Refresca insignias/botones donde aparezca el estudiante
@@ -5980,33 +6084,53 @@ function refrescarVistasCondicional(nombre) {
         const curso = est ? (est['Curso'] || est.curso || '') : '';
         area.innerHTML = htmlCondicionalEncabezadoInner(nombre, curso);
     }
+    // Vista de candidatos sugeridos (si está abierta)
+    if (document.getElementById('sugeridosContent') && typeof calcularSugeridos === 'function') {
+        calcularSugeridos();
+    }
 }
 
 // Vista de todos los condicionales del año activo
+// Convierte una fecha (ISO o texto) a formato corto d/m/aaaa, sin desfase de zona horaria
+function formatearFechaCorta(valor) {
+    if (!valor) return '';
+    const s = String(valor).trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return `${parseInt(m[3], 10)}/${parseInt(m[2], 10)}/${m[1]}`;
+    return s;
+}
+
 function verCondicionales() {
     const existente = document.getElementById('modalCondicionales');
     if (existente) existente.remove();
 
-    const vigentes = datosCondicionales.filter(c => (c['Estado'] || c.estado || 'Vigente') === 'Vigente');
-    const filas = datosCondicionales.length ? datosCondicionales.map((c, i) => {
+    const vigentes = datosCondicionales.filter(c => esAnioActivo(c) && (c['Estado'] || c.estado || 'Vigente') === 'Vigente');
+    const filasArr = datosCondicionales.map((c, i) => {
+        if (!esAnioActivo(c)) return '';
         const nom = c['Nombre Estudiante'] || c.estudiante || '-';
         const cur = c['Curso'] || c.curso || '-';
         const mot = c['Motivo'] || c.motivo || '';
-        const fec = c['Fecha registro'] || c.fecha || '';
+        const fec = formatearFechaCorta(c['Fecha registro'] || c.fecha || '');
         const est = c['Estado'] || c.estado || 'Vigente';
         const colorEst = est === 'Vigente' ? '#f59e0b' : (est === 'Incumplido' ? '#dc2626' : '#16a34a');
-        const accion = est === 'Vigente'
-            ? `<button class="btn" style="background:#16a34a;color:white;padding:4px 10px;font-size:0.8em;" onclick="levantarCondicional(${i})">Levantar</button>`
+        const acciones = est === 'Vigente'
+            ? `<button class="btn btn-success" style="padding:4px 12px;font-size:0.8em;margin:0;" onclick="levantarCondicional(${i})">Levantar</button>
+               <button class="btn btn-primary" style="padding:4px 12px;font-size:0.8em;margin:0;" onclick="marcarIncumplido(${i})">Incumplido</button>`
             : '';
         return `<tr>
-            <td><strong>${nom}</strong></td>
-            <td>${cur}</td>
-            <td style="max-width:300px;">${mot}</td>
-            <td style="white-space:nowrap;">${fec}</td>
-            <td><span style="background:${colorEst};color:white;padding:3px 10px;border-radius:12px;font-size:0.8em;">${est}</span></td>
-            <td>${accion}</td>
+            <td style="vertical-align:middle;"><strong>${nom}</strong></td>
+            <td style="vertical-align:middle;">${cur}</td>
+            <td style="max-width:300px;vertical-align:middle;">${mot}</td>
+            <td style="white-space:nowrap;vertical-align:middle;">${fec}</td>
+            <td style="vertical-align:middle;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="background:${colorEst};color:white;padding:3px 10px;border-radius:12px;font-size:0.8em;white-space:nowrap;">${est}</span>
+                    ${acciones}
+                </div>
+            </td>
         </tr>`;
-    }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:#999;">No hay estudiantes condicionales registrados en el año activo.</td></tr>';
+    }).filter(Boolean);
+    const filas = filasArr.length ? filasArr.join('') : '<tr><td colspan="5" style="text-align:center;padding:30px;color:#999;">No hay estudiantes condicionales registrados en el año activo.</td></tr>';
 
     const overlay = document.createElement('div');
     overlay.id = 'modalCondicionales';
@@ -6014,21 +6138,220 @@ function verCondicionales() {
     overlay.style.cssText = 'display:block;z-index:2500;';
     overlay.innerHTML = `
       <div class="modal-content" style="max-width:920px;">
-        <div class="modal-header" style="background:linear-gradient(135deg,#d97706,#b45309);color:white;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
             <h2>⚠️ Estudiantes Condicionales · ${ANIO_ACTIVO || ''}</h2>
             <span class="close" onclick="document.getElementById('modalCondicionales').remove()" style="color:white;">&times;</span>
         </div>
         <div class="modal-body">
             <p style="margin-bottom:14px;color:#666;">Condicionales vigentes: <strong>${vigentes.length}</strong></p>
+            <div style="margin-bottom:14px;">
+                <button class="btn btn-primary" onclick="abrirSugeridosCondicional()">💡 Candidatos sugeridos (año anterior)</button>
+            </div>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>Nombre</th><th>Curso</th><th>Motivo</th><th>Fecha</th><th>Estado</th><th></th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Curso</th><th>Motivo</th><th>Fecha</th><th>Estado</th></tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
             </div>
         </div>
       </div>`;
     document.body.appendChild(overlay);
+}
+
+// ----- Candidatos sugeridos a condicional (según el año anterior) -----
+let _sugeridosCache = null; // { anio, mapa }
+let _ultimosSugeridos = null; // { anio, uMG, uG, uT, candidatos } para exportar
+
+// Año escolar inmediatamente anterior al activo (según ANIOS_DISPONIBLES)
+function anioAnterior() {
+    if (!Array.isArray(ANIOS_DISPONIBLES) || !ANIOS_DISPONIBLES.length) return null;
+    const orden = ANIOS_DISPONIBLES.slice().sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0));
+    const idx = orden.indexOf(ANIO_ACTIVO);
+    if (idx > 0) return orden[idx - 1];
+    const previos = orden.filter(a => (parseInt(a, 10) || 0) < (parseInt(ANIO_ACTIVO, 10) || 0));
+    return previos.length ? previos[previos.length - 1] : null;
+}
+
+// Agrupa incidencias y tardanzas del año anterior por estudiante (con caché)
+async function cargarDatosAnioAnterior() {
+    const anio = anioAnterior();
+    if (!anio) return null;
+    if (_sugeridosCache && _sugeridosCache.anio === anio) return _sugeridosCache;
+
+    const tipoDe = (i) => (i['Tipo de falta'] || i['Tipo'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '');
+    const nombreDe = (r) => (r['Nombre Estudiante'] || r.estudiante || '');
+    const cursoDe = (r) => (r['Curso'] || r.curso || '');
+
+    let inc = [], tar = [];
+    if (CONFIG.urlIncidencias) inc = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias + '&anio=' + encodeURIComponent(anio)) || [];
+    if (CONFIG.urlTardanzas) tar = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas + '&anio=' + encodeURIComponent(anio)) || [];
+
+    const mapa = {};
+    const ensure = (nombre, curso) => {
+        const k = (nombre || '').toLowerCase().trim();
+        if (!k) return null;
+        if (!mapa[k]) mapa[k] = { nombre: nombre, curso: curso || '', leves: 0, graves: 0, muyGraves: 0, tardanzas: 0 };
+        else if (!mapa[k].curso && curso) mapa[k].curso = curso;
+        return mapa[k];
+    };
+    inc.forEach(i => {
+        const m = ensure(nombreDe(i), cursoDe(i)); if (!m) return;
+        const t = tipoDe(i);
+        if (t === 'Leve') m.leves++;
+        else if (t === 'Grave') m.graves++;
+        else if (t === 'Muy Grave') m.muyGraves++;
+    });
+    tar.forEach(t => { const m = ensure(nombreDe(t), cursoDe(t)); if (m) m.tardanzas++; });
+
+    _sugeridosCache = { anio, mapa };
+    return _sugeridosCache;
+}
+
+function abrirSugeridosCondicional() {
+    const anio = anioAnterior();
+    const existente = document.getElementById('modalSugeridos');
+    if (existente) existente.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'modalSugeridos';
+    overlay.className = 'modal';
+    overlay.style.cssText = 'display:block;z-index:2600;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:940px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>💡 Candidatos a condicional</h2>
+            <span class="close" onclick="document.getElementById('modalSugeridos').remove()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            ${anio ? `<p style="margin-bottom:14px;color:#555;">Según el comportamiento del año anterior (<strong>${anio}</strong>). Ajusta los umbrales y revisa los candidatos. La decisión de marcar es tuya.</p>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+                <div class="form-group" style="margin:0;"><label>Muy Graves ≥</label><input type="number" id="umbralMuyGraves" value="1" min="0" style="width:90px;"></div>
+                <div class="form-group" style="margin:0;"><label>Graves ≥</label><input type="number" id="umbralGraves" value="3" min="0" style="width:90px;"></div>
+                <div class="form-group" style="margin:0;"><label>Tardanzas ≥</label><input type="number" id="umbralTardanzas" value="10" min="0" style="width:90px;"></div>
+                <button class="btn btn-primary" onclick="calcularSugeridos()">Calcular</button>
+                <button class="btn btn-success" onclick="exportarSugeridosPDF()">📥 Exportar PDF</button>
+            </div>
+            <div id="sugeridosContent"><p style="text-align:center;color:#999;padding:24px;">⏳ Calculando...</p></div>`
+            : `<p style="text-align:center;color:#999;padding:30px;">No hay un año escolar anterior con datos para generar sugerencias.</p>`}
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    if (anio) calcularSugeridos();
+}
+
+async function calcularSugeridos() {
+    const cont = document.getElementById('sugeridosContent');
+    if (!cont) return;
+    cont.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">⏳ Calculando...</p>';
+    const uMG = parseInt(document.getElementById('umbralMuyGraves').value) || 0;
+    const uG = parseInt(document.getElementById('umbralGraves').value) || 0;
+    const uT = parseInt(document.getElementById('umbralTardanzas').value) || 0;
+
+    try {
+        const data = await cargarDatosAnioAnterior();
+        if (!data) { cont.innerHTML = '<p style="text-align:center;color:#999;padding:24px;">No hay año anterior con datos.</p>'; return; }
+
+        const candidatos = Object.values(data.mapa).filter(m =>
+            (uMG > 0 && m.muyGraves >= uMG) ||
+            (uG > 0 && m.graves >= uG) ||
+            (uT > 0 && m.tardanzas >= uT)
+        ).sort((a, b) => (b.muyGraves * 100 + b.graves * 10 + b.tardanzas) - (a.muyGraves * 100 + a.graves * 10 + a.tardanzas));
+
+        _ultimosSugeridos = { anio: data.anio, uMG, uG, uT, candidatos };
+
+        if (!candidatos.length) {
+            cont.innerHTML = '<p style="text-align:center;color:#16a34a;padding:24px;">Ningún estudiante supera los umbrales indicados.</p>';
+            return;
+        }
+
+        const filas = candidatos.map(m => {
+            const nEsc = m.nombre.replace(/'/g, "\\'");
+            const cEsc = (m.curso || '').replace(/'/g, "\\'");
+            const yaCond = condicionalDe(m.nombre);
+            const estado = yaCond ? (yaCond['Estado'] || yaCond.estado || 'Vigente') : null;
+            const razones = [];
+            if (uMG > 0 && m.muyGraves >= uMG) razones.push(`${m.muyGraves} muy graves`);
+            if (uG > 0 && m.graves >= uG) razones.push(`${m.graves} graves`);
+            if (uT > 0 && m.tardanzas >= uT) razones.push(`${m.tardanzas} tardanzas`);
+            const accion = estado
+                ? `<span style="color:#888;font-size:0.82em;">Ya: ${estado}</span>`
+                : `<button class="btn btn-primary" style="padding:4px 12px;font-size:0.8em;margin:0;" onclick="abrirMarcarCondicional('${nEsc}','${cEsc}')">Marcar condicional</button>`;
+            return `<tr>
+                <td><strong>${m.nombre}</strong></td>
+                <td>${m.curso || '-'}</td>
+                <td style="text-align:center;">${m.leves}</td>
+                <td style="text-align:center;color:#f97316;font-weight:600;">${m.graves}</td>
+                <td style="text-align:center;color:#dc2626;font-weight:600;">${m.muyGraves}</td>
+                <td style="text-align:center;">${m.tardanzas}</td>
+                <td style="font-size:0.82em;color:#555;">${razones.join(', ')}</td>
+                <td>${accion}</td>
+            </tr>`;
+        }).join('');
+
+        cont.innerHTML = `
+            <p style="margin-bottom:10px;color:#555;"><strong>${candidatos.length}</strong> candidato(s) según los umbrales.</p>
+            <div class="table-container"><table>
+                <thead><tr><th>Nombre</th><th>Curso</th><th>Leves</th><th>Graves</th><th>Muy Graves</th><th>Tardanzas</th><th>Motivo</th><th></th></tr></thead>
+                <tbody>${filas}</tbody>
+            </table></div>`;
+    } catch (e) {
+        console.error('Error al calcular sugeridos:', e);
+        cont.innerHTML = '<p style="text-align:center;color:#dc3545;padding:24px;">No se pudo calcular. Intenta de nuevo.</p>';
+    }
+}
+
+// Exporta a PDF la lista de candidatos a condicional (misma data de la tabla + encabezado estándar)
+function exportarSugeridosPDF() {
+    if (!_ultimosSugeridos || !Array.isArray(_ultimosSugeridos.candidatos) || !_ultimosSugeridos.candidatos.length) {
+        avisoCondicional('Primero calcula la lista de candidatos.');
+        return;
+    }
+    const { uMG, uG, uT, anio, candidatos } = _ultimosSugeridos;
+
+    const razonesDe = (m) => {
+        const r = [];
+        if (uMG > 0 && m.muyGraves >= uMG) r.push(`${m.muyGraves} muy graves`);
+        if (uG > 0 && m.graves >= uG) r.push(`${m.graves} graves`);
+        if (uT > 0 && m.tardanzas >= uT) r.push(`${m.tardanzas} tardanzas`);
+        return r.join(', ');
+    };
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const startY = agregarEncabezadoCENSA(doc, `Candidatos a Condicional ${ANIO_ACTIVO || ''}`);
+
+    const body = candidatos.map(m => [
+        m.nombre,
+        m.curso || '-',
+        m.leves,
+        m.graves,
+        m.muyGraves,
+        m.tardanzas,
+        razonesDe(m)
+    ]);
+
+    doc.autoTable({
+        startY: startY,
+        head: [['Nombre', 'Curso', 'Leves', 'Graves', 'Muy Graves', 'Tardanzas', 'Motivo']],
+        body: body,
+        theme: 'grid',
+        headStyles: { fillColor: [217, 119, 6] },
+        styles: { fontSize: 9 },
+        columnStyles: {
+            2: { halign: 'center' },
+            3: { halign: 'center' },
+            4: { halign: 'center' },
+            5: { halign: 'center' }
+        }
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text(`Total de candidatos: ${candidatos.length}`, 14, finalY);
+    if (anio) doc.text(`Referencia de faltas: año escolar ${anio}`, 14, finalY + 5);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + 10);
+
+    doc.save(`Candidatos_Condicional_${ANIO_ACTIVO || ''}_${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
 function cerrarHistorialEstudiante() {
@@ -8908,7 +9231,7 @@ async function cargarTodosDatosAlInicio() {
         );
     }
     
-    // Cargar Estudiantes Condicionales (año activo)
+    // Cargar Estudiantes Condicionales (todas las filas; se filtra por año en memoria)
     if (CONFIG.urlCondicionales) {
         if (loadingText) loadingText.textContent = '📥 Cargando condicionales...';
         promesas.push(
