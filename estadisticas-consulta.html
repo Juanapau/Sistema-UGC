@@ -232,6 +232,13 @@ margin: 0 auto;
 header { flex-direction: column; text-align: center; }
 .stats-grid { grid-template-columns: 1fr; }
 }
+/* Encabezado fijo al desplazar */
+#tablaCursosEstadisticas thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #1e3a5f;
+}
 </style>
 </head>
 <body>
@@ -378,8 +385,8 @@ header { flex-direction: column; text-align: center; }
 </div>
 
 <!-- Tabla detallada -->
-<div style="overflow-x:auto;">
-    <table style="width:100%;border-collapse:collapse;font-size:0.86em;">
+<div style="overflow-x:auto;overflow-y:auto;max-height:75vh;">
+    <table id="tablaCursosEstadisticas" style="width:100%;border-collapse:separate;border-spacing:0;font-size:0.86em;">
         <thead>
             <tr style="background:#1e3a5f;color:white;">
                 <th style="padding:10px 14px;text-align:left;border-radius:8px 0 0 0;">Curso</th>
