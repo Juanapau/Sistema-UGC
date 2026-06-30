@@ -730,11 +730,14 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             width: 100%;
+            max-height: 65vh;
+            overflow: auto;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             background: white;
         }
         
@@ -748,10 +751,10 @@
             }
         }
         
-        /* En computadoras: sin scroll, columnas se ajustan */
+        /* En computadoras: la tabla mantiene su propia zona con scroll */
         @media (min-width: 1024px) {
             .table-container {
-                overflow-x: visible;
+                overflow: auto;
             }
         }
         
@@ -798,6 +801,9 @@
             padding: 15px;
             text-align: left;
             font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
 
         table td {
