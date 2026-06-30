@@ -2638,6 +2638,19 @@ header img {
         font-size: 0.8em;
     }
 }
+
+        /* Evitar que el fondo se desplace al hacer scroll dentro de un modal (móvil/táctil) */
+        @media (pointer: coarse) {
+            html.modal-abierto,
+            body.modal-abierto {
+                overflow: hidden !important;
+                overscroll-behavior: none;
+            }
+        }
+        .modal-body,
+        .table-container {
+            overscroll-behavior: contain;
+        }
         
     </style>
     <script>
