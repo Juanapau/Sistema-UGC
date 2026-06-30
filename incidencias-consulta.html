@@ -3,14 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Incidencias - Consulta</title>
+<title>Estadísticas - Consulta</title>
 <link rel="icon" type="image/png" href="./logo.png">
 <style>
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -40,16 +36,16 @@ pointer-events: none;
 filter: brightness(1.2);
 }
 
-.container {
-max-width: 1400px;
+.container { 
+max-width: 1400px; 
 margin: 0 auto;
 position: relative;
 z-index: 1;
 }
 
 header,
-.card,
-table {
+.content-card,
+.stat-card {
 position: relative;
 z-index: 2;
 }
@@ -68,26 +64,10 @@ flex-wrap: wrap;
 gap: 15px;
 }
 
-.header-left {
-display: flex;
-align-items: center;
-gap: 15px;
-}
-
-.header-left img {
-width: 50px;
-height: 50px;
-}
-
-.header-title h1 {
-font-size: 1.6em;
-margin-bottom: 3px;
-}
-
-.header-title p {
-color: #4a9eff;
-font-size: 0.85em;
-}
+.header-left { display: flex; align-items: center; gap: 15px; }
+.header-left img { width: 50px; height: 50px; }
+.header-title h1 { font-size: 1.6em; margin-bottom: 3px; }
+.header-title p { color: #4a9eff; font-size: 0.85em; }
 
 .btn-back {
 background: linear-gradient(135deg, #000000 0%, #333333 100%);
@@ -103,33 +83,13 @@ text-decoration: none;
 display: inline-block;
 }
 
-.btn-back:hover {
-transform: translateY(-2px);
-box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
+.btn-back:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
 
 .content-card {
 background: white;
 border-radius: 15px;
 padding: 30px;
 box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-}
-
-.page-header {
-display: flex;
-justify-content: space-between;
-align-items: center;
-margin-bottom: 30px;
-padding-bottom: 20px;
-border-bottom: 2px solid #e5e7eb;
-}
-
-.page-header h2 {
-color: #000000;
-font-size: 1.8em;
-display: flex;
-align-items: center;
-gap: 10px;
 }
 
 .alert-readonly {
@@ -143,394 +103,339 @@ align-items: center;
 gap: 12px;
 }
 
-.alert-readonly .icon {
-font-size: 1.8em;
+.alert-readonly .icon { font-size: 1.8em; }
+.alert-readonly p { color: #92400e; font-size: 0.9em; margin: 0; }
+
+.stats-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+gap: 14px;
+margin-bottom: 30px;
 }
 
-.alert-readonly p {
-color: #92400e;
-font-size: 0.9em;
-margin: 0;
-}
-
-.search-bar {
-display: flex;
-gap: 15px;
-margin-bottom: 25px;
-flex-wrap: wrap;
-}
-
-.search-bar input,
-.search-bar select {
-flex: 1;
-min-width: 200px;
-padding: 12px;
-border: 2px solid #ddd;
-border-radius: 8px;
-font-size: 0.95em;
-}
-
-.search-bar input:focus,
-.search-bar select:focus {
-outline: none;
-border-color: #2a5298;
-box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
-}
-
-/* Forzar que los filtros estén habilitados */
-.filter-select {
-pointer-events: auto !important;
-opacity: 1 !important;
-cursor: pointer !important;
-background: white !important;
-}
-
-.btn {
-padding: 12px 24px;
-border: none;
-border-radius: 8px;
-font-size: 0.95em;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.3s;
-white-space: nowrap;
-}
-
-.btn-primary {
-background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-color: white;
-}
-
-.btn-primary:hover {
-transform: translateY(-2px);
-box-shadow: 0 5px 15px rgba(42,82,152,0.4);
-}
-
-.btn-secondary {
-background: linear-gradient(135deg, #000000 0%, #333333 100%);
-color: white;
-}
-
-.btn-secondary:hover {
-transform: translateY(-2px);
-box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-}
-
-.btn-success {
-background: linear-gradient(135deg, #059669 0%, #047857 100%);
-color: white;
-}
-
-.btn-success:hover {
-transform: translateY(-2px);
-box-shadow: 0 5px 15px rgba(5,150,105,0.4);
-}
-
-.table-container {
-overflow-x: auto;
+.stat-card {
+background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+padding: 16px 12px;
 border-radius: 12px;
-box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-table {
-width: 100%;
-border-collapse: collapse;
-background: white;
-}
-
-table th {
-background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-color: white;
-padding: 15px 12px;
-text-align: left;
-font-weight: 600;
-font-size: 0.9em;
-white-space: nowrap;
-}
-
-table td {
-padding: 12px;
-border-bottom: 1px solid #eee;
-font-size: 0.9em;
-vertical-align: top;
-}
-
-table tbody tr {
-cursor: pointer;
-transition: all 0.2s;
-}
-
-table tbody tr:hover {
-background: #e3f2fd;
-transform: scale(1.005);
-box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.status-badge {
-display: inline-block;
-padding: 5px 12px;
-border-radius: 20px;
-font-size: 0.85em;
-font-weight: 600;
-white-space: nowrap;
-}
-
-.badge-leve {
-background: #d4edda;
-color: #155724;
-}
-
-.badge-grave {
-background: #fff3cd;
-color: #856404;
-}
-
-.badge-muy-grave {
-background: #f8d7da;
-color: #721c24;
-}
-
-.loading {
 text-align: center;
-padding: 40px;
+border-top: 4px solid #2a5298;
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+transition: all 0.3s;
+}
+
+.stat-card:hover {
+transform: translateY(-3px);
+box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.stat-card .icon {
+font-size: 2em;
+margin-bottom: 6px;
+}
+
+.stat-card .number {
+font-size: 2em;
+font-weight: bold;
+color: #2a5298;
+display: block;
+margin-bottom: 4px;
+}
+
+.stat-card .label {
+font-size: 0.82em;
 color: #666;
+font-weight: 600;
+}
+
+
+.detail-label {
+color: #666;
+font-weight: 500;
+}
+
+.detail-value {
+color: #2a5298;
+font-weight: 700;
 font-size: 1.1em;
 }
 
-.no-data {
-text-align: center;
-padding: 60px 20px;
-color: #999;
-}
-
-.no-data-icon {
-font-size: 4em;
-margin-bottom: 15px;
-opacity: 0.5;
-}
-
-/* ESTILOS DEL MODAL */
-.modal {
-display: none;
-position: fixed;
-z-index: 9999;
-left: 0;
-top: 0;
-width: 100%;
-height: 100%;
-background-color: rgba(0,0,0,0.7);
-overflow-y: auto;
-}
-
-.modal-content {
-background: white;
-margin: 20px auto;
-padding: 0;
-border-radius: 15px;
-max-width: 1200px;
-box-shadow: 0 12px 48px rgba(0,0,0,0.4);
-animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-from {
-transform: translateY(-50px);
-opacity: 0;
-}
-to {
-transform: translateY(0);
-opacity: 1;
-}
-}
-
-.modal-header {
-background: linear-gradient(135deg, #059669 0%, #047857 100%);
-color: white;
-padding: 25px 30px;
-border-radius: 15px 15px 0 0;
+.stat-breakdown {
 display: flex;
-justify-content: space-between;
-align-items: center;
-}
-
-.modal-header h2 {
-font-size: 1.8em;
-margin: 0;
-}
-
-.close {
-color: white;
-font-size: 35px;
-font-weight: bold;
-cursor: pointer;
-transition: all 0.3s;
-line-height: 1;
-}
-
-.close:hover {
-color: #4a9eff;
-transform: rotate(90deg);
-}
-
-.modal-body {
-padding: 30px;
-max-height: 70vh;
-overflow-y: auto;
-}
-
-@media (max-width: 768px) {
-header {
-flex-direction: column;
-text-align: center;
-}
-
-.page-header {
-flex-direction: column;
-align-items: flex-start;
+flex-direction: row;
+justify-content: center;
 gap: 15px;
+margin-top: 10px;
+flex-wrap: wrap;
 }
 
-.search-bar {
-flex-direction: column;
-}
-
-.search-bar input,
-.search-bar select,
-.btn {
-width: 100%;
-min-width: 100%;
-}
-
-table {
+.breakdown-item {
+display: flex;
+align-items: center;
+gap: 5px;
 font-size: 0.85em;
 }
 
-table th,
-table td {
-padding: 8px 6px;
-vertical-align: top;
+.breakdown-dot {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+display: inline-block;
 }
+
+.breakdown-dot.leve {
+background: #28a745;
+}
+
+.breakdown-dot.grave {
+background: #ffc107;
+}
+
+.breakdown-dot.muy-grave {
+background: #dc3545;
+}
+
+.breakdown-text {
+color: #555;
+}
+
+.breakdown-text strong {
+color: #333;
+font-weight: 700;
+}
+
+.info-message {
+text-align: center;
+padding: 60px 20px;
+color: #666;
+}
+
+.info-message-icon {
+font-size: 5em;
+margin-bottom: 20px;
+opacity: 0.5;
+}
+
+.info-message h3 {
+color: #333;
+margin-bottom: 10px;
+font-size: 1.5em;
+}
+
+.info-message p {
+font-size: 1.05em;
+line-height: 1.6;
+max-width: 600px;
+margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+header { flex-direction: column; text-align: center; }
+.stats-grid { grid-template-columns: 1fr; }
+}
+/* Encabezado fijo al desplazar */
+#tablaCursosEstadisticas thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #1e3a5f;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-<!-- HEADER -->
 <header>
 <div class="header-left">
 <img src="./logo.png" alt="Logo" onerror="this.style.display='none'">
 <div class="header-title">
-<h1>Registro de Incidencias</h1>
-<p>Solo Lectura - PNSA</p>
+<h1>Estadísticas Generales</h1>
+<p>Solo Lectura - CENSA</p>
 </div>
 </div>
-
-<a href="consulta.html" class="btn-back">
-← Volver al Dashboard
-</a>
+<a href="consulta.html" class="btn-back">← Volver al Dashboard</a>
 </header>
 
-<!-- CONTENIDO -->
 <div class="content-card">
 
-
-
-
-<!-- BARRA DE BÚSQUEDA Y FILTROS -->
-<div class="search-bar">
-<div style="position: relative; flex: 1; min-width: 200px;">
-<input type="text" 
-id="buscarEstudiante" 
-placeholder="🔍 Buscar por nombre de estudiante..."
-autocomplete="off"
-oninput="filtrarSugerencias(); buscarIncidencias();"
-onfocus="mostrarSugerencias()"
-style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95em;">
-<div id="sugerenciasEstudiantes" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:200px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; margin-top: -2px;"></div>
-</div>
-<select id="filtrarCurso" class="filter-select" onchange="buscarIncidencias()">
-<option value="">Todos los cursos</option>
-<option value="1roA">1roA</option>
-<option value="1roB">1roB</option>
-<option value="1roC">1roC</option>
-<option value="2doA">2doA</option>
-<option value="2doB">2doB</option>
-<option value="2doC">2doC</option>
-<option value="3roA">3roA</option>
-<option value="3roB">3roB</option>
-<option value="3roC">3roC</option>
-<option value="4toA">4toA</option>
-<option value="4toB">4toB</option>
-<option value="4toC">4toC</option>
-<option value="5toA">5toA</option>
-<option value="5toB">5toB</option>
-<option value="5toC">5toC</option>
-<option value="6toA">6toA</option>
-<option value="6toB">6toB</option>
-<option value="6toC">6toC</option>
-</select>
-<select id="filtrarTipo" class="filter-select" onchange="buscarIncidencias()">
-<option value="">Todos los tipos</option>
-<option value="Leve">Leve</option>
-<option value="Grave">Grave</option>
-<option value="Muy Grave">Muy Grave</option>
-</select>
-<button class="btn btn-secondary" onclick="recargarIncidencias()">🔄 Recargar</button>
+<div class="stats-grid">
+<!-- TARJETA 1: TOTAL INCIDENCIAS -->
+<div class="stat-card" style="background:linear-gradient(135deg,#fef2f2,#fee2e2);border-top:none;">
+<div class="icon">🚨</div>
+<span class="number" id="totalIncidencias" style="color:#dc2626;">0</span>
+<span class="label" style="color:#dc2626;">Total Incidencias</span>
 </div>
 
-<!-- TABLA DE INCIDENCIAS -->
-<div class="table-container">
-<table id="tablaIncidencias">
-<thead>
-<tr>
-<th>Fecha</th>
-<th>Estudiante</th>
-<th>Curso</th>
-<th>Tipo</th>
-<th>Docente</th>
-<th>Tipo de Conducta</th>
-<th>Descripción</th>
-<th>Acciones Docente</th>
-<th>Seguimiento UGC</th>
-</tr>
-</thead>
-<tbody id="bodyIncidencias">
-<tr>
-<td colspan="9" class="loading">📥 Cargando incidencias...</td>
-</tr>
-</tbody>
-</table>
+<!-- TARJETA 2: TOTAL TARDANZAS -->
+<div class="stat-card" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border-top:none;">
+<div class="icon">⏰</div>
+<span class="number" id="totalTardanzas" style="color:#d97706;">0</span>
+<span class="label" style="color:#d97706;">Total Tardanzas</span>
 </div>
+
+<!-- TARJETA 3: ESTUDIANTES REGISTRADOS -->
+<div class="stat-card" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-top:none;">
+<div class="icon">🎓</div>
+<span class="number" id="totalEstudiantes" style="color:#1e3a5f;">0</span>
+<span class="label" style="color:#1e3a5f;">Estudiantes Registrados</span>
+</div>
+
+<!-- TARJETA 4: CONTACTOS REGISTRADOS -->
+<div class="stat-card" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-top:none;">
+<div class="icon">📞</div>
+<span class="number" id="totalContactos" style="color:#059669;">0</span>
+<span class="label" style="color:#059669;">Contactos Registrados</span>
+</div>
+
+<!-- TARJETA 5: FAMILIAS -->
+<div class="stat-card" style="background:linear-gradient(135deg,#faf5ff,#ede9fe);border-top:none;">
+<div class="icon">🏠</div>
+<span class="number" id="totalFamilias" style="color:#7c3aed;">0</span>
+<span class="label" style="color:#7c3aed;">Familias</span>
 </div>
 </div>
 
-<!-- CONTENEDOR PARA MODALES (usado por app.js) -->
-<div id="modalContainer"></div>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECCIÓN: HISTORIAL DE CONDUCTAS POR MES                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<hr style="margin:30px 0;border:none;border-top:1px solid #e5e7eb;">
+
+<h3 style="font-size:1.1em;font-weight:700;color:#1e3a5f;margin-bottom:14px;">📅 Historial de Conductas por Mes</h3>
+
+<div id="mesSelectorContainer" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;"></div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:12px;">
+    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Agresión Física</h5>
+        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialAgresionFisica">0</div>
+    </div>
+    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Agresión Verbal</h5>
+        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialAgresionVerbal">0</div>
+    </div>
+    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
+        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Bullying</h5>
+        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialBullying">0</div>
+    </div>
+    <div style="padding:15px;border-radius:8px;text-align:center;border:2px solid #e0e0e0;background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+        <h5 style="font-size:0.85em;margin-bottom:8px;color:#666;font-weight:600;">Cyber Bullying</h5>
+        <div style="font-size:1.8em;font-weight:bold;color:#333;" id="historialCyberBullying">0</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SECCIÓN: INCIDENCIAS POR CURSO                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<hr style="margin:30px 0;border:none;border-top:1px solid #e5e7eb;">
+
+<h3 style="font-size:1.1em;font-weight:700;color:#1e3a5f;margin-bottom:6px;">📊 Incidencias por Curso</h3>
+<p style="color:#666;font-size:0.88em;margin-bottom:16px;">
+    Comparativa de faltas por curso. <strong>Estudiantes afectados</strong> indica cuántos alumnos distintos
+    tienen al menos una incidencia — más estudiantes afectados = intervención más urgente.
+</p>
+
+<!-- Filtros -->
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px;">
+    <div>
+        <label style="font-size:0.8em;font-weight:600;color:#555;display:block;margin-bottom:4px;">Período</label>
+        <select id="filtroPeriodoCurso" onchange="renderGraficoCursos()" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.88em;background:white;">
+            <option value="todo">Todo el año</option>
+            <option value="mes">Mes actual</option>
+            <option value="trimestre">Últimos 3 meses</option>
+        </select>
+    </div>
+    <div>
+        <label style="font-size:0.8em;font-weight:600;color:#555;display:block;margin-bottom:4px;">Ordenar por</label>
+        <select id="filtroOrdenCurso" onchange="renderGraficoCursos()" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.88em;background:white;">
+            <option value="total">Total de faltas</option>
+            <option value="afectados">Estudiantes afectados</option>
+            <option value="nombre">Nombre del curso</option>
+        </select>
+    </div>
+</div>
+
+<!-- Tarjetas resumen -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;">
+    <div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#166534;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">FALTAS LEVES</div>
+        <div style="font-size:2em;font-weight:800;color:#15803d;" id="resumenLeves">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#fef9c3,#fef08a);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#854d0e;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">FALTAS GRAVES</div>
+        <div style="font-size:2em;font-weight:800;color:#92400e;" id="resumenGraves">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#991b1b;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">FALTAS MUY GRAVES</div>
+        <div style="font-size:2em;font-weight:800;color:#b91c1c;" id="resumenMuyGraves">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#5b21b6;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">ESTUDIANTES AFECTADOS</div>
+        <div style="font-size:2em;font-weight:800;color:#6d28d9;" id="resumenAfectados">—</div>
+    </div>
+    <div style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:0.72em;color:#075985;font-weight:700;margin-bottom:4px;letter-spacing:.5px;">CURSO MÁS AFECTADO</div>
+        <div style="font-size:1.3em;font-weight:800;color:#0369a1;" id="resumenCursoTop">—</div>
+    </div>
+</div>
+
+<!-- Gráfico SVG -->
+<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:20px;overflow-x:auto;margin-bottom:24px;">
+    <div id="graficoCursosContainer" style="min-width:600px;">
+        <p style="text-align:center;color:#9ca3af;padding:40px;">Cargando gráfico...</p>
+    </div>
+</div>
+
+<!-- Tabla detallada -->
+<div style="overflow-x:auto;overflow-y:auto;max-height:75vh;">
+    <table id="tablaCursosEstadisticas" style="width:100%;border-collapse:separate;border-spacing:0;font-size:0.86em;">
+        <thead>
+            <tr style="background:#1e3a5f;color:white;">
+                <th style="padding:10px 14px;text-align:left;border-radius:8px 0 0 0;">Curso</th>
+                <th style="padding:10px 14px;text-align:center;background:#15803d;">🟢 Leves</th>
+                <th style="padding:10px 14px;text-align:center;background:#92400e;">🟡 Graves</th>
+                <th style="padding:10px 14px;text-align:center;background:#b91c1c;">🔴 Muy Graves</th>
+                <th style="padding:10px 14px;text-align:center;">Total Faltas</th>
+                <th style="padding:10px 14px;text-align:center;background:#5b21b6;">Estudiantes Afectados</th>
+                <th style="padding:10px 14px;text-align:center;border-radius:0 8px 0 0;">Índice de Riesgo</th>
+            </tr>
+        </thead>
+        <tbody id="tablaCursosBody">
+            <tr><td colspan="7" style="text-align:center;padding:30px;color:#9ca3af;">Cargando datos...</td></tr>
+        </tbody>
+    </table>
+</div>
+<p style="font-size:0.76em;color:#9ca3af;margin-top:8px;">
+    * El <strong>Índice de Riesgo</strong> (0–100%) combina: <strong>Gravedad</strong> (peso de las faltas),
+    <strong>Cobertura</strong> (% del curso afectado) y una referencia absoluta fija — así un curso con pocas
+    faltas nunca puede marcar 100% si hay cursos genuinamente más afectados.
+</p>
+
+</div>
+</div>
 
 <script src="./auth-guard.js"></script>
-<script src="./app.js"></script>
 <script>
-// Datos de incidencias locales
-let incidenciasFiltradas = [];
+let CONFIG = { 
+urlIncidencias: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Incidencias',
+urlTardanzas: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Tardanzas',
+urlEstudiantes: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Estudiantes',
+urlContactos: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Contactos'
+};
 
-// Cargar configuración
 window.addEventListener('load', function() {
+// Leer todas las URLs del localStorage (incluyendo contactos)
 const configGuardada = localStorage.getItem('censaConfig');
 if (configGuardada) {
 const configTemp = JSON.parse(configGuardada);
-// Solo sobrescribir si tiene valor
-if (configTemp.urlIncidencias) {
-CONFIG.urlIncidencias = configTemp.urlIncidencias;
-}
+if (configTemp.urlIncidencias) CONFIG.urlIncidencias = configTemp.urlIncidencias;
+if (configTemp.urlTardanzas)   CONFIG.urlTardanzas   = configTemp.urlTardanzas;
+if (configTemp.urlEstudiantes) CONFIG.urlEstudiantes = configTemp.urlEstudiantes;
+if (configTemp.urlContactos)   CONFIG.urlContactos   = configTemp.urlContactos;
 console.log('✅ Configuración actualizada desde localStorage');
 }
-console.log('📋 URL Incidencias:', CONFIG.urlIncidencias);
-
-cargarIncidencias();
+cargarEstadisticas();
 });
 
-// Cargar datos desde Google Sheets
+// Carga una URL y devuelve [] si falla — nunca lanza excepción
 async function cargarDatosDesdeGoogleSheets(url) {
 // Filtro por año escolar recibido en la URL (?anio=)
 const ANIO_CONSULTA = new URLSearchParams(location.search).get('anio') || '';
@@ -540,576 +445,322 @@ const hojaUrl = mHoja ? decodeURIComponent(mHoja[1]) : '';
 if (ANIO_CONSULTA && HOJAS_CON_ANIO.includes(hojaUrl) && !/[?&]anio=/.test(url)) {
     url += '&anio=' + encodeURIComponent(ANIO_CONSULTA);
 }
-console.log('🔗 Intentando cargar desde:', url);
-
 try {
 const response = await fetch(url);
-console.log('📡 Respuesta recibida:', response.status, response.statusText);
-
-if (!response.ok) {
-throw new Error(`HTTP error! status: ${response.status}`);
-}
-
-const data = await response.json();
-console.log('✅ Datos recibidos:', data.length, 'registros');
-return data;
+if (!response.ok) throw new Error('HTTP ' + response.status);
+return await response.json();
 } catch (error) {
-console.error('❌ Error detallado:', error);
-console.error('❌ Tipo de error:', error.name);
-console.error('❌ Mensaje:', error.message);
+console.warn('⚠️ No se pudo cargar ' + url + ':', error.message);
 return [];
 }
 }
 
-// Cargar incidencias
-async function cargarIncidencias() {
-const tbody = document.getElementById('bodyIncidencias');
-console.log('📋 Iniciando carga de incidencias...');
-console.log('🔗 URL configurada:', CONFIG.urlIncidencias);
-
-if (!CONFIG.urlIncidencias || CONFIG.urlIncidencias === '') {
-console.error('❌ No hay URL configurada');
-tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#dc3545;">⚠️ No hay URL de Google Sheets configurada. Contacta al administrador.</td></tr>';
-return;
+// Helper para actualizar un elemento sin lanzar error si no existe
+function setEl(id, val) {
+const el = document.getElementById(id);
+if (el) el.textContent = val;
 }
 
-tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:#666;">📥 Cargando incidencias desde Google Sheets...</td></tr>';
+async function cargarEstadisticas() {
+// Cargar las 4 fuentes EN PARALELO — si una falla las demás siguen
+const [incidencias, tardanzas, estudiantes, contactos] = await Promise.all([
+CONFIG.urlIncidencias ? cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias) : Promise.resolve([]),
+CONFIG.urlTardanzas   ? cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas)   : Promise.resolve([]),
+CONFIG.urlEstudiantes ? cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes) : Promise.resolve([]),
+CONFIG.urlContactos   ? cargarDatosDesdeGoogleSheets(CONFIG.urlContactos)   : Promise.resolve([])
+]);
 
-try {
-const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias);
-console.log('📊 Datos recibidos:', datos);
+// Actualizar tarjetas — setEl no rompe si el ID fue eliminado
+setEl('totalIncidencias', incidencias.length);
+setEl('totalTardanzas',   tardanzas.length);
+setEl('totalEstudiantes', estudiantes.length);
+setEl('totalContactos',   contactos.length);
 
-if (datos && datos.length > 0) {
-datosIncidencias = datos;
-incidenciasFiltradas = datos;
-console.log('✅ Incidencias cargadas:', datos.length);
-console.log('🔍 ESTRUCTURA DEL PRIMER REGISTRO:', datos[0]);
-console.log('🔍 PROPIEDADES DISPONIBLES:', Object.keys(datos[0]));
-mostrarIncidencias();
-} else {
-console.log('⚠️ No hay datos o la respuesta está vacía');
-mostrarSinDatos();
-}
-} catch (error) {
-console.error('❌ Error fatal:', error);
-tbody.innerHTML = `
-<tr>
-<td colspan="9" style="text-align:center;padding:40px;color:#dc3545;">
-<div style="font-size:2em;margin-bottom:10px;">⚠️</div>
-<p style="font-weight:600;margin-bottom:10px;">Error al cargar datos</p>
-<p style="font-size:0.9em;margin-bottom:15px;">${error.message}</p>
-<p style="font-size:0.85em;color:#666;">
-Abre la consola del navegador (F12) para ver detalles técnicos.
-</p>
-</td>
-</tr>
-`;
-}
+// Calcular familias usando el campo 'Apellido Familiar' de Google Sheets
+const familias = new Set(
+    estudiantes
+        .map(e => (e['Apellido Familiar'] || '').trim().toLowerCase())
+        .filter(f => f !== '')
+);
+setEl('totalFamilias', familias.size);
+
+console.log(`✅ Cargado: ${incidencias.length} incidencias, ${tardanzas.length} tardanzas, ${estudiantes.length} estudiantes, ${contactos.length} contactos`);
+
+// Guardar para el gráfico y renderizar
+window._incidencias = incidencias;
+window._estudiantes = estudiantes;
+renderGraficoCursos();
+generarHistorialMesesConsulta();
 }
 
-// Mostrar incidencias en la tabla
-function mostrarIncidencias() {
-const tbody = document.getElementById('bodyIncidencias');
+console.log('📊 Módulo de estadísticas (consulta) cargado');
+</script>
 
-if (incidenciasFiltradas.length === 0) {
-mostrarSinDatos();
-return;
+<script>
+// ===== Historial de Conductas por Mes (dos períodos del año escolar) =====
+function mesesAnioEscolarConsulta(anioStr) {
+const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let y1, y2;
+const m = String(anioStr || '').match(/(\d{4})\s*-\s*(\d{4})/);
+if (m) { y1 = parseInt(m[1], 10); y2 = parseInt(m[2], 10); }
+else { const h = new Date(); if (h.getMonth() >= 7) { y1 = h.getFullYear(); y2 = y1 + 1; } else { y2 = h.getFullYear(); y1 = y2 - 1; } }
+const periodo1 = [];
+for (let mi = 7; mi <= 11; mi++) periodo1.push({ nombre: meses[mi] + ' ' + y1, mes: mi, año: y1 }); // Ago–Dic
+const periodo2 = [];
+for (let mi = 0; mi <= 5; mi++) periodo2.push({ nombre: meses[mi] + ' ' + y2, mes: mi, año: y2 });   // Ene–Jun
+return { periodo1, periodo2 };
 }
 
-tbody.innerHTML = incidenciasFiltradas.map(inc => {
-const tipo = inc['Tipo de falta'] || 'N/A';
-const tipoClass = tipo !== 'N/A' ? tipo.toLowerCase().replace(/ /g, '-') : 'leve';
-const nombreEstudiante = inc['Nombre Estudiante'] || 'N/A';
+function generarHistorialMesesConsulta() {
+const cont = document.getElementById('mesSelectorContainer');
+if (!cont) return;
+const anio = new URLSearchParams(location.search).get('anio') || '';
+const { periodo1, periodo2 } = mesesAnioEscolarConsulta(anio);
+const todos = periodo1.concat(periodo2);
+const ahora = new Date();
+const sel = todos.find(x => x.mes === ahora.getMonth() && x.año === ahora.getFullYear()) || todos[todos.length - 1];
 
-return `
-<tr onclick="abrirHistorialEstudiante('${nombreEstudiante.replace(/'/g, "\\'")}')">
-<td>${formatearFecha(inc['Fecha y Hora'])}</td>
-<td><strong>${nombreEstudiante}</strong></td>
-<td>${inc['Curso'] || 'N/A'}</td>
-<td><span class="status-badge badge-${tipoClass}">${tipo}</span></td>
-<td>${inc['Docente'] || 'N/A'}</td>
-<td>${inc['Tipo de Conducta'] || 'N/A'}</td>
-<td style="max-width:250px;">${inc['Descripción'] || 'N/A'}</td>
-<td style="max-width:200px;">${inc['Acciones Docente'] || '-'}</td>
-<td style="max-width:200px;">${inc['Seguimiento UGC'] || '-'}</td>
-</tr>
-`;
+const botones = (lista) => lista.map(m => {
+const activo = (sel && m.mes === sel.mes && m.año === sel.año);
+return `<button onclick="mostrarEstadisticasMesConsulta(${m.mes}, ${m.año})" data-mes="${m.mes}" data-año="${m.año}" style="padding:8px 16px;border:none;border-radius:18px;font-size:0.85em;font-weight:700;cursor:pointer;color:#fff;background:${activo ? '#1976D2' : '#1f2937'};">${m.nombre}</button>`;
 }).join('');
 
-console.log(`📊 Mostrando ${incidenciasFiltradas.length} incidencias`);
-}
-
-// Mostrar mensaje cuando no hay datos
-function mostrarSinDatos() {
-const tbody = document.getElementById('bodyIncidencias');
-tbody.innerHTML = `
-<tr>
-<td colspan="9">
-<div class="no-data">
-<div class="no-data-icon">📭</div>
-<p style="font-size:1.2em;font-weight:600;margin-bottom:5px;">No hay incidencias registradas</p>
-<p style="font-size:0.9em;">O no se encontraron resultados con los filtros aplicados.</p>
+cont.innerHTML = `
+<div style="width:100%;">
+<div style="font-size:0.82em;font-weight:700;color:#1e3a5f;margin-bottom:8px;">1.er período · Agosto a Diciembre</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">${botones(periodo1)}</div>
 </div>
-</td>
-</tr>
-`;
-}
-
-// Buscar incidencias con filtros
-function buscarIncidencias() {
-const buscarEstudiante = document.getElementById('buscarEstudiante').value.toLowerCase();
-const filtrarCurso = document.getElementById('filtrarCurso').value;
-const filtrarTipo = document.getElementById('filtrarTipo').value;
-
-incidenciasFiltradas = datosIncidencias.filter(inc => {
-const cumpleEstudiante = !buscarEstudiante || (inc['Nombre Estudiante'] && inc['Nombre Estudiante'].toLowerCase().includes(buscarEstudiante));
-const cumpleCurso = !filtrarCurso || inc['Curso'] === filtrarCurso;
-const cumpleTipo = !filtrarTipo || inc['Tipo de falta'] === filtrarTipo;
-
-return cumpleEstudiante && cumpleCurso && cumpleTipo;
-});
-
-mostrarIncidencias();
-console.log(`🔍 Filtrado: ${incidenciasFiltradas.length} de ${datosIncidencias.length} incidencias`);
-}
-
-// Recargar incidencias
-function recargarIncidencias() {
-document.getElementById('buscarEstudiante').value = '';
-document.getElementById('filtrarCurso').value = '';
-document.getElementById('filtrarTipo').value = '';
-
-incidenciasFiltradas = datosIncidencias;
-mostrarIncidencias();
-console.log('🔄 Filtros limpiados');
-}
-
-// Formatear fecha
-function formatearFecha(fechaStr) {
-if (!fechaStr) return 'N/A';
-
-try {
-const fecha = new Date(fechaStr);
-const dia = String(fecha.getDate()).padStart(2, '0');
-const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-const año = fecha.getFullYear();
-const hora = String(fecha.getHours()).padStart(2, '0');
-const minutos = String(fecha.getMinutes()).padStart(2, '0');
-
-return `${dia}/${mes}/${año} ${hora}:${minutos}`;
-} catch (error) {
-return fechaStr;
-}
-}
-
-// ==========================================
-// AUTOCOMPLETADO DINÁMICO
-// ==========================================
-
-function filtrarSugerencias() {
-const input = document.getElementById('buscarEstudiante');
-const sugerencias = document.getElementById('sugerenciasEstudiantes');
-const texto = input.value.toLowerCase().trim();
-
-if (texto.length === 0) {
-sugerencias.style.display = 'none';
-return;
-}
-
-// Obtener estudiantes únicos de las incidencias
-const estudiantesUnicos = [...new Set(datosIncidencias
-.map(inc => inc['Nombre Estudiante'])
-.filter(nombre => nombre && nombre.toLowerCase().includes(texto))
-)].sort();
-
-if (estudiantesUnicos.length === 0) {
-sugerencias.style.display = 'none';
-return;
-}
-
-// Mostrar sugerencias
-sugerencias.innerHTML = estudiantesUnicos.map(nombre => `
-<div onclick="seleccionarEstudiante('${nombre.replace(/'/g, "\\'")}')" 
-style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s;"
-onmouseover="this.style.background='#f0f0f0'"
-onmouseout="this.style.background='white'">
-${nombre}
-</div>
-`).join('');
-
-sugerencias.style.display = 'block';
-}
-
-function mostrarSugerencias() {
-const input = document.getElementById('buscarEstudiante');
-if (input.value.trim().length > 0) {
-filtrarSugerencias();
-}
-}
-
-function seleccionarEstudiante(nombre) {
-document.getElementById('buscarEstudiante').value = nombre;
-document.getElementById('sugerenciasEstudiantes').style.display = 'none';
-buscarIncidencias();
-}
-
-// Cerrar sugerencias al hacer clic fuera
-document.addEventListener('click', function(e) {
-const sugerencias = document.getElementById('sugerenciasEstudiantes');
-const input = document.getElementById('buscarEstudiante');
-if (e.target !== input && e.target !== sugerencias) {
-sugerencias.style.display = 'none';
-}
-});
-
-// ==========================================
-// SOBRESCRIBIR FUNCIÓN DE APP.JS PARA LIMPIAR MODALES ANTERIORES
-// ==========================================
-
-// Guardar la función original
-const abrirHistorialEstudianteOriginal = window.abrirHistorialEstudiante;
-
-// Sobrescribir para cerrar modales anteriores y personalizar para esta página
-window.abrirHistorialEstudiante = function(nombreEstudiante) {
-// Cerrar cualquier modal anterior
-const modalAnterior = document.getElementById('modalHistorialEstudiante');
-if (modalAnterior) {
-modalAnterior.remove();
-}
-
-// Buscar información del estudiante
-const estudiante = datosEstudiantes.find(e => {
-const nombre = e['Nombre Completo'] || e.nombre || '';
-return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
-});
-
-if (!estudiante) {
-alert('⚠️ No se encontró información del estudiante en la base de datos.');
-return;
-}
-
-const nombre = estudiante['Nombre Completo'] || estudiante.nombre || '';
-const curso = estudiante['Curso'] || estudiante.curso || '';
-
-// Recopilar toda la información del estudiante
-const incidencias = datosIncidencias.filter(i => {
-const nom = i['Nombre Estudiante'] || i.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
-});
-
-const tardanzas = datosTardanzas.filter(t => {
-const nom = t['Nombre Estudiante'] || t.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
-});
-
-const reuniones = datosReuniones.filter(r => {
-const nom = r['Nombre Estudiante'] || r.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
-});
-
-const contacto = datosContactos.find(c => {
-const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
-});
-
-// Contar incidencias por tipo
-const incidenciasLeves = incidencias.filter(i => {
-const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
-return tipo === 'Leve';
-}).length;
-
-const incidenciasGraves = incidencias.filter(i => {
-const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
-return tipo === 'Grave';
-}).length;
-
-const incidenciasMuyGraves = incidencias.filter(i => {
-const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
-return tipo === 'Muy Grave';
-}).length;
-
-// Total de tardanzas
-const tardanzasTotales = tardanzas.length;
-
-// Determinar estado basado en tardanzas y faltas graves/muy graves
-const faltasGravesYMuyGraves = incidenciasGraves + incidenciasMuyGraves;
-let estadoColor = '#059669';
-let estadoTexto = 'Normal';
-let estadoIcono = '✅';
-
-if (faltasGravesYMuyGraves >= 3 || tardanzasTotales >= 10) {
-estadoColor = '#dc2626';
-estadoTexto = 'Requiere Atención Urgente';
-estadoIcono = '🚨';
-} else if (faltasGravesYMuyGraves >= 1 || tardanzasTotales >= 5) {
-estadoColor = '#f59e0b';
-estadoTexto = 'Requiere Atención';
-estadoIcono = '⚠️';
-}
-
-// Generar HTML de contactos
-let htmlContactos = '';
-if (contacto) {
-const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || '';
-const telPadre = contacto['Contacto Padre'] || contacto.telPadre || '';
-const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || '';
-const telMadre = contacto['Contacto Madre'] || contacto.telMadre || '';
-const telEmergencia = contacto['Contacto Emergencia'] || contacto.telEmergencia || '';
-
-if (nombrePadre && telPadre) {
-htmlContactos += `
-<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
-<h4 style="color:#333;margin-bottom:8px;">👨 Padre</h4>
-<p style="margin-bottom:10px;">${nombrePadre}<br>☎️ ${telPadre}</p>
-<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telPadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
-</div>
-`;
-}
-
-if (nombreMadre && telMadre) {
-htmlContactos += `
-<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
-<h4 style="color:#333;margin-bottom:8px;">👩 Madre</h4>
-<p style="margin-bottom:10px;">${nombreMadre}<br>☎️ ${telMadre}</p>
-<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telMadre}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
-</div>
-`;
-}
-
-if (telEmergencia) {
-htmlContactos += `
-<div style="background:#f8f9fa;padding:15px;border-radius:8px;">
-<h4 style="color:#333;margin-bottom:8px;">🚨 Emergencia</h4>
-<p style="margin-bottom:10px;">☎️ ${telEmergencia}</p>
-<button class="btn btn-success" style="background:#25D366;padding:8px 15px;font-size:0.9em;" onclick="abrirWhatsApp('${telEmergencia}', 'Saludos,\\n\\n')">💬 WhatsApp</button>
-</div>
-`;
-}
-}
-
-if (!htmlContactos) {
-htmlContactos = '<p style="color:#f59e0b;font-style:italic;">⚠️ Sin contactos registrados</p>';
-}
-
-// Generar línea de tiempo combinando todo
-let eventos = [];
-
-incidencias.forEach(inc => {
-eventos.push({
-fecha: new Date(inc['Fecha y Hora'] || inc['Fecha'] || inc.fecha || ''),
-tipo: 'incidencia',
-titulo: inc['Tipo de Conducta'] || inc.tipoConducta || 'Incidencia',
-descripcion: inc['Descripción'] || inc.descripcion || '',
-gravedad: inc['Tipo'] || inc['Tipo de falta'] || inc['Tipo de Falta'] || inc.tipoFalta || inc.tipo || 'Sin clasificar',
-docente: inc['Docente'] || inc['Docente que Reporta'] || inc.docenteReporta || inc.docente || 'No especificado'
-});
-});
-
-tardanzas.forEach(tard => {
-eventos.push({
-fecha: new Date(tard['Fecha'] || tard.fecha || ''),
-tipo: 'tardanza',
-titulo: 'Tardanza',
-descripcion: 'Llegada tardía',
-motivo: tard['Motivo'] || tard.motivo || ''
-});
-});
-
-reuniones.forEach(reun => {
-eventos.push({
-fecha: new Date(reun['Fecha'] || reun.fecha || ''),
-tipo: 'reunion',
-titulo: 'Reunión con Padres',
-descripcion: reun['Motivo'] || reun.motivo || '',
-asistio: reun['Asistió'] || reun.asistio || '',
-acuerdos: reun['Acuerdos'] || reun.acuerdos || ''
-});
-});
-
-// Ordenar por fecha (más reciente primero)
-eventos.sort((a, b) => b.fecha - a.fecha);
-
-// Generar HTML de línea de tiempo - MOSTRAR TODOS LOS EVENTOS
-let htmlTimeline = '';
-if (eventos.length === 0) {
-htmlTimeline = '<p style="color:#999;text-align:center;padding:40px;">No hay eventos registrados</p>';
-} else {
-// MOSTRAR TODOS LOS EVENTOS (sin límite)
-eventos.forEach(evento => {
-const fechaTexto = evento.fecha.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
-const horaTexto = evento.fecha.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
-
-let iconoTipo = '';
-let colorBorde = '';
-let labelTipo = '';
-let detalles = '';
-
-if (evento.tipo === 'incidencia') {
-iconoTipo = '📋';
-colorBorde = evento.gravedad === 'Grave' || evento.gravedad === 'Muy Grave' ? '#dc2626' : '#f59e0b';
-labelTipo = `<span style="background:#fee2e2;color:#991b1b;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">📋 Incidencia</span>`;
-detalles = `
-<strong>${evento.titulo}</strong><br>
-${evento.descripcion}<br>
-<span style="color:#666;font-size:0.9em;">Tipo de Falta: ${evento.gravedad} | Docente: ${evento.docente}</span>
-`;
-} else if (evento.tipo === 'tardanza') {
-iconoTipo = '⏰';
-colorBorde = '#f59e0b';
-labelTipo = `<span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">⏰ Tardanza</span>`;
-detalles = `<strong>${evento.titulo}</strong><br>${evento.descripcion}${evento.motivo ? '<br><span style="color:#666;font-size:0.9em;">Motivo: ' + evento.motivo + '</span>' : ''}`;
-} else {
-iconoTipo = '🤝';
-colorBorde = '#3b82f6';
-labelTipo = `<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:4px;font-size:0.85em;font-weight:600;">🤝 Reunión</span>`;
-detalles = `
-<strong>${evento.titulo}</strong><br>
-${evento.descripcion}<br>
-<span style="color:#666;font-size:0.9em;">Asistió: ${evento.asistio === 'Sí' ? '✅ Sí' : '❌ No'}</span>
-${evento.acuerdos ? '<br><span style="color:#666;font-size:0.9em;">Acuerdos: ' + evento.acuerdos + '</span>' : ''}
-`;
-}
-
-htmlTimeline += `
-<div style="position:relative;margin-bottom:25px;background:#f8f9fa;padding:15px;border-radius:8px;border-left:4px solid ${colorBorde};">
-<div style="color:#666;font-size:0.85em;margin-bottom:8px;">${fechaTexto} - ${horaTexto}</div>
-${labelTipo}
-<div style="margin-top:10px;color:#333;line-height:1.6;">${detalles}</div>
-</div>
-`;
-});
-}
-
-// Crear modal - SIN BOTÓN DE EXPORTAR PDF
-const modalHTML = `
-<div id="modalHistorialEstudiante" class="modal" style="display:block;">
-<div class="modal-content" style="max-width:1000px;max-height:90vh;display:flex;flex-direction:column;">
-<div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;flex-shrink:0;">
-<h2>👤 ${nombre}</h2>
-<span class="close" onclick="cerrarHistorialEstudiante()">&times;</span>
-</div>
-<div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;flex-shrink:0;">
-<p style="font-size:1.1em;opacity:0.9;">${curso}</p>
-</div>
-<div class="modal-body" style="overflow-y:auto;flex:1;max-height:calc(90vh - 180px);">
-
-<!-- RESUMEN GENERAL -->
-<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
-📊 Resumen General
-</h3>
-<div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:15px;margin-bottom:30px;">
-<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
-<div style="font-size:2em;font-weight:bold;color:#333;">${incidencias.length}</div>
-<div style="color:#666;font-size:0.9em;margin-top:5px;">Incidencias Totales</div>
-</div>
-<div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:20px;border-radius:8px;">
-<div style="font-size:2em;font-weight:bold;color:#333;">${tardanzasTotales}</div>
-<div style="color:#666;font-size:0.9em;margin-top:5px;">Tardanzas Totales</div>
-</div>
-<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:20px;border-radius:8px;">
-<div style="font-size:2em;font-weight:bold;color:#333;">${reuniones.length}</div>
-<div style="color:#666;font-size:0.9em;margin-top:5px;">Reuniones con Padres</div>
-</div>
-<div style="background:#f0fdf4;border-left:4px solid #22c55e;padding:20px;border-radius:8px;">
-<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasLeves}</div>
-<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Leves</div>
-</div>
-<div style="background:#fff7ed;border-left:4px solid #f97316;padding:20px;border-radius:8px;">
-<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasGraves}</div>
-<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Graves</div>
-</div>
-<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:20px;border-radius:8px;">
-<div style="font-size:2em;font-weight:bold;color:#333;">${incidenciasMuyGraves}</div>
-<div style="color:#666;font-size:0.9em;margin-top:5px;">Faltas Muy Graves</div>
-</div>
-</div>
-
-<!-- ESTADO DEL ESTUDIANTE -->
-<div style="background:${estadoColor === '#dc2626' ? '#fef2f2' : estadoColor === '#f59e0b' ? '#fffbeb' : '#f0fdf4'};border-left:4px solid ${estadoColor};padding:20px;border-radius:8px;margin-bottom:30px;text-align:center;">
-<div style="font-size:2.5em;font-weight:bold;color:#333;">${estadoIcono}</div>
-<div style="color:#666;font-size:1.1em;margin-top:5px;font-weight:600;">${estadoTexto}</div>
-</div>
-
-<!-- CONTACTOS -->
-<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
-📞 Información de Contacto
-</h3>
-<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:15px;margin-bottom:30px;">
-${htmlContactos}
-</div>
-
-<!-- LÍNEA DE TIEMPO -->
-<h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
-📅 Línea de Tiempo (Últimos eventos)
-</h3>
-<div style="position:relative;padding-left:40px;">
-<div style="position:absolute;left:15px;top:0;bottom:0;width:2px;background:#e0e0e0;"></div>
-${htmlTimeline}
-</div>
-
-</div>
-</div>
+<div style="width:100%;margin-top:16px;">
+<div style="font-size:0.82em;font-weight:700;color:#1e3a5f;margin-bottom:8px;">2.º período · Enero a Junio</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">${botones(periodo2)}</div>
 </div>`;
 
-document.getElementById('modalContainer').innerHTML = modalHTML;
-};
-
-// Función para abrir WhatsApp (necesaria para los botones de contacto)
-function abrirWhatsApp(numero, mensaje) {
-const numeroLimpio = numero.replace(/[\s\-\(\)]/g, '');
-const mensajeCodificado = encodeURIComponent(mensaje);
-window.open(`https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`, '_blank');
+if (sel) mostrarEstadisticasMesConsulta(sel.mes, sel.año);
 }
 
-// Función para cerrar el historial
-function cerrarHistorialEstudiante() {
-const modal = document.getElementById('modalHistorialEstudiante');
-if (modal) {
-modal.remove();
-}
-}
-
-// ==========================================
-// RE-HABILITAR FILTROS (después de auth-guard)
-// ==========================================
-
-// Esperar a que auth-guard deshabilite controles, luego re-habilitar los filtros
-setTimeout(function() {
-const filtros = document.querySelectorAll('.filter-select');
-filtros.forEach(filtro => {
-filtro.disabled = false;
-filtro.style.opacity = '1';
-filtro.style.cursor = 'pointer';
-filtro.style.background = 'white';
-filtro.style.pointerEvents = 'auto';
+function mostrarEstadisticasMesConsulta(mes, año) {
+const inc = (window._incidencias || []).filter(i => {
+const f = new Date(i['Fecha y Hora'] || i.fecha || '');
+return f.getMonth() === mes && f.getFullYear() === año;
 });
-console.log('✅ Filtros re-habilitados');
-}, 1000);
-
-// También re-habilitar cada 500ms por si auth-guard se ejecuta tarde
-const intervalo = setInterval(function() {
-const filtros = document.querySelectorAll('.filter-select');
-let todosHabilitados = true;
-
-filtros.forEach(filtro => {
-if (filtro.disabled) {
-filtro.disabled = false;
-filtro.style.opacity = '1';
-filtro.style.cursor = 'pointer';
-filtro.style.background = 'white';
-filtro.style.pointerEvents = 'auto';
-todosHabilitados = false;
-}
+const tipo = i => (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '');
+const cuenta = t => inc.filter(i => tipo(i) === t).length;
+const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+set('historialAgresionFisica', cuenta('Agresión física'));
+set('historialAgresionVerbal', cuenta('Agresión verbal'));
+set('historialBullying', cuenta('Bullying'));
+set('historialCyberBullying', cuenta('Cyber bullying'));
+document.querySelectorAll('#mesSelectorContainer button').forEach(btn => {
+const bm = parseInt(btn.getAttribute('data-mes'));
+const ba = parseInt(btn.getAttribute('data-año'));
+btn.style.background = (bm === mes && ba === año) ? '#1976D2' : '#1f2937';
 });
-
-// Si todos están habilitados por 3 ciclos, detener el intervalo
-if (todosHabilitados) {
-clearInterval(intervalo);
-console.log('✅ Filtros permanentemente habilitados');
 }
-}, 500);
+</script>
 
-console.log('📋 Módulo de incidencias (consulta) cargado');
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// GRÁFICO DE INCIDENCIAS POR CURSO — estadisticas-consulta
+// ═══════════════════════════════════════════════════════════
+
+const TODOS_CURSOS_GRAFICO = [
+    '1roA','1roB','1roC',
+    '2doA','2doB','2doC',
+    '3roA','3roB','3roC',
+    '4toA','4toB','4toC',
+    '5toA','5toB','5toC',
+    '6toA','6toB','6toC'
+];
+
+function filtrarIncidenciasPorPeriodo() {
+    const inc = window._incidencias || [];
+    const filtro = (document.getElementById('filtroPeriodoCurso') || {}).value || 'todo';
+    const ahora = new Date();
+    return inc.filter(function(i) {
+        if (filtro === 'todo') return true;
+        const fecha = new Date(i['Fecha y Hora'] || i.fecha || '');
+        if (isNaN(fecha)) return true;
+        if (filtro === 'mes')
+            return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear();
+        if (filtro === 'trimestre')
+            return fecha >= new Date(ahora.getFullYear(), ahora.getMonth() - 2, 1);
+        return true;
+    });
+}
+
+function calcularDatosCursos() {
+    const incidencias = filtrarIncidenciasPorPeriodo();
+    const estudiantes = window._estudiantes || [];
+    const orden = (document.getElementById('filtroOrdenCurso') || {}).value || 'total';
+
+    const datos = TODOS_CURSOS_GRAFICO.map(function(curso) {
+        const inc = incidencias.filter(function(i) {
+            return (i['Curso'] || i.curso || '') === curso;
+        });
+        const leves     = inc.filter(function(i) { return (i['Tipo de falta'] || '') === 'Leve'; }).length;
+        const graves    = inc.filter(function(i) { return (i['Tipo de falta'] || '') === 'Grave'; }).length;
+        const muyGraves = inc.filter(function(i) { return (i['Tipo de falta'] || '') === 'Muy Grave'; }).length;
+        const total     = leves + graves + muyGraves;
+
+        const set = new Set();
+        inc.forEach(function(i) {
+            const n = (i['Nombre Estudiante'] || i['Estudiante'] || i.estudiante || '').trim();
+            if (n) set.add(n);
+        });
+        const afectados = set.size;
+
+        const puntosPonderados = muyGraves * 3 + graves * 2 + leves * 1;
+        const totalEstCurso = estudiantes.filter(function(e) {
+            return (e['Curso'] || e.curso || '') === curso;
+        }).length;
+        const tamCurso = totalEstCurso > 0 ? totalEstCurso : 30;
+        const cobertura = Math.min(afectados / tamCurso, 1);
+        const scoreRaw = puntosPonderados * (1 + cobertura);
+        const REFERENCIA_CRITICA = tamCurso * 2;
+        const indiceRaw = scoreRaw / REFERENCIA_CRITICA;
+
+        return { curso, leves, graves, muyGraves, total, afectados, indiceRaw };
+    });
+
+    if (orden === 'total')     datos.sort(function(a,b){ return b.total - a.total; });
+    if (orden === 'afectados') datos.sort(function(a,b){ return b.afectados - a.afectados; });
+    if (orden === 'nombre')    datos.sort(function(a,b){ return a.curso.localeCompare(b.curso); });
+
+    // Convertir a % absoluto, cappear en 100
+    datos.forEach(function(d){ d.indice = Math.min(Math.round(d.indiceRaw * 100), 100); });
+
+    return datos;
+}
+
+function renderGraficoCursos() {
+    const container = document.getElementById('graficoCursosContainer');
+    const tbody     = document.getElementById('tablaCursosBody');
+    if (!container) return;
+
+    const datos    = calcularDatosCursos();
+    const conDatos = datos.filter(function(d){ return d.total > 0; });
+
+    // Tarjetas resumen
+    const totalLeves     = datos.reduce(function(s,d){ return s+d.leves; }, 0);
+    const totalGraves    = datos.reduce(function(s,d){ return s+d.graves; }, 0);
+    const totalMuyGraves = datos.reduce(function(s,d){ return s+d.muyGraves; }, 0);
+    const totalAfectados = (function(){
+        const inc = filtrarIncidenciasPorPeriodo();
+        const s = new Set();
+        inc.forEach(function(i){
+            const n = (i['Nombre Estudiante'] || i['Estudiante'] || i.estudiante || '').trim();
+            if (n) s.add(n);
+        });
+        return s.size;
+    })();
+    const cursoTop = conDatos.length > 0
+        ? conDatos.reduce(function(a,b){ return b.indice > a.indice ? b : a; }).curso
+        : '—';
+
+    const el = function(id){ return document.getElementById(id); };
+    if (el('resumenLeves'))     el('resumenLeves').textContent     = totalLeves;
+    if (el('resumenGraves'))    el('resumenGraves').textContent    = totalGraves;
+    if (el('resumenMuyGraves')) el('resumenMuyGraves').textContent = totalMuyGraves;
+    if (el('resumenAfectados')) el('resumenAfectados').textContent = totalAfectados;
+    if (el('resumenCursoTop'))  el('resumenCursoTop').textContent  = cursoTop;
+
+    // Gráfico SVG
+    if (conDatos.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:40px 20px;">No hay incidencias registradas para el período seleccionado.</p>';
+    } else {
+        const maxVal = Math.max.apply(null, conDatos.map(function(d){
+            return Math.max(d.leves, d.graves, d.muyGraves, 1);
+        }));
+        const barW = 16, gap = 6, groupGap = 18;
+        const groupW = barW*3 + gap*2 + groupGap;
+        const chartH = 180, labelH = 36, topPad = 20;
+        const totalW = conDatos.length * groupW + 40;
+
+        var svgBars = '';
+        conDatos.forEach(function(d, i) {
+            const x = 20 + i * groupW;
+            function bar(val, color, offset) {
+                if (val === 0) return '';
+                const h = Math.max(2, Math.round((val / maxVal) * chartH));
+                const y = topPad + chartH - h;
+                return '<rect x="'+(x+offset)+'" y="'+y+'" width="'+barW+'" height="'+h+'" fill="'+color+'" rx="3">'+
+                       '<title>'+val+'</title></rect>'+
+                       '<text x="'+(x+offset+barW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="9" fill="#555">'+(val>0?val:'')+' </text>';
+            }
+            svgBars += bar(d.leves,     '#22c55e', 0);
+            svgBars += bar(d.graves,    '#eab308', barW+gap);
+            svgBars += bar(d.muyGraves, '#ef4444', (barW+gap)*2);
+
+            if (d.afectados > 0) {
+                const cx = x + groupW/2 - groupGap/2;
+                const cy = topPad + chartH + labelH - 6;
+                svgBars += '<circle cx="'+cx+'" cy="'+cy+'" r="9" fill="#7c3aed" opacity="0.85"/>';
+                svgBars += '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="9" fill="white" font-weight="bold">'+d.afectados+'</text>';
+            }
+            svgBars += '<text x="'+(x+groupW/2-groupGap/2)+'" y="'+(topPad+chartH+14)+'" text-anchor="middle" font-size="10" fill="#374151" font-weight="600">'+d.curso+'</text>';
+        });
+
+        var guias = '';
+        [0.25,0.5,0.75,1].forEach(function(p){
+            const y = topPad + chartH - Math.round(p*chartH);
+            const v = Math.round(p*maxVal);
+            guias += '<line x1="14" y1="'+y+'" x2="'+totalW+'" y2="'+y+'" stroke="#e5e7eb" stroke-width="1"/>';
+            guias += '<text x="10" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="#9ca3af">'+v+'</text>';
+        });
+
+        container.innerHTML =
+            '<div style="margin-bottom:10px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;">'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#22c55e;border-radius:2px;display:inline-block;"></span> Leve</span>'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#eab308;border-radius:2px;display:inline-block;"></span> Grave</span>'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#ef4444;border-radius:2px;display:inline-block;"></span> Muy Grave</span>'+
+            '<span style="font-size:0.8em;display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;background:#7c3aed;border-radius:50%;display:inline-block;"></span> Estudiantes afectados</span>'+
+            '</div>'+
+            '<svg width="100%" viewBox="0 0 '+totalW+' '+(topPad+chartH+labelH+14)+'" style="overflow:visible;">'+
+            guias+svgBars+'</svg>';
+    }
+
+    // Tabla
+    if (!tbody) return;
+    if (datos.every(function(d){ return d.total===0; })) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#9ca3af;">No hay incidencias registradas para el período seleccionado.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = datos.map(function(d, i) {
+        if (d.total === 0 && d.afectados === 0) {
+            return '<tr style="opacity:0.35;">'+
+                '<td style="padding:8px 14px;font-weight:600;">'+d.curso+'</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td>'+
+                '<td style="padding:8px 14px;text-align:center;">0</td>'+
+                '<td style="padding:8px 14px;text-align:center;">0</td>'+
+                '<td style="padding:8px 14px;text-align:center;">—</td></tr>';
+        }
+        const pct = d.indice;
+        const riesgoColor = pct >= 70 ? '#ef4444' : pct >= 40 ? '#eab308' : '#22c55e';
+        const riesgoBarra =
+            '<div style="display:flex;align-items:center;gap:6px;">'+
+            '<div style="flex:1;background:#e5e7eb;border-radius:4px;height:8px;min-width:60px;">'+
+            '<div style="width:'+pct+'%;background:'+riesgoColor+';height:8px;border-radius:4px;"></div></div>'+
+            '<span style="font-size:0.85em;font-weight:700;color:'+riesgoColor+';min-width:36px;">'+pct+'%</span></div>';
+
+        const bg = i % 2 === 0 ? 'white' : '#f9fafb';
+        return '<tr style="background:'+bg+';">'+
+            '<td style="padding:10px 14px;font-weight:700;">'+d.curso+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;color:#15803d;font-weight:600;">'+(d.leves||'—')+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;color:#92400e;font-weight:600;">'+(d.graves||'—')+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;color:#b91c1c;font-weight:600;">'+(d.muyGraves||'—')+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;font-weight:700;">'+d.total+'</td>'+
+            '<td style="padding:10px 14px;text-align:center;">'+
+                (d.afectados > 0
+                    ? '<span style="background:#ede9fe;color:#5b21b6;padding:3px 10px;border-radius:20px;font-weight:700;font-size:0.9em;">'+d.afectados+'</span>'
+                    : '—')+
+            '</td>'+
+            '<td style="padding:10px 14px;">'+riesgoBarra+'</td></tr>';
+    }).join('');
+}
 </script>
 
 <script>
