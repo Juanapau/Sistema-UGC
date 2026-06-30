@@ -449,6 +449,45 @@ function closeModal(modalId) {
     if (modal) modal.style.display = 'none';
 }
 
+// ============================================================
+// BLOQUEO DEL SCROLL DEL FONDO CUANDO HAY UN MODAL ABIERTO (móvil)
+// En celulares, al desplazar dentro de un modal el navegador a veces
+// desplaza la pantalla principal que está detrás. Esto detecta cuándo
+// hay un modal visible y bloquea el fondo mientras tanto.
+// ============================================================
+(function () {
+    let pendiente = false;
+    function hayModalVisible() {
+        const modales = document.querySelectorAll('.modal, .modal-confirm');
+        for (let i = 0; i < modales.length; i++) {
+            const disp = window.getComputedStyle(modales[i]).display;
+            if (disp && disp !== 'none') return true;
+        }
+        return false;
+    }
+    function revisar() {
+        pendiente = false;
+        const abierto = hayModalVisible();
+        document.documentElement.classList.toggle('modal-abierto', abierto);
+        if (document.body) document.body.classList.toggle('modal-abierto', abierto);
+    }
+    function programar() {
+        if (!pendiente) {
+            pendiente = true;
+            (window.requestAnimationFrame || function (f) { return setTimeout(f, 16); })(revisar);
+        }
+    }
+    function iniciar() {
+        try {
+            const obs = new MutationObserver(programar);
+            obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+        } catch (e) { /* MutationObserver no disponible */ }
+        revisar();
+    }
+    if (document.body) iniciar();
+    else document.addEventListener('DOMContentLoaded', iniciar);
+})();
+
 // Función eliminada - Los modales ahora solo se cierran con el botón X
 // window.onclick = function(event) {
 //     if (event.target.classList.contains('modal')) {
