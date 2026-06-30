@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Historial de Conductas - Consulta</title>
+<title>Contactos - Consulta</title>
 <link rel="icon" type="image/png" href="./logo.png">
 <style>
 * {
@@ -48,7 +48,8 @@ z-index: 1;
 }
 
 header,
-.card {
+.card,
+table {
 position: relative;
 z-index: 2;
 }
@@ -118,23 +119,114 @@ padding: 30px;
 box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 
-.page-title {
+.page-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 30px;
+padding-bottom: 20px;
+border-bottom: 2px solid #e5e7eb;
+}
+
+.page-header h2 {
+color: #000000;
+font-size: 1.8em;
 display: flex;
 align-items: center;
-gap: 15px;
-margin-bottom: 30px;
-color: #000;
+gap: 10px;
+}
+
+.alert-readonly {
+background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+border: 2px solid #fbbf24;
+border-radius: 12px;
+padding: 15px 20px;
+margin-bottom: 25px;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.alert-readonly .icon {
 font-size: 1.8em;
 }
 
-.mes-selector {
+.alert-readonly p {
+color: #92400e;
+font-size: 0.9em;
+margin: 0;
+}
+
+.search-bar {
 display: flex;
-gap: 10px;
-margin-bottom: 30px;
+gap: 15px;
+margin-bottom: 25px;
 flex-wrap: wrap;
 }
 
-.btn-mes {
+.search-bar input {
+flex: 1;
+min-width: 200px;
+width: 100%;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-size: 0.95em;
+}
+
+.search-bar input:focus {
+outline: none;
+border-color: #2a5298;
+box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
+}
+
+/* Estilos para autocompletado */
+.autocomplete-container {
+position: relative;
+flex: 1;
+min-width: 200px;
+width: 100%;
+max-width: 800px;
+}
+
+.autocomplete-suggestions {
+position: absolute;
+z-index: 1000;
+background: white;
+border: 2px solid #2a5298;
+border-radius: 8px;
+max-height: 300px;
+overflow-y: auto;
+width: 100%;
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+display: none;
+}
+
+.autocomplete-suggestions.active {
+display: block;
+}
+
+.autocomplete-item {
+padding: 12px 15px;
+cursor: pointer;
+border-bottom: 1px solid #eee;
+transition: all 0.2s;
+}
+
+.autocomplete-item:last-child {
+border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+background: #e3f2fd;
+}
+
+.autocomplete-item strong {
+color: #2a5298;
+}
+
+.btn {
 padding: 12px 24px;
 border: none;
 border-radius: 8px;
@@ -142,90 +234,152 @@ font-size: 0.95em;
 font-weight: 600;
 cursor: pointer;
 transition: all 0.3s;
+white-space: nowrap;
 }
 
-.btn-mes-primary {
+.btn-primary {
 background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
 color: white;
-box-shadow: 0 4px 12px rgba(42,82,152,0.3);
 }
 
-.btn-mes-primary:hover {
+.btn-primary:hover {
 transform: translateY(-2px);
-box-shadow: 0 6px 16px rgba(42,82,152,0.4);
+box-shadow: 0 5px 15px rgba(42,82,152,0.4);
 }
 
-.btn-mes-secondary {
+.btn-secondary {
 background: linear-gradient(135deg, #000000 0%, #333333 100%);
 color: white;
 }
 
-.btn-mes-secondary:hover {
+.btn-secondary:hover {
 transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+box-shadow: 0 5px 15px rgba(0,0,0,0.4);
 }
 
-.stats-grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-gap: 20px;
+.btn-success {
+background: linear-gradient(135deg, #059669 0%, #047857 100%);
+color: white;
 }
 
-.stat-card {
-padding: 25px;
+.btn-success:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(5,150,105,0.4);
+}
+
+.btn-warning {
+background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+color: white;
+}
+
+.btn-warning:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 15px rgba(220,38,38,0.4);
+}
+
+.table-container {
+overflow-x: auto;
+overflow-y: auto;
+max-height: 75vh;
 border-radius: 12px;
-text-align: center;
-border: 2px solid #e0e0e0;
-transition: all 0.3s;
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.stat-card:hover {
-transform: translateY(-5px);
-box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+table {
+width: 100%;
+border-collapse: separate;
+border-spacing: 0;
+background: white;
 }
 
-.stat-card-red {
-background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-border-color: #fca5a5;
-}
-
-.stat-card-yellow {
-background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-border-color: #fcd34d;
-}
-
-.stat-card-green {
-background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-border-color: #6ee7b7;
-}
-
-.stat-card-blue {
-background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-border-color: #93c5fd;
-}
-
-.stat-card h5 {
-font-size: 0.95em;
-margin-bottom: 12px;
-color: #666;
+table th {
+background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+color: white;
+padding: 15px 12px;
+text-align: left;
 font-weight: 600;
+font-size: 0.9em;
+white-space: nowrap;
+position: sticky;
+top: 0;
+z-index: 5;
 }
 
-.stat-card .number {
-font-size: 2.5em;
-font-weight: bold;
-color: #333;
+table td {
+padding: 12px;
+border-bottom: 1px solid #eee;
+font-size: 0.9em;
+vertical-align: top;
+}
+
+table tbody tr {
+transition: all 0.2s;
+}
+
+table tbody tr:hover {
+background: #e3f2fd;
+transform: scale(1.002);
+box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.whatsapp-btn {
+background: #25D366 !important;
+padding: 8px 12px;
+font-size: 0.85em;
+display: inline-flex;
+align-items: center;
+gap: 5px;
+}
+
+.whatsapp-btn:hover {
+background: #1da851 !important;
+}
+
+.no-contact {
+color: #999;
+font-style: italic;
+font-size: 0.85em;
+}
+
+/* Alerta de estudiantes sin contactos */
+.alert-sin-contactos {
+background: #fee2e2;
+border-left: 4px solid #dc2626;
+padding: 15px 20px;
+margin: 20px 0;
+border-radius: 8px;
+display: none;
+}
+
+.alert-sin-contactos.active {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.alert-sin-contactos .icon {
+font-size: 1.5em;
+}
+
+.alert-sin-contactos strong {
+color: #991b1b;
+display: block;
+margin-bottom: 5px;
+}
+
+.alert-sin-contactos p {
+color: #7f1d1d;
+margin: 0;
+font-size: 0.9em;
 }
 
 @media (max-width: 768px) {
-.mes-selector {
+.search-bar {
 flex-direction: column;
 }
-.mes-selector .btn-mes {
+.search-bar input,
+.search-bar .btn {
 width: 100%;
-}
-.stats-grid {
-grid-template-columns: 1fr;
 }
 }
 </style>
@@ -238,7 +392,7 @@ grid-template-columns: 1fr;
 <div class="header-left">
 <img src="./logo.png" alt="Logo">
 <div class="header-title">
-<h1>Historial de Conductas por Mes</h1>
+<h1>Contactos de Padres</h1>
 <p>Solo Lectura - PNSA</p>
 </div>
 </div>
@@ -247,31 +401,49 @@ grid-template-columns: 1fr;
 
 <!-- CONTENIDO -->
 <div class="content-card">
-<h2 class="page-title">📅 Historial de Conductas por Mes</h2>
 
-<!-- SELECTOR DE MES -->
-<div id="mesSelectorContainer" class="mes-selector">
-<!-- Se genera dinámicamente con JavaScript -->
+<!-- BARRA DE BÚSQUEDA -->
+<div class="search-bar">
+<div class="autocomplete-container">
+<input type="text" id="buscarContacto" placeholder="🔍 Buscar estudiante o padre..." autocomplete="off">
+<div id="sugerenciasContacto" class="autocomplete-suggestions"></div>
+</div>
+<button class="btn btn-secondary" onclick="recargarContactos()">
+🔄 Recargar
+</button>
 </div>
 
-<!-- GRID DE ESTADÍSTICAS -->
-<div class="stats-grid">
-<div class="stat-card stat-card-red">
-<h5>Agresión Física</h5>
-<div class="number" id="historialAgresionFisica">0</div>
+<!-- ALERTA DE ESTUDIANTES SIN CONTACTOS -->
+<div id="alertaSinContactos" class="alert-sin-contactos">
+<span class="icon">⚠️</span>
+<div style="flex:1;">
+<strong>Estudiantes sin contactos registrados</strong>
+<p>Se encontraron <strong id="contadorSinContactos">0</strong> estudiantes sin ningún contacto de padres registrado.</p>
 </div>
-<div class="stat-card stat-card-yellow">
-<h5>Agresión Verbal</h5>
-<div class="number" id="historialAgresionVerbal">0</div>
 </div>
-<div class="stat-card stat-card-green">
-<h5>Bullying</h5>
-<div class="number" id="historialBullying">0</div>
-</div>
-<div class="stat-card stat-card-blue">
-<h5>Cyber Bullying</h5>
-<div class="number" id="historialCyberBullying">0</div>
-</div>
+
+<!-- TABLA DE CONTACTOS -->
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Padre</th>
+<th>Tel. Padre</th>
+<th>Madre</th>
+<th>Tel. Madre</th>
+<th>Tel. Emergencia</th>
+</tr>
+</thead>
+<tbody id="bodyContactos">
+<tr>
+<td colspan="7" style="text-align:center;padding:40px;color:#666;">
+📥 Cargando contactos...
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -310,10 +482,14 @@ cargarDatos();
 // ==========================================
 
 const CONFIG = {
-urlIncidencias: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Incidencias'
+urlContactos: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Contactos',
+urlEstudiantes: 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Estudiantes'
 };
 
-let datosIncidencias = [];
+let datosContactos = [];
+let datosEstudiantes = [];
+let estudiantesSinContactos = [];
+let mostrandoSinContactos = false;
 
 // ==========================================
 // CARGAR DATOS
@@ -331,126 +507,391 @@ return [];
 }
 
 async function cargarDatos() {
-console.log('📥 Cargando datos de incidencias...');
+console.log('📥 Cargando datos...');
+const tbody = document.getElementById('bodyContactos');
 
 try {
-// Cargar incidencias
-const incidencias = await cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias);
-console.log('✅ Incidencias cargadas:', incidencias.length);
-datosIncidencias = incidencias;
+// Cargar contactos
+console.log('📥 Cargando contactos...');
+const contactos = await cargarDatosDesdeGoogleSheets(CONFIG.urlContactos);
+console.log('✅ Contactos cargados:', contactos.length);
+datosContactos = contactos;
 
-// Generar selector de meses
-generarHistorialMeses();
+// Cargar estudiantes
+console.log('📥 Cargando estudiantes...');
+const estudiantes = await cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes);
+console.log('✅ Estudiantes cargados:', estudiantes.length);
+datosEstudiantes = estudiantes;
+
+// Calcular estudiantes sin contactos
+calcularSinContactos();
+
+// Mostrar datos
+mostrarContactos(datosContactos);
+
+// Inicializar autocompletado
+inicializarAutocompletado();
 
 } catch (error) {
 console.error('❌ Error:', error);
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#dc3545;">⚠️ Error al cargar datos</td></tr>';
 }
 }
 
 // ==========================================
-// GENERAR HISTORIAL DE MESES
+// CALCULAR ESTUDIANTES SIN CONTACTOS
 // ==========================================
 
-function generarHistorialMeses() {
-const mesSelectorContainer = document.getElementById('mesSelectorContainer');
-if (!mesSelectorContainer) return;
+function calcularSinContactos() {
+const normalizarNombre = (nombre) => (nombre || '').toLowerCase().trim().replace(/\s+/g, ' ');
 
-const ahora = new Date();
-const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+// Obtener estudiantes con contactos
+const estudiantesConContactos = new Set(
+datosContactos.map(c => {
+const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+return normalizarNombre(nombre);
+}).filter(n => n !== '')
+);
 
-// Generar últimos 6 meses
-const botonesMeses = [];
-for (let i = 0; i < 6; i++) {
-const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
-const mes = fecha.getMonth();
-const año = fecha.getFullYear();
-const nombreMes = `${meses[mes]} ${año}`;
-
-botonesMeses.push({
-nombre: nombreMes,
-mes: mes,
-año: año,
-esActual: i === 0
-});
-}
-
-// Crear botones
-mesSelectorContainer.innerHTML = botonesMeses.map(m => `
-<button class="btn-mes ${m.esActual ? 'btn-mes-primary' : 'btn-mes-secondary'}" 
-onclick="mostrarEstadisticasMes(${m.mes}, ${m.año})"
-data-mes="${m.mes}" data-año="${m.año}">
-${m.nombre}
-</button>
-`).join('');
-
-// Mostrar estadísticas del mes actual por defecto
-mostrarEstadisticasMes(ahora.getMonth(), ahora.getFullYear());
-}
-
-// ==========================================
-// MOSTRAR ESTADÍSTICAS DE UN MES
-// ==========================================
-
-function mostrarEstadisticasMes(mes, año) {
-console.log('📊 Mostrando estadísticas para:', mes, año);
-
-// Filtrar incidencias del mes seleccionado
-const incidenciasMes = datosIncidencias.filter(i => {
-try {
-const fechaInc = new Date(i['Fecha y Hora'] || i.fecha || '');
-return fechaInc.getMonth() === mes && fechaInc.getFullYear() === año;
-} catch {
-return false;
-}
+// Filtrar estudiantes sin contactos
+estudiantesSinContactos = datosEstudiantes.filter(est => {
+const nombre = est['Nombre Completo'] || est.nombre || est.Nombre || '';
+const nombreNormalizado = normalizarNombre(nombre);
+return nombreNormalizado !== '' && !estudiantesConContactos.has(nombreNormalizado);
 });
 
-console.log('📊 Incidencias del mes:', incidenciasMes.length);
+console.log('📊 Estudiantes sin contactos:', estudiantesSinContactos.length);
+}
 
-// Contar conductas por tipo
-const agresionFisica = incidenciasMes.filter(i => 
-(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión física'
-).length;
+// ==========================================
+// MOSTRAR CONTACTOS
+// ==========================================
 
-const agresionVerbal = incidenciasMes.filter(i => 
-(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Agresión verbal'
-).length;
+function mostrarContactos(contactos) {
+const tbody = document.getElementById('bodyContactos');
 
-const bullying = incidenciasMes.filter(i => 
-(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
-).length;
+if (contactos.length === 0) {
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No hay contactos registrados</td></tr>';
+return;
+}
 
-const cyberBullying = incidenciasMes.filter(i => 
-(i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
-).length;
+// Ordenar por nombre de estudiante
+contactos.sort((a, b) => {
+const nombreA = (a['Nombre Estudiante'] || a['Mombre Estudiante'] || a.estudiante || '').toLowerCase();
+const nombreB = (b['Nombre Estudiante'] || b['Mombre Estudiante'] || b.estudiante || '').toLowerCase();
+return nombreA.localeCompare(nombreB);
+});
 
-// Actualizar interfaz
-const elemFisica = document.getElementById('historialAgresionFisica');
-const elemVerbal = document.getElementById('historialAgresionVerbal');
-const elemBullying = document.getElementById('historialBullying');
-const elemCyber = document.getElementById('historialCyberBullying');
+tbody.innerHTML = contactos.map(c => {
+const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '-';
+const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '-';
+const telPadre = c['Contacto Padre'] || c.telPadre || '-';
+const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '-';
+const telMadre = c['Contacto Madre'] || c.telMadre || '-';
+const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
 
-if (elemFisica) elemFisica.textContent = agresionFisica;
-if (elemVerbal) elemVerbal.textContent = agresionVerbal;
-if (elemBullying) elemBullying.textContent = bullying;
-if (elemCyber) elemCyber.textContent = cyberBullying;
+// Buscar curso del estudiante
+const estData = datosEstudiantes.find(e => {
+const nombre = e['Nombre Completo'] || e.nombre || e.Nombre || '';
+return nombre.toLowerCase().trim() === estudiante.toLowerCase().trim();
+});
+const curso = estData ? (estData.Curso || estData.curso || '-') : '-';
 
-console.log('📊 Estadísticas:', { agresionFisica, agresionVerbal, bullying, cyberBullying });
+return `
+<tr>
+<td><strong>${estudiante}</strong></td>
+<td>${curso}</td>
+<td>${nombrePadre}</td>
+<td>${telPadre}</td>
+<td>${nombreMadre}</td>
+<td>${telMadre}</td>
+<td>${telEmergencia}</td>
+</tr>
+`;
+}).join('');
+}
 
-// Actualizar clase activa de botones
-const botones = document.querySelectorAll('#mesSelectorContainer button');
-botones.forEach(btn => {
-const btnMes = parseInt(btn.getAttribute('data-mes'));
-const btnAño = parseInt(btn.getAttribute('data-año'));
-if (btnMes === mes && btnAño === año) {
-btn.className = 'btn-mes btn-mes-primary';
+// ==========================================
+// MOSTRAR ESTUDIANTES SIN CONTACTOS
+// ==========================================
+
+function mostrarEstudiantesSinContactos() {
+const tbody = document.getElementById('bodyContactos');
+const tabla = document.querySelector('table');
+
+// Cambiar header
+const thead = tabla.querySelector('thead tr');
+thead.innerHTML = `
+<th>Estudiante</th>
+<th>Curso</th>
+<th colspan="5" style="text-align:center;">Sin información de contacto registrada</th>
+`;
+
+if (estudiantesSinContactos.length === 0) {
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#059669;">✅ Todos los estudiantes tienen contactos registrados</td></tr>';
+return;
+}
+
+// Ordenar por curso y nombre
+estudiantesSinContactos.sort((a, b) => {
+const cursoA = a.Curso || a.curso || '';
+const cursoB = b.Curso || b.curso || '';
+if (cursoA !== cursoB) return cursoA.localeCompare(cursoB);
+const nombreA = (a['Nombre Completo'] || a.nombre || '').toLowerCase();
+const nombreB = (b['Nombre Completo'] || b.nombre || '').toLowerCase();
+return nombreA.localeCompare(nombreB);
+});
+
+tbody.innerHTML = estudiantesSinContactos.map(est => {
+const nombre = est['Nombre Completo'] || est.nombre || est.Nombre || '-';
+const curso = est.Curso || est.curso || '-';
+
+return `
+<tr>
+<td><strong>${nombre}</strong></td>
+<td>${curso}</td>
+<td colspan="5" style="text-align:center;color:#dc2626;font-style:italic;">⚠️ Sin contactos registrados</td>
+</tr>
+`;
+}).join('');
+}
+
+// ==========================================
+// TOGGLE SIN CONTACTOS
+// ==========================================
+
+function toggleSinContactos() {
+const btn = document.getElementById('btnSinContactos');
+const alerta = document.getElementById('alertaSinContactos');
+const contador = document.getElementById('contadorSinContactos');
+const tabla = document.querySelector('table');
+
+mostrandoSinContactos = !mostrandoSinContactos;
+
+if (mostrandoSinContactos) {
+// Mostrar sin contactos
+btn.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+btn.innerHTML = '✅ Mostrando Sin Contactos';
+alerta.classList.add('active');
+contador.textContent = estudiantesSinContactos.length;
+mostrarEstudiantesSinContactos();
 } else {
-btn.className = 'btn-mes btn-mes-secondary';
+// Mostrar todos
+btn.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+btn.innerHTML = '🚨 Sin Contactos';
+alerta.classList.remove('active');
+// Restaurar header
+const thead = tabla.querySelector('thead tr');
+thead.innerHTML = `
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Padre</th>
+<th>Tel. Padre</th>
+<th>Madre</th>
+<th>Tel. Madre</th>
+<th>Tel. Emergencia</th>
+`;
+mostrarContactos(datosContactos);
+}
+}
+
+// ==========================================
+// WHATSAPP
+// ==========================================
+
+function abrirWhatsAppContacto(estudiante, telPadre, telMadre, telEmergencia) {
+const numeros = [];
+if (telPadre && telPadre !== '-') numeros.push({tipo: 'Padre', numero: telPadre});
+if (telMadre && telMadre !== '-') numeros.push({tipo: 'Madre', numero: telMadre});
+if (telEmergencia && telEmergencia !== '-') numeros.push({tipo: 'Emergencia', numero: telEmergencia});
+
+if (numeros.length === 0) {
+alert('No hay números de teléfono registrados');
+return;
+}
+
+if (numeros.length === 1) {
+// Abrir directamente
+abrirWhatsApp(numeros[0].numero, `Saludos,\n\nRespecto a ${estudiante}:\n\n`);
+} else {
+// Mostrar opciones
+let mensaje = `Seleccione el contacto para ${estudiante}:\n\n`;
+numeros.forEach((n, i) => {
+mensaje += `${i + 1}. ${n.tipo}: ${n.numero}\n`;
+});
+
+const opcion = prompt(mensaje + '\nIngrese el número (1-' + numeros.length + '):');
+const idx = parseInt(opcion) - 1;
+
+if (idx >= 0 && idx < numeros.length) {
+abrirWhatsApp(numeros[idx].numero, `Saludos,\n\nRespecto a ${estudiante}:\n\n`);
+}
+}
+}
+
+function abrirWhatsApp(numero, mensaje) {
+const numeroLimpio = numero.replace(/[\s\-\(\)]/g, '');
+const mensajeCodificado = encodeURIComponent(mensaje);
+window.open(`https://wa.me/${numeroLimpio}?text=${mensajeCodificado}`, '_blank');
+}
+
+// ==========================================
+// AUTOCOMPLETADO Y BÚSQUEDA
+// ==========================================
+
+function inicializarAutocompletado() {
+const input = document.getElementById('buscarContacto');
+const sugerencias = document.getElementById('sugerenciasContacto');
+let selectedIndex = -1;
+
+input.addEventListener('input', function() {
+const buscar = this.value.toLowerCase().trim();
+selectedIndex = -1;
+
+if (!buscar) {
+sugerencias.classList.remove('active');
+if (!mostrandoSinContactos) {
+mostrarContactos(datosContactos);
+}
+return;
+}
+
+// Buscar en contactos
+const resultados = datosContactos.filter(c => {
+const estudiante = (c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '').toLowerCase();
+const nombrePadre = (c['Nombre Padre'] || c.nombrePadre || '').toLowerCase();
+const nombreMadre = (c['Nombre Madre'] || c.nombreMadre || '').toLowerCase();
+
+return estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar);
+});
+
+if (resultados.length === 0) {
+sugerencias.classList.remove('active');
+const tbody = document.getElementById('bodyContactos');
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">No se encontraron resultados</td></tr>';
+return;
+}
+
+// Mostrar sugerencias
+sugerencias.innerHTML = resultados.slice(0, 5).map((c, idx) => {
+const estudiante = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+const nombrePadre = c['Nombre Padre'] || c.nombrePadre || '';
+const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '';
+
+// Buscar curso
+const estData = datosEstudiantes.find(e => {
+const nombre = e['Nombre Completo'] || e.nombre || e.Nombre || '';
+return nombre.toLowerCase().trim() === estudiante.toLowerCase().trim();
+});
+const curso = estData ? (estData.Curso || estData.curso || '') : '';
+
+return `
+<div class="autocomplete-item" data-index="${idx}">
+<strong>${estudiante}</strong> ${curso ? `(${curso})` : ''}
+<div style="font-size:0.85em;color:#666;margin-top:3px;">
+${nombrePadre ? '👨 ' + nombrePadre : ''} ${nombreMadre ? '👩 ' + nombreMadre : ''}
+</div>
+</div>
+`;
+}).join('');
+
+sugerencias.classList.add('active');
+
+// Filtrar tabla automáticamente
+if (!mostrandoSinContactos) {
+mostrarContactos(resultados);
+}
+});
+
+// Navegar con teclado
+input.addEventListener('keydown', function(e) {
+const items = sugerencias.querySelectorAll('.autocomplete-item');
+
+if (e.key === 'ArrowDown') {
+e.preventDefault();
+selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+updateSelection(items);
+} else if (e.key === 'ArrowUp') {
+e.preventDefault();
+selectedIndex = Math.max(selectedIndex - 1, -1);
+updateSelection(items);
+} else if (e.key === 'Enter' && selectedIndex >= 0) {
+e.preventDefault();
+items[selectedIndex].click();
+}
+});
+
+// Seleccionar con click
+sugerencias.addEventListener('click', function(e) {
+const item = e.target.closest('.autocomplete-item');
+if (!item) return;
+
+const idx = parseInt(item.dataset.index);
+const contacto = datosContactos.filter(c => {
+const estudiante = (c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '').toLowerCase();
+const nombrePadre = (c['Nombre Padre'] || c.nombrePadre || '').toLowerCase();
+const nombreMadre = (c['Nombre Madre'] || c.nombreMadre || '').toLowerCase();
+const buscar = input.value.toLowerCase().trim();
+
+return estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar);
+})[idx];
+
+if (contacto) {
+const estudiante = contacto['Nombre Estudiante'] || contacto['Mombre Estudiante'] || contacto.estudiante || '';
+input.value = estudiante;
+sugerencias.classList.remove('active');
+mostrarContactos([contacto]);
+}
+});
+
+function updateSelection(items) {
+items.forEach((item, idx) => {
+if (idx === selectedIndex) {
+item.classList.add('selected');
+item.scrollIntoView({block: 'nearest'});
+} else {
+item.classList.remove('selected');
 }
 });
 }
 
-console.log('📅 Módulo de historial de conductas (consulta) cargado');
+// Cerrar sugerencias al hacer click fuera
+document.addEventListener('click', function(e) {
+if (!input.contains(e.target) && !sugerencias.contains(e.target)) {
+sugerencias.classList.remove('active');
+}
+});
+}
+
+// ==========================================
+// RECARGAR
+// ==========================================
+
+async function recargarContactos() {
+const tbody = document.getElementById('bodyContactos');
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666;">🔄 Recargando...</td></tr>';
+
+// Limpiar búsqueda
+document.getElementById('buscarContacto').value = '';
+mostrandoSinContactos = false;
+
+// Restaurar header
+const tabla = document.querySelector('table');
+const thead = tabla.querySelector('thead tr');
+thead.innerHTML = `
+<th>Estudiante</th>
+<th>Curso</th>
+<th>Padre</th>
+<th>Tel. Padre</th>
+<th>Madre</th>
+<th>Tel. Madre</th>
+<th>Tel. Emergencia</th>
+`;
+
+await cargarDatos();
+}
+
+console.log('📞 Módulo de contactos (consulta) cargado');
 </script>
 
 </body>
