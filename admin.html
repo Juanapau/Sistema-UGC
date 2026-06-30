@@ -2651,6 +2651,14 @@ header img {
         .table-container {
             overscroll-behavior: contain;
         }
+
+        /* Ocultar botones flotantes mientras hay un modal abierto:
+           en la esquina inferior derecha interceptaban el toque y no dejaban
+           desplazar dentro del modal en celulares. */
+        body.modal-abierto .btn-notas-flotante,
+        body.modal-abierto .fab-menu {
+            display: none !important;
+        }
         
     </style>
     <script>
