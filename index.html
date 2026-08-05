@@ -278,136 +278,49 @@ Iniciar Sesión
 
 <script>
 // ==========================================
-// CONFIGURACIÓN DE USUARIOS DESDE GOOGLE SHEETS
+// CARGA DE USUARIOS DESDE LA BASE DE DATOS UNIFICADA
+// (mismo Apps Script que usa el resto del sistema, hoja "Usuarios")
 // ==========================================
 
-// URL del Google Apps Script para cargar usuarios
-const URL_USUARIOS = 'https://script.google.com/macros/s/AKfycbw1JHR4u7TBBRCOwKG5HQTklbujX8mGEavpCyOQKCL-0mPvnFiHCVlyrspvZmZbgei0/exec';
+// Script principal del sistema + la hoja de Usuarios
+const URL_USUARIOS = 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Usuarios';
 
-// Cache de usuarios
 let USUARIOS_CACHE = null;
 
-// Cargar usuarios desde Google Sheets
+// Lee los usuarios de la hoja. Lanza error si no se pueden cargar
+// (ya NO hay contraseñas de respaldo en el código).
 async function cargarUsuarios() {
-try {
-console.log('📥 Cargando usuarios desde Google Sheets...');
-const response = await fetch(URL_USUARIOS);
-if (!response.ok) throw new Error('Error al cargar usuarios');
+  console.log('📥 Cargando usuarios desde la base de datos...');
+  const response = await fetch(URL_USUARIOS);
+  if (!response.ok) throw new Error('No se pudo conectar con la base de datos de usuarios');
 
-const data = await response.json();
-console.log('✅ Usuarios cargados:', data.length);
-console.log('🔍 DATOS RECIBIDOS:', data);
+  let data = await response.json();
 
-// Convertir array a objeto para fácil búsqueda
-const usuariosObj = {};
-data.forEach(user => {
-console.log('🔍 Usuario raw:', user);
+  // El script puede devolver el arreglo directo o envuelto en {data:[...]}
+  if (data && !Array.isArray(data) && Array.isArray(data.data)) data = data.data;
+  if (!Array.isArray(data)) throw new Error('La respuesta de usuarios no es válida');
 
-// Buscar el campo de usuario en diferentes posibles nombres
-const username = user.Usuario || user.usuario || user.USUARIO;
-const password = user.Contraseña || user['Contraseña'] || user.contraseña || user.password || user.Password;
-const nombreCompleto = user['Nombre Completo'] || user.Nombre || user.nombre || user.NombreCompleto;
-const cargo = user.Cargo || user.cargo || user.CARGO;
-const tipo = user.Tipo || user.tipo || user.TIPO || user.Rol || user.rol;
+  const usuariosObj = {};
+  data.forEach(function (user) {
+    const username = String(user.Usuario || user.usuario || user.USUARIO || '').trim();
+    const password = String(user['Contraseña'] || user.contraseña || user.password || user.Password || '').trim();
+    const nombreCompleto = user['Nombre Completo'] || user.Nombre || user.nombre || '';
+    const cargo = user.Cargo || user.cargo || '';
+    const tipo = String(user.Tipo || user.tipo || user.Rol || user.rol || '').trim().toLowerCase();
 
-console.log('🔍 Campos extraídos:', {
-username,
-password,
-nombreCompleto,
-cargo,
-tipo
-});
+    if (username) {
+      usuariosObj[username.toLowerCase()] = {
+        password: password,
+        rol: tipo,
+        nombre: nombreCompleto,
+        cargo: cargo
+      };
+    }
+  });
 
-if (username) {
-usuariosObj[username.toLowerCase()] = {
-password: String(password), // Convertir a string
-rol: tipo,
-nombre: nombreCompleto,
-cargo: cargo
-};
-}
-});
-
-console.log('🔍 USUARIOS FINALES:', usuariosObj);
-console.log('🔍 USUARIOS DISPONIBLES:', Object.keys(usuariosObj));
-
-// AGREGAR USUARIOS DE RESPALDO SIEMPRE (por si Google Sheets no los tiene)
-const usuariosRespaldo = {
-'jpaulino': {
-password: 'admin123',
-rol: 'administrador',
-nombre: 'Juana Paulino',
-cargo: 'Administrador del Sistema'
-},
-'wcaraballo': {
-password: 'consultaw123',
-rol: 'consulta',
-nombre: 'Wenlly Caraballo',
-cargo: 'Director Académico'
-},
-'gduran': {
-password: 'consultag123',
-rol: 'consulta',
-nombre: 'Glennys M. Durán',
-cargo: 'Coordinadora Pedagógica'
-},
-'ybatista': {
-password: 'consultay123',
-rol: 'consulta',
-nombre: 'Yernibel Batista',
-cargo: 'Directora Regente'
-},
-'afernandez': {
-password: 'consultaa123',
-rol: 'consulta',
-nombre: 'Anabel Fernández',
-cargo: 'Orientadora Escolar'
-}
-};
-
-// Combinar usuarios de Sheets + usuarios de respaldo
-const usuariosFinales = { ...usuariosRespaldo, ...usuariosObj };
-console.log('🔍 TOTAL USUARIOS (Sheets + Respaldo):', Object.keys(usuariosFinales));
-
-USUARIOS_CACHE = usuariosFinales;
-return usuariosFinales;
-} catch (error) {
-console.error('❌ Error cargando usuarios:', error);
-
-// USUARIOS DE RESPALDO (fallback)
-return {
-'jpaulino': {
-password: 'admin123',
-rol: 'administrador',
-nombre: 'Juana Paulino',
-cargo: 'Administrador del Sistema'
-},
-'wcaraballo': {
-password: 'consultaw123',
-rol: 'consulta',
-nombre: 'Wenlly Caraballo',
-cargo: 'Director Académico'
-},
-'gduran': {
-password: 'consultag123',
-rol: 'consulta',
-nombre: 'Glennys M. Durán',
-cargo: 'Coordinadora Pedagógica'
-},
-'ybatista': {
-password: 'consultay123',
-rol: 'consulta',
-nombre: 'Yernibel Batista',
-cargo: 'Directora Regente'
-},
-'afernandez': {
-password: 'consultaa123',
-rol: 'consulta',
-nombre: 'Anabel Fernández',
-cargo: 'Orientadora Escolar'
-}
-};
-}
+  console.log('✅ Usuarios cargados:', Object.keys(usuariosObj).length);
+  USUARIOS_CACHE = usuariosObj;
+  return usuariosObj;
 }
 
 // ==========================================
@@ -418,7 +331,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 e.preventDefault();
 
 const usuario = document.getElementById('usuario').value.trim().toLowerCase();
-const password = document.getElementById('password').value;
+const password = document.getElementById('password').value.trim();
 
 const btnLogin = document.getElementById('btnLogin');
 const alertError = document.getElementById('alertError');
@@ -436,7 +349,7 @@ btnLogin.disabled = true;
 btnLogin.innerHTML = '<span class="loading"></span> Verificando...';
 
 try {
-// Cargar usuarios desde Google Sheets
+// Cargar usuarios desde la base de datos
 const USUARIOS = await cargarUsuarios();
 
 if (!USUARIOS[usuario]) {
@@ -446,7 +359,7 @@ btnLogin.innerHTML = 'Iniciar Sesión';
 return;
 }
 
-if (USUARIOS[usuario].password !== password) {
+if (String(USUARIOS[usuario].password).trim() !== String(password).trim()) {
 mostrarError('Contraseña incorrecta');
 btnLogin.disabled = false;
 btnLogin.innerHTML = 'Iniciar Sesión';
@@ -473,12 +386,16 @@ if (datosUsuario.rol === 'administrador') {
 window.location.href = 'admin.html';
 } else if (datosUsuario.rol === 'consulta') {
 window.location.href = 'consulta.html';
+} else {
+mostrarError('Tu usuario no tiene un rol válido (revisa la columna "Tipo" en la hoja: debe decir "administrador" o "consulta").');
+btnLogin.disabled = false;
+btnLogin.innerHTML = 'Iniciar Sesión';
 }
 }, 1000);
 
 } catch (error) {
 console.error('❌ Error en login:', error);
-mostrarError('Error al verificar credenciales. Intente nuevamente.');
+mostrarError('No se pudieron cargar los usuarios. Revisa tu conexión e inténtalo de nuevo.');
 btnLogin.disabled = false;
 btnLogin.innerHTML = 'Iniciar Sesión';
 }
