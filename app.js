@@ -5360,8 +5360,25 @@ function abrirHistorialEstudiante(nombreEstudiante) {
 let _comparativaAnualCache = { nombre: null, datos: null };
 
 // Trae los registros del estudiante de TODOS los años y devuelve el conteo por año.
+// Normaliza un nombre para comparar sin importar el orden (Apellido, Nombre vs
+// Nombre Apellido), acentos, comas o espacios. Convierte el nombre en sus
+// palabras en minúscula, sin acentos, ordenadas alfabéticamente.
+function normalizarNombreCmp(nombre) {
+    return String(nombre || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[.,;:]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .sort()
+        .join(' ');
+}
+
 async function obtenerComparativaAnual(nombreEstudiante) {
     const nombreLC = (nombreEstudiante || '').toLowerCase();
+    const nombreNorm = normalizarNombreCmp(nombreEstudiante);
     if (_comparativaAnualCache.nombre === nombreLC && _comparativaAnualCache.datos) {
         return _comparativaAnualCache.datos;
     }
@@ -5385,8 +5402,8 @@ async function obtenerComparativaAnual(nombreEstudiante) {
         if (CONFIG.urlTardanzas) {
             tar = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas + '&anio=' + encodeURIComponent(anio)) || [];
         }
-        const incEst = inc.filter(i => nombreDe(i).toLowerCase() === nombreLC);
-        const tarEst = tar.filter(t => nombreDe(t).toLowerCase() === nombreLC);
+        const incEst = inc.filter(i => normalizarNombreCmp(nombreDe(i)) === nombreNorm);
+        const tarEst = tar.filter(t => normalizarNombreCmp(nombreDe(t)) === nombreNorm);
         return {
             anio,
             leves:     incEst.filter(i => tipoDe(i) === 'Leve').length,
