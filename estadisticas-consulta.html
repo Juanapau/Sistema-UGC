@@ -511,6 +511,15 @@ header { flex-direction: column; text-align: center; }
     faltas nunca puede marcar 100% si hay cursos genuinamente más afectados.
 </p>
 
+<hr style="margin:40px 0; border:none; border-top:1px solid #e5e7eb;">
+<h3 style="color:#1e3a5f; margin-bottom:14px;">📋 Historial del Estudiante</h3>
+<div style="position:relative; max-width:600px;">
+    <label style="display:block; font-weight:600; margin-bottom:8px; color:#555;">Buscar Estudiante</label>
+    <input type="text" id="buscarHistorial" placeholder="Escriba el nombre del estudiante..." autocomplete="off" style="width:100%; padding:12px; border:2px solid #ddd; border-radius:8px; font-size:1em;">
+    <div id="sugerenciasHistorial" style="display:none; position:absolute; z-index:1000; background:white; border:1px solid #ccc; max-height:220px; overflow-y:auto; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius:0 0 8px 8px;"></div>
+</div>
+<button onclick="verHistorialDesdeEstadisticas()" style="margin-top:14px; padding:12px 24px; background:linear-gradient(135deg,#2a5298,#1e3c72); color:white; border:none; border-radius:8px; font-size:1em; font-weight:600; cursor:pointer;">📋 Ver Historial Completo</button>
+
 </div>
 </div>
 
@@ -890,6 +899,59 @@ function toggleTema(){
     const b = document.querySelector('.btn-tema');
     if(b) b.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
 })();
+</script>
+
+<script>
+// ===== Historial del Estudiante: búsqueda con autocompletado + abrir historial =====
+function nombresParaHistorial() {
+    const nombres = [];
+    (window._estudiantes || []).forEach(function (e) {
+        const n = String(e['Nombre Completo'] || e.nombre || e['Nombre'] || '').trim();
+        if (n) nombres.push(n);
+    });
+    (window._incidencias || []).forEach(function (i) {
+        const n = String(i['Nombre Estudiante'] || i.estudiante || '').trim();
+        if (n) nombres.push(n);
+    });
+    return Array.from(new Set(nombres)).sort();
+}
+
+(function () {
+    const input = document.getElementById('buscarHistorial');
+    const cont = document.getElementById('sugerenciasHistorial');
+    if (!input || !cont) return;
+    input.addEventListener('input', function () {
+        const q = input.value.trim().toLowerCase();
+        if (!q) { cont.style.display = 'none'; return; }
+        const lista = nombresParaHistorial().filter(function (n) {
+            return n.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 30);
+        if (!lista.length) { cont.style.display = 'none'; return; }
+        cont.innerHTML = lista.map(function (n) {
+            return '<div class="sug-item-hist" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #eee;">' +
+                n.replace(/</g, '&lt;') + '</div>';
+        }).join('');
+        cont.querySelectorAll('.sug-item-hist').forEach(function (el) {
+            el.addEventListener('mousedown', function () {
+                input.value = el.textContent;
+                cont.style.display = 'none';
+            });
+        });
+        cont.style.display = 'block';
+    });
+    document.addEventListener('click', function (e) {
+        if (e.target !== input) cont.style.display = 'none';
+    });
+})();
+
+function verHistorialDesdeEstadisticas() {
+    const nombre = (document.getElementById('buscarHistorial').value || '').trim();
+    if (!nombre) { alert('Escriba el nombre del estudiante.'); return; }
+    const anio = new URLSearchParams(location.search).get('anio') || '';
+    let destino = 'incidencias-consulta.html?historial=' + encodeURIComponent(nombre);
+    if (anio) destino += '&anio=' + encodeURIComponent(anio);
+    window.location.href = destino;
+}
 </script>
 
 </body>
