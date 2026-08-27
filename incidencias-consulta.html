@@ -1248,5 +1248,27 @@ function toggleTema(){
 })();
 </script>
 
+<script>
+// Abrir automáticamente el Historial Completo si se llega con ?historial=NOMBRE
+// (por ejemplo, desde la sección Historial de Estadísticas). Espera a que los
+// datos estén cargados antes de abrirlo.
+(function () {
+    var nombreHist = new URLSearchParams(location.search).get('historial');
+    if (!nombreHist) return;
+    var intentos = 0;
+    var timer = setInterval(function () {
+        intentos++;
+        var datosListos = (typeof datosEstudiantes !== 'undefined' && datosEstudiantes && datosEstudiantes.length > 0);
+        if (datosListos || intentos > 40) {
+            clearInterval(timer);
+            if (typeof abrirHistorialEstudiante === 'function') {
+                try { abrirHistorialEstudiante(decodeURIComponent(nombreHist)); }
+                catch (e) { console.error('No se pudo abrir el historial automáticamente:', e); }
+            }
+        }
+    }, 250);
+})();
+</script>
+
 </body>
 </html>
