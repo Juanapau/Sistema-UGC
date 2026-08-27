@@ -5059,7 +5059,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     // Buscar información del estudiante
     const estudiante = datosEstudiantes.find(e => {
         const nombre = e['Nombre Completo'] || e.nombre || '';
-        return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nombre) === normalizarNombreCmp(nombreEstudiante);
     });
     
     if (!estudiante) {
@@ -5073,22 +5073,22 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     // Recopilar toda la información
     const incidencias = datosIncidencias.filter(i => {
         const nom = i['Nombre Estudiante'] || i.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     const tardanzas = datosTardanzas.filter(t => {
         const nom = t['Nombre Estudiante'] || t.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     const reuniones = datosReuniones.filter(r => {
         const nom = r['Nombre Estudiante'] || r.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     const contacto = datosContactos.find(c => {
         const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     // Contar incidencias por tipo
@@ -6421,7 +6421,7 @@ async function exportarHistorialPDF(nombreEstudiante) {
     // Buscar información del estudiante
     const estudiante = datosEstudiantes.find(e => {
         const nombre = e['Nombre Completo'] || e.nombre || '';
-        return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nombre) === normalizarNombreCmp(nombreEstudiante);
     });
     
     if (!estudiante) {
@@ -6435,22 +6435,22 @@ async function exportarHistorialPDF(nombreEstudiante) {
     // Recopilar toda la información
     const incidencias = datosIncidencias.filter(i => {
         const nom = i['Nombre Estudiante'] || i.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     const tardanzas = datosTardanzas.filter(t => {
         const nom = t['Nombre Estudiante'] || t.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     const reuniones = datosReuniones.filter(r => {
         const nom = r['Nombre Estudiante'] || r.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     const contacto = datosContactos.find(c => {
         const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-        return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
     // Contar incidencias por tipo
@@ -8041,7 +8041,7 @@ function onSelectPadreReunion(value) {
 function autocompletarNombrePadre(nombreEstudiante) {
     const contacto = datosContactos.find(c => {
         const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-        return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+        return normalizarNombreCmp(nombre) === normalizarNombreCmp(nombreEstudiante);
     });
 
     const campoNombre = document.getElementById('nombrePadreReunion');
