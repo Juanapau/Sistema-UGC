@@ -889,7 +889,7 @@ modalAnterior.remove();
 // Buscar información del estudiante
 const estudiante = datosEstudiantes.find(e => {
 const nombre = e['Nombre Completo'] || e.nombre || '';
-return nombre.toLowerCase() === nombreEstudiante.toLowerCase();
+return normalizarNombreCmp(nombre) === normalizarNombreCmp(nombreEstudiante);
 });
 
 if (!estudiante) {
@@ -903,22 +903,22 @@ const curso = estudiante['Curso'] || estudiante.curso || '';
 // Recopilar toda la información del estudiante
 const incidencias = datosIncidencias.filter(i => {
 const nom = i['Nombre Estudiante'] || i.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
 });
 
 const tardanzas = datosTardanzas.filter(t => {
 const nom = t['Nombre Estudiante'] || t.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
 });
 
 const reuniones = datosReuniones.filter(r => {
 const nom = r['Nombre Estudiante'] || r.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
 });
 
 const contacto = datosContactos.find(c => {
 const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-return nom.toLowerCase() === nombreEstudiante.toLowerCase();
+return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
 });
 
 // Contar incidencias por tipo
@@ -1250,23 +1250,34 @@ function toggleTema(){
 
 <script>
 // Abrir automáticamente el Historial Completo si se llega con ?historial=NOMBRE
-// (por ejemplo, desde la sección Historial de Estadísticas). Espera a que los
-// datos estén cargados antes de abrirlo.
-(function () {
+// (por ejemplo, desde la sección Historial de Estadísticas). Carga primero los
+// datos reales del año consultado (estudiantes, contactos, reuniones, tardanzas,
+// incidencias) y luego abre el historial.
+(async function () {
     var nombreHist = new URLSearchParams(location.search).get('historial');
     if (!nombreHist) return;
-    var intentos = 0;
-    var timer = setInterval(function () {
-        intentos++;
-        var datosListos = (typeof datosEstudiantes !== 'undefined' && datosEstudiantes && datosEstudiantes.length > 0);
-        if (datosListos || intentos > 40) {
-            clearInterval(timer);
-            if (typeof abrirHistorialEstudiante === 'function') {
-                try { abrirHistorialEstudiante(decodeURIComponent(nombreHist)); }
-                catch (e) { console.error('No se pudo abrir el historial automáticamente:', e); }
-            }
+    nombreHist = decodeURIComponent(nombreHist);
+    try {
+        if (typeof cargarDatosDesdeGoogleSheets === 'function' && typeof CONFIG !== 'undefined') {
+            var res = await Promise.all([
+                CONFIG.urlIncidencias ? cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias) : Promise.resolve(null),
+                CONFIG.urlEstudiantes ? cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes) : Promise.resolve(null),
+                CONFIG.urlContactos   ? cargarDatosDesdeGoogleSheets(CONFIG.urlContactos)   : Promise.resolve(null),
+                CONFIG.urlReuniones   ? cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones)   : Promise.resolve(null),
+                CONFIG.urlTardanzas   ? cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas)   : Promise.resolve(null)
+            ]);
+            if (Array.isArray(res[0])) datosIncidencias = res[0];
+            if (Array.isArray(res[1])) datosEstudiantes = res[1];
+            if (Array.isArray(res[2])) datosContactos   = res[2];
+            if (Array.isArray(res[3])) datosReuniones    = res[3];
+            if (Array.isArray(res[4])) datosTardanzas    = res[4];
         }
-    }, 250);
+        if (typeof abrirHistorialEstudiante === 'function') {
+            abrirHistorialEstudiante(nombreHist);
+        }
+    } catch (e) {
+        console.error('No se pudo abrir el historial automáticamente:', e);
+    }
 })();
 </script>
 
