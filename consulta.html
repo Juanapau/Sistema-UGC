@@ -638,7 +638,16 @@ activo = String(cfg['añoActivo'] || cfg['anoActivo'] || '').trim();
 const dispStr = String(cfg['añosDisponibles'] || cfg['anosDisponibles'] || activo || '');
 disp = dispStr.split(',').map(s => s.trim()).filter(Boolean);
 }
+// Restaurar el último año consultado (si el usuario ya eligió uno y sigue disponible);
+// si no, usar el año activo por defecto.
+let anioGuardado = '';
+try { anioGuardado = String(localStorage.getItem('anioConsultaSel') || '').trim(); } catch (e) {}
+const listaAnios = disp.length ? disp : (activo ? [activo] : []);
+if (anioGuardado && listaAnios.includes(anioGuardado)) {
+ANIO_SEL = anioGuardado;
+} else {
 ANIO_SEL = activo || (disp[0] || '');
+}
 const sel = document.getElementById('filtroAnioConsulta');
 if (sel) {
 const anios = (disp.length ? disp : (ANIO_SEL ? [ANIO_SEL] : [])).slice().sort().reverse();
@@ -653,6 +662,7 @@ console.error('No se pudo leer Config en consulta:', e);
 // El usuario de consulta cambia de año: recarga las estadísticas del año elegido.
 function cambiarAnioConsulta(anio) {
 ANIO_SEL = anio;
+try { localStorage.setItem('anioConsultaSel', anio); } catch (e) {}
 console.log('📅 Año seleccionado:', ANIO_SEL);
 cargarEstadisticas();
 }
