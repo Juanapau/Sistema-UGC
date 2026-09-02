@@ -2098,8 +2098,7 @@ Nota: Todo este proceso deberá ser escrito y firmado por ambas partes para tene
 function enviarWhatsAppTardanzas(estudiante, total, mes) {
     // Buscar el contacto del estudiante en datosContactos
     const contactoEstudiante = datosContactos.find(c => {
-        const nombreEnBD = (c['Nombre Estudiante'] || c.estudiante || '').trim().toLowerCase();
-        return nombreEnBD === estudiante.toLowerCase();
+        return normalizarNombreCmp(c['Nombre Estudiante'] || c.estudiante || '') === normalizarNombreCmp(estudiante);
     });
     
     if (!contactoEstudiante) {
@@ -2701,13 +2700,20 @@ function buscarContactos() {
     }
     
     const buscar = document.getElementById('buscarContacto').value.toLowerCase().trim();
+    const buscarNorm = normalizarNombreCmp(buscar);
     
     const filtrados = datosContactos.filter(c => {
-        const estudiante = (c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '').toLowerCase();
+        const estudianteRaw = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+        const estudiante = estudianteRaw.toLowerCase();
         const nombrePadre = (c['Nombre Padre'] || c.nombrePadre || '').toLowerCase();
         const nombreMadre = (c['Nombre Madre'] || c.nombreMadre || '').toLowerCase();
         
-        return !buscar || estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar);
+        if (!buscar) return true;
+        // Coincidencia parcial (mientras se escribe)
+        if (estudiante.includes(buscar) || nombrePadre.includes(buscar) || nombreMadre.includes(buscar)) return true;
+        // Coincidencia tolerante al orden del nombre (Apellido, Nombre vs Nombre Apellido)
+        if (buscarNorm && normalizarNombreCmp(estudianteRaw) === buscarNorm) return true;
+        return false;
     });
     
     const tbody = document.getElementById('bodyContactos');
@@ -2793,10 +2799,9 @@ function toggleFiltroSinContactos() {
 }
 
 function obtenerEstudiantesSinContactos() {
-    // Normalizar nombres para comparación (minúsculas, sin espacios extras)
-    const normalizarNombre = (nombre) => {
-        return (nombre || '').toLowerCase().trim().replace(/\s+/g, ' ');
-    };
+    // Normalizar nombres para comparar sin importar el orden (Apellido, Nombre vs
+    // Nombre Apellido), acentos, comas o espacios.
+    const normalizarNombre = (nombre) => normalizarNombreCmp(nombre);
     
     // Obtener lista de estudiantes que SÍ tienen contactos registrados
     const estudiantesConContactos = new Set(
@@ -5006,7 +5011,7 @@ function exportarReporteEstudiante(estudiante) {
     // Filtrar datos del estudiante
     const incEstudiante = datosIncidencias.filter(i => i.estudiante.toLowerCase() === estudiante.toLowerCase());
     const tardEstudiante = datosTardanzas.filter(t => t.estudiante.toLowerCase() === estudiante.toLowerCase());
-    const contactoEstudiante = datosContactos.filter(c => c.estudiante.toLowerCase() === estudiante.toLowerCase());
+    const contactoEstudiante = datosContactos.filter(c => normalizarNombreCmp(c['Nombre Estudiante'] || c.estudiante || '') === normalizarNombreCmp(estudiante));
     
     const wb = XLSX.utils.book_new();
     
@@ -7661,7 +7666,7 @@ function exportarReporteIndividualPDF() {
     });
     const contactoEstudiante = datosContactos.find(c => {
         const nombre = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
-        return nombre.toLowerCase() === estudiante.toLowerCase();
+        return normalizarNombreCmp(nombre) === normalizarNombreCmp(estudiante);
     });
     
     let yPos = startY + 5;
