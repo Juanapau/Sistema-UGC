@@ -548,6 +548,22 @@ width: 100%;
 </div>
 
 <script>
+
+// Normaliza un nombre para comparar sin importar el orden (Apellido, Nombre vs
+// Nombre Apellido), acentos, comas o espacios.
+function normalizarNombreCmp(nombre) {
+    return String(nombre || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[.,;:]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .sort()
+        .join(' ');
+}
+
 // ==========================================
 // VERIFICAR AUTENTICACIÓN
 // ==========================================
@@ -692,7 +708,7 @@ const telEmergencia = c['Contacto Emergencia'] || c.telEmergencia || '-';
 // Buscar curso del estudiante
 const estData = datosEstudiantes.find(e => {
 const nombre = e['Nombre Completo'] || e.nombre || e.Nombre || '';
-return nombre.toLowerCase().trim() === estudiante.toLowerCase().trim();
+return normalizarNombreCmp(nombre) === normalizarNombreCmp(estudiante);
 });
 const curso = estData ? (estData.Curso || estData.curso || '-') : '-';
 
@@ -880,7 +896,7 @@ const nombreMadre = c['Nombre Madre'] || c.nombreMadre || '';
 // Buscar curso
 const estData = datosEstudiantes.find(e => {
 const nombre = e['Nombre Completo'] || e.nombre || e.Nombre || '';
-return nombre.toLowerCase().trim() === estudiante.toLowerCase().trim();
+return normalizarNombreCmp(nombre) === normalizarNombreCmp(estudiante);
 });
 const curso = estData ? (estData.Curso || estData.curso || '') : '';
 
