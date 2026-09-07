@@ -424,7 +424,9 @@ function openModule(moduleName) {
     // Recargar configuración en cada apertura de módulo (importante para móviles)
     const configGuardada = localStorage.getItem('censaConfig');
     if (configGuardada) {
-        CONFIG = JSON.parse(configGuardada);
+        // Fusionar con las URLs del código para no perder ninguna (p. ej. urlMaestros)
+        // si la config guardada es vieja y no las incluye.
+        CONFIG = { ...CONFIG_PREDETERMINADO, ...JSON.parse(configGuardada) };
         console.log('Config recargada para módulo:', moduleName, CONFIG);
     }
     
