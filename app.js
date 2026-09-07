@@ -3525,11 +3525,18 @@ function crearModalMaestros() {
     // Cargar datos de maestros desde Google Sheets
     if (CONFIG.urlMaestros) {
         cargarDatosDesdeGoogleSheets(CONFIG.urlMaestros).then(datos => {
-            datosMaestros = datos;
+            datosMaestros = Array.isArray(datos) ? datos : [];
             console.log('✅ Maestros cargados:', datosMaestros.length);
+            if (datosMaestros.length > 0) {
+                console.log('🔎 Columnas de la hoja Maestros:', Object.keys(datosMaestros[0]));
+            } else {
+                console.warn('⚠️ La hoja "Maestros" no devolvió registros. Verifica que tenga datos y esté en la lista de hojas válidas del Apps Script.');
+            }
         }).catch(err => {
             console.error('Error al cargar maestros:', err);
         });
+    } else {
+        console.warn('⚠️ CONFIG.urlMaestros no está configurada.');
     }
     
     // Inicializar sección de horarios
@@ -3555,6 +3562,16 @@ function registrarMaestro(e) {
     document.getElementById('formMaestro').reset();
 }
 
+// Obtiene el nombre/teléfono del docente aunque la columna se llame distinto
+function nombreDocenteDe(m) {
+    return (m['Nombre Docente'] || m['Nombre del Docente'] || m['Nombre'] || m['Docente'] ||
+            m['Maestro'] || m['Nombre Maestro'] || m['nombre'] || m['NOMBRE'] || '').toString();
+}
+function telefonoDocenteDe(m) {
+    return (m['Teléfono Docente'] || m['Telefono Docente'] || m['Teléfono'] || m['Telefono'] ||
+            m['Celular'] || m['Contacto'] || m['Teléfono Maestro'] || m['telefono'] || '').toString();
+}
+
 // Autocompletado de maestros
 function filtrarMaestros() {
     const input = document.getElementById('docenteSeleccionado').value.toLowerCase();
@@ -3564,9 +3581,24 @@ function filtrarMaestros() {
         suggestions.style.display = 'none';
         return;
     }
+
+    if (!Array.isArray(datosMaestros) || datosMaestros.length === 0) {
+        console.warn('⚠️ La lista de docentes está vacía. Revisa la hoja "Maestros" o la URL configurada.');
+        // Intentar (re)cargar por si no se cargó al abrir el módulo
+        if (CONFIG.urlMaestros && !filtrarMaestros._recargando) {
+            filtrarMaestros._recargando = true;
+            cargarDatosDesdeGoogleSheets(CONFIG.urlMaestros).then(function (datos) {
+                if (Array.isArray(datos)) datosMaestros = datos;
+                filtrarMaestros._recargando = false;
+                filtrarMaestros();
+            }).catch(function () { filtrarMaestros._recargando = false; });
+        }
+        suggestions.style.display = 'none';
+        return;
+    }
     
     const filtrados = datosMaestros.filter(m => {
-        const nombre = (m['Nombre Docente'] || '').toLowerCase();
+        const nombre = nombreDocenteDe(m).toLowerCase();
         return nombre.includes(input);
     });
     
@@ -3576,13 +3608,13 @@ function filtrarMaestros() {
     }
     
     suggestions.innerHTML = filtrados.map(m => {
-        const nombre = m['Nombre Docente'] || '';
-        const telefono = m['Teléfono Docente'] || '';
+        const nombre = nombreDocenteDe(m);
+        const telefono = telefonoDocenteDe(m);
         return `
             <div style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;" 
                  class="sugerencia-item" 
                  
-                 onclick="seleccionarMaestro('${nombre.replace(/'/g, "\\'")}', '${telefono}')">
+                 onclick="seleccionarMaestro('${nombre.replace(/'/g, "\\'")}', '${telefono.replace(/'/g, "\\'")}')">
                 <strong>${nombre}</strong><br>
                 <small style="color:#666;">${telefono}</small>
             </div>
