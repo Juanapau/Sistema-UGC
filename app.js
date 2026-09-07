@@ -16,7 +16,7 @@ let CONFIG = {
     urlEstudiantes:   URL_BASE + '?hoja=Estudiantes',
     urlReuniones:     URL_BASE + '?hoja=Reuniones',
     urlNotasRapidas:  URL_BASE + '?hoja=Notas',
-    urlMaestros:      URL_BASE + '?hoja=Maestros',
+    urlMaestros:      URL_BASE + '?hoja=Docentes',
     urlHorarios:      URL_BASE + '?hoja=Horarios',
     urlNotificaciones: URL_BASE + '?hoja=Notificaciones',
     urlCondicionales: URL_BASE + '?hoja=Condicionales',
@@ -3524,22 +3524,27 @@ function crearModalMaestros() {
     
     document.getElementById('modalContainer').innerHTML = html;
     
-    // Cargar datos de maestros desde Google Sheets
-    if (CONFIG.urlMaestros) {
-        cargarDatosDesdeGoogleSheets(CONFIG.urlMaestros).then(datos => {
+    // Cargar datos de docentes. Usa URL_BASE directamente (evita URLs viejas guardadas)
+    // y prueba la hoja "Maestros"; si viene vacía, intenta con "Docentes".
+    (function cargarDocentesMensajes() {
+        cargarDatosDesdeGoogleSheets(URL_BASE + '?hoja=Docentes').then(function (datos) {
             datosMaestros = Array.isArray(datos) ? datos : [];
-            console.log('✅ Maestros cargados:', datosMaestros.length);
+            console.log('✅ Docentes (hoja "Docentes"):', datosMaestros.length);
             if (datosMaestros.length > 0) {
-                console.log('🔎 Columnas de la hoja Maestros:', Object.keys(datosMaestros[0]));
-            } else {
-                console.warn('⚠️ La hoja "Maestros" no devolvió registros. Verifica que tenga datos y esté en la lista de hojas válidas del Apps Script.');
+                console.log('🔎 Columnas:', Object.keys(datosMaestros[0]));
+                return;
             }
-        }).catch(err => {
-            console.error('Error al cargar maestros:', err);
+            console.warn('⚠️ "Docentes" vino vacía; intentando hoja "Maestros"...');
+            return cargarDatosDesdeGoogleSheets(URL_BASE + '?hoja=Maestros').then(function (d2) {
+                datosMaestros = Array.isArray(d2) ? d2 : [];
+                console.log('✅ Docentes (hoja "Maestros"):', datosMaestros.length);
+                if (datosMaestros.length > 0) console.log('🔎 Columnas:', Object.keys(datosMaestros[0]));
+                else console.warn('⚠️ Ni "Docentes" ni "Maestros" devolvieron datos.');
+            });
+        }).catch(function (err) {
+            console.error('Error al cargar docentes:', err);
         });
-    } else {
-        console.warn('⚠️ CONFIG.urlMaestros no está configurada.');
-    }
+    })();
     
     // Inicializar sección de horarios
     inicializarConsultaHorarios();
