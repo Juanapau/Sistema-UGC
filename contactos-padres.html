@@ -368,6 +368,32 @@ window.urlNotificaciones = CONFIG.urlNotificaciones;
 
 let estudiantes = [];
 let contactosExistentes = [];
+let contactosSet = new Set(); // nombres (normalizados) que YA tienen contacto
+
+// Normaliza un nombre para comparar sin importar el orden (Apellido, Nombre vs
+// Nombre Apellido), acentos, comas o espacios.
+function normalizarNombreCmp(nombre) {
+return String(nombre || '')
+.toLowerCase()
+.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+.replace(/[.,;:]/g, ' ')
+.replace(/\s+/g, ' ')
+.trim()
+.split(' ')
+.filter(Boolean)
+.sort()
+.join(' ');
+}
+
+// (Re)construye el conjunto de estudiantes que ya tienen contacto registrado
+function reconstruirContactosSet() {
+contactosSet = new Set();
+(contactosExistentes || []).forEach(function (c) {
+const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
+const norm = normalizarNombreCmp(nom);
+if (norm) contactosSet.add(norm);
+});
+}
 
 // ==========================================
 // CARGA DE ESTUDIANTES
@@ -407,6 +433,7 @@ const data = await response.json();
 
 if (data && Array.isArray(data)) {
 contactosExistentes = data;
+reconstruirContactosSet();
 console.log(`✅ ${contactosExistentes.length} contactos existentes cargados`);
 }
 } catch (error) {
@@ -431,8 +458,12 @@ return;
 }
 
 const filtrados = estudiantes.filter(est => {
-const nombre = (est['Nombre Completo'] || est.nombre || '').toLowerCase();
-return nombre.includes(query);
+const nombreRaw = est['Nombre Completo'] || est.nombre || '';
+const nombre = nombreRaw.toLowerCase();
+if (!nombre.includes(query)) return false;
+// Opción A: ocultar a los estudiantes que YA tienen contacto registrado
+if (contactosSet.has(normalizarNombreCmp(nombreRaw))) return false;
+return true;
 });
 
 if (filtrados.length === 0) {
@@ -481,13 +512,7 @@ mostrarAlerta('⚠️ Por favor, seleccione un estudiante de la lista.', 'error'
 return;
 }
 
-const contactoExistente = contactosExistentes.find(c => {
-const nombreEnBD = (c['Nombre Estudiante'] || c.estudiante || '').trim().toLowerCase();
-if (!nombreEnBD || nombreEnBD === '') {
-return false;
-}
-return nombreEnBD === nombreEstudiante.toLowerCase();
-});
+const contactoExistente = contactosSet.has(normalizarNombreCmp(nombreEstudiante));
 
 if (contactoExistente) {
 mostrarAlerta('ℹ️ Este estudiante ya tiene un contacto registrado en el sistema. Si desea actualizar la información, contacte a la Unidad de Gestión de Convivencia.', 'info');
@@ -540,6 +565,7 @@ console.warn('⚠️ Función notificarNuevoContacto no disponible');
 }
 
 contactosExistentes.push(contacto);
+contactosSet.add(normalizarNombreCmp(contacto['Nombre Estudiante']));
 
 mostrarAlerta('✅ ¡Contacto registrado exitosamente! Gracias por proporcionar su información.', 'success');
 
