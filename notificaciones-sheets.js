@@ -320,20 +320,48 @@ function mostrarIndicadorActualizacion(mostrar) {
 // 🆕 NUEVA FUNCIÓN: Manejar clic en notificación
 // ========================================
 
+// Extrae el nombre del estudiante del mensaje de la notificación
+// (formato: "...para <strong>NOMBRE</strong> por...")
+function extraerEstudianteDeNotif(mensaje) {
+    if (!mensaje) return '';
+    const m = String(mensaje).match(/para\s*<strong>(.*?)<\/strong>/i);
+    return (m && m[1]) ? m[1].trim() : '';
+}
+
 function manejarClickNotificacion(event) {
+    // Si el clic fue en el botón eliminar, no hacer nada aquí
+    if (event.target && event.target.closest && event.target.closest('.btn-eliminar-notif')) return;
+
     const notifItem = event.currentTarget;
     const idUnico = notifItem.dataset.idUnico;
-    
-    // Si ya está leída, no hacer nada
-    if (notifItem.classList.contains('leida')) {
-        console.log('🚫 [CLICK] Notificación ya leída, ignorando');
-        return;
-    }
-    
-    console.log('👆 [CLICK] Notificación clickeada:', idUnico);
-    
-    if (sistemaNotificacionesSheets && idUnico) {
+    const tipo = notifItem.dataset.tipo || '';
+
+    // Marcar como leída si aún no lo está
+    if (!notifItem.classList.contains('leida') && sistemaNotificacionesSheets && idUnico) {
         sistemaNotificacionesSheets.marcarComoLeida(idUnico);
+    }
+
+    // Si es una incidencia, abrir el historial del estudiante
+    if (tipo === 'incidencia') {
+        let nombre = '';
+        if (typeof datosNotificaciones !== 'undefined' && Array.isArray(datosNotificaciones)) {
+            const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
+            if (notif) nombre = extraerEstudianteDeNotif(notif.Mensaje);
+        }
+        if (!nombre) {
+            const p = notifItem.querySelector('.notif-mensaje');
+            if (p) nombre = extraerEstudianteDeNotif(p.innerHTML);
+        }
+        if (nombre && typeof abrirHistorialEstudiante === 'function') {
+            // Cerrar el panel de notificaciones antes de abrir el historial
+            const panel = document.getElementById('notifPanel');
+            const overlay = document.getElementById('notifOverlay');
+            if (panel) panel.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            abrirHistorialEstudiante(nombre);
+        } else if (!nombre) {
+            console.warn('No se pudo identificar el estudiante en la notificación.');
+        }
     }
 }
 
@@ -409,13 +437,15 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
             'info': '#0d6efd'
         };
         
+        const esIncidencia = notif.Tipo === 'incidencia';
         const estiloNotif = leida 
-            ? `background: #f8f9fa; opacity: 0.85; border-left: 4px solid #6c757d;`
+            ? `background: #f8f9fa; opacity: 0.85; border-left: 4px solid #6c757d;${esIncidencia ? ' cursor: pointer;' : ''}`
             : `background: white; border-left: 4px solid ${colorBorde[prioridad]}; cursor: pointer;`;
         
         return `
             <div class="notif-item ${leida ? 'leida' : 'sin-leer'}" 
                  data-id-unico="${notif.ID_Unico}"
+                 data-tipo="${notif.Tipo || ''}"
                  style="${estiloNotif}">
                 <div class="notif-header-item">
                     <span class="notif-badge-type badge-${prioridad}">
@@ -427,7 +457,7 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
                 <h4 class="notif-titulo" style="${leida ? 'color: #6c757d;' : ''}">${notif.Titulo}</h4>
                 <p class="notif-mensaje" style="${leida ? 'color: #868e96;' : ''}">${notif.Mensaje}</p>
                 <div class="notif-acciones">
-                    ${!leida ? '<span class="notif-nuevo">🆕 NUEVA</span>' : '<span class="notif-archivada">📂 Archivada</span>'}
+                    ${esIncidencia ? '<span class="notif-ver-historial" style="color:#2a5298;font-weight:600;font-size:0.85em;">👆 Clic para ver el historial</span>' : (!leida ? '<span class="notif-nuevo">🆕 NUEVA</span>' : '<span class="notif-archivada">📂 Archivada</span>')}
                     <button class="btn-eliminar-notif" data-id="${notif.ID_Unico}">
                         🗑️ Eliminar
                     </button>
@@ -442,8 +472,9 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
 
 // 🆕 NUEVA FUNCIÓN: Agregar event listeners
 function agregarEventListeners() {
-    // Event listeners para notificaciones
-    document.querySelectorAll('.notif-item.sin-leer').forEach(item => {
+    // Event listeners para notificaciones (todas: para poder abrir el historial
+    // incluso si la notificación ya está leída)
+    document.querySelectorAll('.notif-item').forEach(item => {
         item.addEventListener('click', manejarClickNotificacion);
     });
     
