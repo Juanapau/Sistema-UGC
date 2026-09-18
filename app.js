@@ -6414,12 +6414,21 @@ function abrirNuevaCitacion() {
                 </div>
                 <div class="form-group">
                     <label>Motivo *</label>
-                    <select id="citMotivo" required style="width:100%;">
+                    <select id="citMotivo" required style="width:100%;" onchange="toggleMotivoOtro()">
                         <option value="">-- Seleccione --</option>
                         <option value="Tardanzas">Tardanzas</option>
                         <option value="Incidencia">Incidencia (disciplina)</option>
-                        <option value="Otro">Otro</option>
+                        <option value="Corte de pelo">Corte de pelo</option>
+                        <option value="Uso de maquillaje">Uso de maquillaje</option>
+                        <option value="Uso de uñas pintadas">Uso de uñas pintadas</option>
+                        <option value="Uso de uñas acrílicas o con gel">Uso de uñas acrílicas o con gel</option>
+                        <option value="Uniformidad">Uniformidad</option>
+                        <option value="Uso incorrecto del uniforme">Uso incorrecto del uniforme</option>
+                        <option value="Reincidencia de indisciplina">Reincidencia de indisciplina</option>
+                        <option value="Incumplimiento de acuerdos">Incumplimiento de acuerdos</option>
+                        <option value="Otro">Otro (especificar)</option>
                     </select>
+                    <input type="text" id="citMotivoOtro" placeholder="Escriba el motivo..." style="width:100%;margin-top:8px;display:none;">
                 </div>
                 <div class="form-group">
                     <label>Fecha de la cita</label>
@@ -6472,16 +6481,35 @@ function cerrarNuevaCitacion() {
     const m = document.getElementById('modalNuevaCitacion'); if (m) m.remove();
 }
 
+function toggleMotivoOtro() {
+    const sel = document.getElementById('citMotivo');
+    const otro = document.getElementById('citMotivoOtro');
+    if (!sel || !otro) return;
+    if (sel.value === 'Otro') {
+        otro.style.display = 'block';
+        otro.focus();
+    } else {
+        otro.style.display = 'none';
+        otro.value = '';
+    }
+}
+
 async function guardarCitacion(event) {
     event.preventDefault();
     const nombre = document.getElementById('citEstudiante').value.trim();
     let curso = document.getElementById('citCurso').value.trim();
-    const motivo = document.getElementById('citMotivo').value;
+    let motivo = document.getElementById('citMotivo').value;
     const fechaCita = document.getElementById('citFechaCita').value;
     const medio = document.getElementById('citMedio').value;
     const obs = document.getElementById('citObs').value.trim();
     if (!nombre) { avisoCitacion('Seleccione un estudiante.'); return; }
     if (!motivo) { avisoCitacion('Seleccione el motivo.'); return; }
+    if (motivo === 'Otro') {
+        const otroEl = document.getElementById('citMotivoOtro');
+        const otro = otroEl ? otroEl.value.trim() : '';
+        if (!otro) { avisoCitacion('Escriba el motivo (seleccionó "Otro").'); return; }
+        motivo = otro;
+    }
     if (!curso) {
         const est = (datosEstudiantes || []).find(e => normalizarNombreCmp(e['Nombre Completo'] || e.nombre || '') === normalizarNombreCmp(nombre));
         curso = est ? (est['Curso'] || est.curso || '') : '';
