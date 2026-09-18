@@ -5316,7 +5316,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
             <h2>👤 ${nombre}</h2>
             <span class="close" onclick="cerrarHistorialEstudiante()">&times;</span>
         </div>
-        <div style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;padding:0 25px 25px 25px;flex-shrink:0;">
+        <div style="background:linear-gradient(135deg, #000000 0%, #1a1a1a 100%);color:white;padding:0 25px 25px 25px;flex-shrink:0;">
             <p style="font-size:1.1em;opacity:0.9;">${curso}</p>
             <div id="condicionalHistorialArea">${htmlCondicionalEncabezadoInner(nombre, curso)}</div>
         </div>
@@ -6239,7 +6239,7 @@ function verCondicionales() {
     overlay.className = 'modal';
     overlay.style.cssText = 'display:block;z-index:2500;';
     overlay.innerHTML = `
-      <div class="modal-content" style="max-width:920px;">
+      <div class="modal-content" style="max-width:1360px;">
         <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
             <h2>⚠️ Estudiantes Condicionales · ${ANIO_ACTIVO || ''}</h2>
             <span class="close" onclick="document.getElementById('modalCondicionales').remove()" style="color:white;">&times;</span>
@@ -6302,7 +6302,7 @@ function verCitaciones() {
     overlay.className = 'modal';
     overlay.style.cssText = 'display:block;z-index:2500;';
     overlay.innerHTML = `
-      <div class="modal-content" style="max-width:1050px;">
+      <div class="modal-content" style="max-width:1360px;">
         <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
             <h2>📨 Citaciones a Padres · ${ANIO_ACTIVO || ''}</h2>
             <span class="close" onclick="document.getElementById('modalCitaciones').remove()" style="color:white;">&times;</span>
@@ -9455,7 +9455,7 @@ function mostrarModalConfirmacion(titulo, mensaje, mostrarCancelar, callbackConf
     `;
     
     modal.innerHTML = `
-        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 24px; color: white;">
+        <div style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%); padding: 24px; color: white;">
             <h3 style="margin: 0; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
                 ${titulo}
             </h3>
