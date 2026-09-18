@@ -574,7 +574,7 @@
 
         .modal-content {
             background: white;
-            margin: 20px auto;
+            margin: 170px auto 20px;
             padding: 0;
             border-radius: 15px;
             max-width: 1200px;
@@ -2660,6 +2660,14 @@ header img {
         body.modal-abierto .btn-notas-flotante,
         body.modal-abierto .fab-menu {
             display: none !important;
+        }
+
+        /* ===== Uniformidad de ventanas: cabeceras en negro y posición debajo del encabezado ===== */
+        .modal-header {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+        }
+        @media (max-width: 768px) {
+            .modal-content { margin: 90px auto 20px; }
         }
 
         /* ===== Módulo Citaciones: ancho, posición (debajo del encabezado) y botones ===== */
