@@ -20,6 +20,7 @@ let CONFIG = {
     urlHorarios:      URL_BASE + '?hoja=Horarios',
     urlNotificaciones: URL_BASE + '?hoja=Notificaciones',
     urlCondicionales: URL_BASE + '?hoja=Condicionales',
+    urlCitaciones:    URL_BASE + '?hoja=Citaciones',
     urlConfig:        URL_BASE + '?hoja=Config'
 };
 
@@ -438,7 +439,8 @@ function openModule(moduleName) {
         'reuniones': crearModalReuniones,
         'configuracion': crearModalConfiguracion,
         'reportes': crearModalReportes,
-        'maestros': crearModalMaestros
+        'maestros': crearModalMaestros,
+        'citaciones': verCitaciones
     };
     
     const modalContainer = document.getElementById('modalContainer');
@@ -6258,6 +6260,375 @@ function verCondicionales() {
     document.body.appendChild(overlay);
 }
 
+
+// ============================================================
+// MÓDULO: CITACIONES A PADRES (seguimiento de citas)
+// Hoja "Citaciones": Año Escolar | Estudiante | Curso | Motivo |
+// Fecha de citación | Medio | Fecha de la cita | Asistencia | Excusa |
+// Acuerdos | Cumplimiento | Observaciones | Registrado por
+// (Se carga SIN filtro de año → índices absolutos; se filtra por año en memoria)
+// ============================================================
+let datosCitaciones = [];
+let _filtroCitaciones = 'todas';
+
+async function recargarCitaciones() {
+    if (!CONFIG.urlCitaciones) return;
+    try {
+        const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlCitaciones);
+        datosCitaciones = Array.isArray(datos) ? datos : [];
+    } catch (e) { console.error('Error al cargar citaciones:', e); }
+}
+
+function avisoCitacion(mensaje, titulo = 'Aviso') {
+    if (typeof mostrarModalConfirmacion === 'function') mostrarModalConfirmacion(titulo, mensaje, false, null, 'Aceptar');
+    else alert(mensaje);
+}
+
+function colorAsistencia(a) {
+    a = a || 'Pendiente';
+    return a === 'Asistió' ? '#16a34a' : a === 'No asistió' ? '#dc2626' : a === 'Reprogramada' ? '#7c3aed' : '#f59e0b';
+}
+function colorCumplimiento(c) {
+    c = c || 'Sin revisar';
+    return c === 'Cumplido' ? '#16a34a' : c === 'Parcial' ? '#f59e0b' : c === 'Incumplido' ? '#dc2626' : '#6b7280';
+}
+
+// ---- Vista principal ----
+function verCitaciones() {
+    const existente = document.getElementById('modalCitaciones');
+    if (existente) existente.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'modalCitaciones';
+    overlay.className = 'modal';
+    overlay.style.cssText = 'display:block;z-index:2500;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:1050px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>📨 Citaciones a Padres · ${ANIO_ACTIVO || ''}</h2>
+            <span class="close" onclick="document.getElementById('modalCitaciones').remove()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+                <button class="btn btn-primary" onclick="abrirNuevaCitacion()">➕ Nueva citación</button>
+                <span style="color:#666;">Filtrar:</span>
+                <select id="filtroCitaciones" onchange="_filtroCitaciones=this.value; renderTablaCitaciones();" style="padding:8px;">
+                    <option value="todas">Todas</option>
+                    <option value="pendientes">Pendientes de asistir</option>
+                    <option value="acuerdos">Acuerdos por revisar</option>
+                    <option value="incumplidos">Incumplidos</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr>
+                        <th>Estudiante</th><th>Curso</th><th>Motivo</th><th>Cita</th>
+                        <th>Medio</th><th>Asistencia</th><th>Acuerdos</th><th>Cumplimiento</th>
+                    </tr></thead>
+                    <tbody id="bodyCitaciones"></tbody>
+                </table>
+            </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const sel = document.getElementById('filtroCitaciones');
+    if (sel) sel.value = _filtroCitaciones;
+    renderTablaCitaciones();
+}
+
+function citacionPasaFiltro(c) {
+    const asist = c['Asistencia'] || 'Pendiente';
+    const cumpl = c['Cumplimiento'] || 'Sin revisar';
+    const tieneAcuerdos = (c['Acuerdos'] || '').trim() !== '';
+    switch (_filtroCitaciones) {
+        case 'pendientes': return asist === 'Pendiente' || asist === 'Reprogramada';
+        case 'acuerdos': return tieneAcuerdos && cumpl === 'Sin revisar';
+        case 'incumplidos': return cumpl === 'Incumplido';
+        default: return true;
+    }
+}
+
+function renderTablaCitaciones() {
+    const tbody = document.getElementById('bodyCitaciones');
+    if (!tbody) return;
+    const filas = datosCitaciones.map((c, i) => {
+        if (!esAnioActivo(c) || !citacionPasaFiltro(c)) return '';
+        const nom = c['Estudiante'] || '-';
+        const cur = c['Curso'] || '-';
+        const mot = c['Motivo'] || '';
+        const fechaCita = formatearFechaCorta(c['Fecha de la cita'] || '');
+        const medio = c['Medio'] || '';
+        const asist = c['Asistencia'] || 'Pendiente';
+        const acuerdos = c['Acuerdos'] || '';
+        const cumpl = c['Cumplimiento'] || 'Sin revisar';
+        const acuerdosCorto = acuerdos ? (acuerdos.length > 70 ? acuerdos.substring(0, 70) + '…' : acuerdos) : '<em style="color:#999;">—</em>';
+        return `<tr>
+            <td style="vertical-align:middle;"><strong>${nom}</strong></td>
+            <td style="vertical-align:middle;">${cur}</td>
+            <td style="max-width:170px;vertical-align:middle;">${mot}</td>
+            <td style="white-space:nowrap;vertical-align:middle;">${fechaCita}</td>
+            <td style="vertical-align:middle;">${medio}</td>
+            <td style="vertical-align:middle;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="background:${colorAsistencia(asist)};color:white;padding:3px 9px;border-radius:12px;font-size:0.78em;white-space:nowrap;">${asist}</span>
+                    <button class="btn" style="background:#059669;color:white;padding:2px 8px;font-size:0.72em;margin:0;" onclick="editarAsistencia(${i})" title="Editar asistencia">✎</button>
+                </div>
+            </td>
+            <td style="max-width:230px;vertical-align:middle;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:0.85em;color:#444;flex:1;">${acuerdosCorto}</span>
+                    <button class="btn" style="background:#2a5298;color:white;padding:2px 8px;font-size:0.72em;margin:0;" onclick="editarAcuerdos(${i})" title="Editar acuerdos">✎</button>
+                </div>
+            </td>
+            <td style="vertical-align:middle;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="background:${colorCumplimiento(cumpl)};color:white;padding:3px 9px;border-radius:12px;font-size:0.78em;white-space:nowrap;">${cumpl}</span>
+                    <button class="btn" style="background:#059669;color:white;padding:2px 8px;font-size:0.72em;margin:0;" onclick="editarCumplimiento(${i})" title="Editar cumplimiento">✎</button>
+                </div>
+            </td>
+        </tr>`;
+    }).filter(Boolean);
+    tbody.innerHTML = filas.length ? filas.join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:#999;">No hay citaciones para este filtro.</td></tr>';
+}
+
+// ---- Nueva citación ----
+function abrirNuevaCitacion() {
+    const existente = document.getElementById('modalNuevaCitacion');
+    if (existente) existente.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'modalNuevaCitacion';
+    overlay.className = 'modal';
+    overlay.style.cssText = 'display:block;z-index:3000;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:560px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>➕ Nueva Citación</h2>
+            <span class="close" onclick="cerrarNuevaCitacion()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="formCitacion" onsubmit="guardarCitacion(event)" autocomplete="off">
+                <div class="form-group" style="position:relative;">
+                    <label>Estudiante *</label>
+                    <input type="text" id="citEstudiante" required placeholder="Escriba el nombre..." autocomplete="off" style="width:100%;">
+                    <input type="hidden" id="citCurso">
+                    <div id="citSugerencias" style="display:none;position:absolute;z-index:10;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
+                <div class="form-group">
+                    <label>Motivo *</label>
+                    <select id="citMotivo" required style="width:100%;">
+                        <option value="">-- Seleccione --</option>
+                        <option value="Tardanzas">Tardanzas</option>
+                        <option value="Incidencia">Incidencia (disciplina)</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de la cita</label>
+                    <input type="date" id="citFechaCita" style="width:100%;">
+                </div>
+                <div class="form-group">
+                    <label>Medio de citación</label>
+                    <select id="citMedio" style="width:100%;">
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Circular">Circular</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea id="citObs" rows="2" style="width:100%;"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:10px;">
+                    <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="cerrarNuevaCitacion()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const input = document.getElementById('citEstudiante');
+    const cont = document.getElementById('citSugerencias');
+    input.addEventListener('input', function () {
+        const q = input.value.toLowerCase().trim();
+        if (q.length < 2) { cont.style.display = 'none'; return; }
+        const lista = (datosEstudiantes || []).filter(e => (e['Nombre Completo'] || e.nombre || '').toLowerCase().includes(q)).slice(0, 8);
+        if (!lista.length) { cont.style.display = 'none'; return; }
+        cont.innerHTML = lista.map(e => {
+            const n = (e['Nombre Completo'] || e.nombre || '').replace(/'/g, "\\'");
+            const cu = (e['Curso'] || e.curso || '').replace(/'/g, "\\'");
+            return `<div style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #eee;" onmousedown="seleccionarEstCitacion('${n}','${cu}')"><strong>${e['Nombre Completo'] || e.nombre || ''}</strong><br><small style="color:#666;">${e['Curso'] || e.curso || ''}</small></div>`;
+        }).join('');
+        cont.style.display = 'block';
+    });
+    document.addEventListener('click', function (ev) {
+        if (cont && ev.target !== input && !cont.contains(ev.target)) cont.style.display = 'none';
+    });
+}
+function seleccionarEstCitacion(nombre, curso) {
+    const i = document.getElementById('citEstudiante'); if (i) i.value = nombre;
+    const c = document.getElementById('citCurso'); if (c) c.value = curso;
+    const s = document.getElementById('citSugerencias'); if (s) s.style.display = 'none';
+}
+function cerrarNuevaCitacion() {
+    const m = document.getElementById('modalNuevaCitacion'); if (m) m.remove();
+}
+
+async function guardarCitacion(event) {
+    event.preventDefault();
+    const nombre = document.getElementById('citEstudiante').value.trim();
+    let curso = document.getElementById('citCurso').value.trim();
+    const motivo = document.getElementById('citMotivo').value;
+    const fechaCita = document.getElementById('citFechaCita').value;
+    const medio = document.getElementById('citMedio').value;
+    const obs = document.getElementById('citObs').value.trim();
+    if (!nombre) { avisoCitacion('Seleccione un estudiante.'); return; }
+    if (!motivo) { avisoCitacion('Seleccione el motivo.'); return; }
+    if (!curso) {
+        const est = (datosEstudiantes || []).find(e => normalizarNombreCmp(e['Nombre Completo'] || e.nombre || '') === normalizarNombreCmp(nombre));
+        curso = est ? (est['Curso'] || est.curso || '') : '';
+    }
+    const registro = {
+        'Año Escolar': ANIO_ACTIVO,
+        'Estudiante': nombre,
+        'Curso': curso,
+        'Motivo': motivo,
+        'Fecha de citación': new Date().toLocaleDateString('es-DO'),
+        'Medio': medio,
+        'Fecha de la cita': fechaCita ? formatearFechaCorta(fechaCita) : '',
+        'Asistencia': 'Pendiente',
+        'Excusa': '',
+        'Acuerdos': '',
+        'Cumplimiento': 'Sin revisar',
+        'Observaciones': obs,
+        'Registrado por': ''
+    };
+    const btn = event.submitter;
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+    try {
+        await enviarGoogleSheets(CONFIG.urlCitaciones, registro, 'agregar');
+        datosCitaciones.push(registro);
+        cerrarNuevaCitacion();
+        if (document.getElementById('modalCitaciones')) renderTablaCitaciones();
+        mostrarNotificacionToast('✅ Citación registrada.');
+    } catch (e) {
+        console.error('Error al guardar citación:', e);
+        avisoCitacion('No se pudo guardar. Intenta de nuevo.');
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar'; }
+    }
+}
+
+// ---- Actualizar una citación por índice (fila real de la hoja) ----
+async function actualizarCitacion(indice, cambios) {
+    if (indice < 0 || indice >= datosCitaciones.length) return false;
+    const actual = Object.assign({}, datosCitaciones[indice], cambios);
+    try {
+        await enviarGoogleSheets(CONFIG.urlCitaciones, actual, 'actualizar', indice);
+        datosCitaciones[indice] = actual;
+        if (document.getElementById('modalCitaciones')) renderTablaCitaciones();
+        return true;
+    } catch (e) {
+        console.error('Error al actualizar citación:', e);
+        avisoCitacion('No se pudo actualizar. Intenta de nuevo.');
+        return false;
+    }
+}
+
+function cerrarEditCit() { const m = document.getElementById('modalEditCit'); if (m) m.remove(); }
+
+function editarAsistencia(indice) {
+    const c = datosCitaciones[indice]; if (!c) return;
+    const ex = document.getElementById('modalEditCit'); if (ex) ex.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'modalEditCit'; overlay.className = 'modal'; overlay.style.cssText = 'display:block;z-index:3200;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:480px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>Asistencia — ${c['Estudiante'] || ''}</h2>
+            <span class="close" onclick="cerrarEditCit()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+                <button class="btn" style="background:#16a34a;color:white;" onclick="guardarAsistencia(${indice},'Asistió')">Asistió</button>
+                <button class="btn" style="background:#dc2626;color:white;" onclick="guardarAsistencia(${indice},'No asistió')">No asistió</button>
+                <button class="btn" style="background:#7c3aed;color:white;" onclick="guardarAsistencia(${indice},'Reprogramada')">Reprogramada</button>
+                <button class="btn btn-secondary" onclick="guardarAsistencia(${indice},'Pendiente')">Pendiente</button>
+            </div>
+            <div class="form-group">
+                <label>Excusa (si no asistió)</label>
+                <textarea id="citExcusa" rows="2" style="width:100%;">${(c['Excusa'] || '').replace(/</g, '&lt;')}</textarea>
+            </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+}
+async function guardarAsistencia(indice, valor) {
+    const el = document.getElementById('citExcusa');
+    const excusa = el ? el.value.trim() : '';
+    if (await actualizarCitacion(indice, { 'Asistencia': valor, 'Excusa': excusa })) {
+        cerrarEditCit(); mostrarNotificacionToast('✅ Asistencia actualizada.');
+    }
+}
+
+function editarAcuerdos(indice) {
+    const c = datosCitaciones[indice]; if (!c) return;
+    const ex = document.getElementById('modalEditCit'); if (ex) ex.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'modalEditCit'; overlay.className = 'modal'; overlay.style.cssText = 'display:block;z-index:3200;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:560px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>Acuerdos — ${c['Estudiante'] || ''}</h2>
+            <span class="close" onclick="cerrarEditCit()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Acuerdos firmados con el padre/tutor</label>
+                <textarea id="citAcuerdos" rows="5" style="width:100%;">${(c['Acuerdos'] || '').replace(/</g, '&lt;')}</textarea>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button class="btn btn-primary" onclick="guardarAcuerdos(${indice})">💾 Guardar</button>
+                <button class="btn btn-secondary" onclick="cerrarEditCit()">Cancelar</button>
+            </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+}
+async function guardarAcuerdos(indice) {
+    const el = document.getElementById('citAcuerdos');
+    const txt = el ? el.value.trim() : '';
+    if (await actualizarCitacion(indice, { 'Acuerdos': txt })) {
+        cerrarEditCit(); mostrarNotificacionToast('✅ Acuerdos guardados.');
+    }
+}
+
+function editarCumplimiento(indice) {
+    const c = datosCitaciones[indice]; if (!c) return;
+    const ex = document.getElementById('modalEditCit'); if (ex) ex.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'modalEditCit'; overlay.className = 'modal'; overlay.style.cssText = 'display:block;z-index:3200;';
+    overlay.innerHTML = `
+      <div class="modal-content" style="max-width:480px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
+            <h2>Cumplimiento — ${c['Estudiante'] || ''}</h2>
+            <span class="close" onclick="cerrarEditCit()" style="color:white;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom:12px;color:#666;">¿Se cumplieron los acuerdos?</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn" style="background:#16a34a;color:white;" onclick="guardarCumplimiento(${indice},'Cumplido')">Cumplido</button>
+                <button class="btn" style="background:#f59e0b;color:#1a1a1a;" onclick="guardarCumplimiento(${indice},'Parcial')">Parcial</button>
+                <button class="btn" style="background:#dc2626;color:white;" onclick="guardarCumplimiento(${indice},'Incumplido')">Incumplido</button>
+                <button class="btn btn-secondary" onclick="guardarCumplimiento(${indice},'Sin revisar')">Sin revisar</button>
+            </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+}
+async function guardarCumplimiento(indice, valor) {
+    if (await actualizarCitacion(indice, { 'Cumplimiento': valor })) {
+        cerrarEditCit(); mostrarNotificacionToast('✅ Cumplimiento actualizado.');
+    }
+}
+
 // ----- Candidatos sugeridos a condicional (según el año anterior) -----
 let _sugeridosCache = null; // { anio, mapa }
 let _ultimosSugeridos = null; // { anio, uMG, uG, uT, candidatos } para exportar
@@ -9341,6 +9712,18 @@ async function cargarTodosDatosAlInicio() {
                     console.log(`✅ ${datosCondicionales.length} condicionales cargados`);
                 })
                 .catch(err => console.error('❌ Error cargando condicionales:', err))
+        );
+    }
+
+    if (CONFIG.urlCitaciones) {
+        if (loadingText) loadingText.textContent = '📥 Cargando citaciones...';
+        promesas.push(
+            cargarDatosDesdeGoogleSheets(CONFIG.urlCitaciones)
+                .then(datos => {
+                    datosCitaciones = Array.isArray(datos) ? datos : [];
+                    console.log(`✅ ${datosCitaciones.length} citaciones cargadas`);
+                })
+                .catch(err => console.error('❌ Error cargando citaciones:', err))
         );
     }
     
