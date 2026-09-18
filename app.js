@@ -6399,7 +6399,7 @@ function abrirNuevaCitacion() {
     overlay.className = 'modal';
     overlay.style.cssText = 'display:block;z-index:3000;';
     overlay.innerHTML = `
-      <div class="modal-content" style="max-width:560px;">
+      <div class="modal-content" style="max-width:620px;">
         <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
             <h2>➕ Nueva Citación</h2>
             <span class="close" onclick="cerrarNuevaCitacion()" style="color:white;">&times;</span>
@@ -6540,14 +6540,14 @@ function editarAsistencia(indice) {
     const overlay = document.createElement('div');
     overlay.id = 'modalEditCit'; overlay.className = 'modal'; overlay.style.cssText = 'display:block;z-index:3200;';
     overlay.innerHTML = `
-      <div class="modal-content" style="max-width:480px;">
+      <div class="modal-content" style="max-width:680px;">
         <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
-            <h2>Asistencia — ${c['Estudiante'] || ''}</h2>
+            <h2 style="white-space:nowrap;">Asistencia — ${c['Estudiante'] || ''}</h2>
             <span class="close" onclick="cerrarEditCit()" style="color:white;">&times;</span>
         </div>
         <div class="modal-body">
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-                <button class="btn" style="background:#16a34a;color:white;" onclick="guardarAsistencia(${indice},'Asistió')">Asistió</button>
+                <button class="btn" style="background:#16a34a;color:white;white-space:nowrap;" onclick="guardarAsistencia(${indice},'Asistió')">Asistió</button>
                 <button class="btn" style="background:#dc2626;color:white;" onclick="guardarAsistencia(${indice},'No asistió')">No asistió</button>
                 <button class="btn" style="background:#7c3aed;color:white;" onclick="guardarAsistencia(${indice},'Reprogramada')">Reprogramada</button>
                 <button class="btn btn-secondary" onclick="guardarAsistencia(${indice},'Pendiente')">Pendiente</button>
@@ -6574,9 +6574,9 @@ function editarAcuerdos(indice) {
     const overlay = document.createElement('div');
     overlay.id = 'modalEditCit'; overlay.className = 'modal'; overlay.style.cssText = 'display:block;z-index:3200;';
     overlay.innerHTML = `
-      <div class="modal-content" style="max-width:560px;">
+      <div class="modal-content" style="max-width:640px;">
         <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
-            <h2>Acuerdos — ${c['Estudiante'] || ''}</h2>
+            <h2 style="white-space:nowrap;">Acuerdos — ${c['Estudiante'] || ''}</h2>
             <span class="close" onclick="cerrarEditCit()" style="color:white;">&times;</span>
         </div>
         <div class="modal-body">
@@ -6606,15 +6606,15 @@ function editarCumplimiento(indice) {
     const overlay = document.createElement('div');
     overlay.id = 'modalEditCit'; overlay.className = 'modal'; overlay.style.cssText = 'display:block;z-index:3200;';
     overlay.innerHTML = `
-      <div class="modal-content" style="max-width:480px;">
+      <div class="modal-content" style="max-width:680px;">
         <div class="modal-header" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:white;">
-            <h2>Cumplimiento — ${c['Estudiante'] || ''}</h2>
+            <h2 style="white-space:nowrap;">Cumplimiento — ${c['Estudiante'] || ''}</h2>
             <span class="close" onclick="cerrarEditCit()" style="color:white;">&times;</span>
         </div>
         <div class="modal-body">
             <p style="margin-bottom:12px;color:#666;">¿Se cumplieron los acuerdos?</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn" style="background:#16a34a;color:white;" onclick="guardarCumplimiento(${indice},'Cumplido')">Cumplido</button>
+                <button class="btn" style="background:#16a34a;color:white;white-space:nowrap;" onclick="guardarCumplimiento(${indice},'Cumplido')">Cumplido</button>
                 <button class="btn" style="background:#f59e0b;color:#1a1a1a;" onclick="guardarCumplimiento(${indice},'Parcial')">Parcial</button>
                 <button class="btn" style="background:#dc2626;color:white;" onclick="guardarCumplimiento(${indice},'Incumplido')">Incumplido</button>
                 <button class="btn btn-secondary" onclick="guardarCumplimiento(${indice},'Sin revisar')">Sin revisar</button>
