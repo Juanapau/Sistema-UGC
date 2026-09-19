@@ -6364,7 +6364,10 @@ function verCitaciones() {
                     <option value="acuerdos">Acuerdos por revisar</option>
                     <option value="incumplidos">Incumplidos</option>
                 </select>
-                <input type="text" id="buscarCitaciones" placeholder="🔍 Buscar estudiante..." oninput="_buscarCitaciones=this.value; renderTablaCitaciones();" style="padding:8px;min-width:220px;">
+                <div style="position:relative;min-width:340px;flex:1;max-width:460px;">
+                    <input type="text" id="buscarCitaciones" placeholder="🔍 Buscar estudiante..." autocomplete="off" oninput="buscarCitacionesInput(this.value)" onblur="setTimeout(function(){var c=document.getElementById('sugerenciasBuscarCit'); if(c) c.style.display='none';},150)" style="padding:8px;width:100%;">
+                    <div id="sugerenciasBuscarCit" style="display:none;position:absolute;z-index:20;background:white;border:1px solid #ccc;max-height:220px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
+                </div>
                 <button class="btn btn-success" onclick="exportarCitacionesPDF()">📥 PDF</button>
             </div>
             <div class="table-container">
@@ -6459,6 +6462,35 @@ function renderTablaCitaciones() {
         </tr>`;
     }).filter(Boolean);
     tbody.innerHTML = filas.length ? filas.join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:#999;">No hay citaciones para este filtro.</td></tr>';
+}
+
+// ---- Autocompletado del buscador por estudiante ----
+function buscarCitacionesInput(val) {
+    _buscarCitaciones = val;
+    renderTablaCitaciones();
+    const cont = document.getElementById('sugerenciasBuscarCit');
+    if (!cont) return;
+    const q = _sinAcentos((val || '').trim());
+    if (q.length < 2) { cont.style.display = 'none'; return; }
+    const lista = (datosEstudiantes || []).filter(e =>
+        _sinAcentos(e['Nombre Completo'] || e.nombre || '').includes(q)
+    ).slice(0, 8);
+    if (!lista.length) { cont.style.display = 'none'; return; }
+    cont.innerHTML = lista.map(e => {
+        const nom = (e['Nombre Completo'] || e.nombre || '');
+        const n = nom.replace(/'/g, "\\'");
+        return `<div style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #eee;" onmousedown="seleccionarBuscarCitacion('${n}')"><strong>${nom}</strong><br><small style="color:#666;">${e['Curso'] || e.curso || ''}</small></div>`;
+    }).join('');
+    cont.style.display = 'block';
+}
+
+function seleccionarBuscarCitacion(nombre) {
+    _buscarCitaciones = nombre;
+    const inp = document.getElementById('buscarCitaciones');
+    if (inp) inp.value = nombre;
+    const cont = document.getElementById('sugerenciasBuscarCit');
+    if (cont) cont.style.display = 'none';
+    renderTablaCitaciones();
 }
 
 // ---- Exportar PDF de la búsqueda/filtro actual ----
