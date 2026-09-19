@@ -6316,6 +6316,7 @@ function verCondicionales() {
 // ============================================================
 let datosCitaciones = [];
 let _filtroCitaciones = 'todas';
+let _buscarCitaciones = '';
 
 async function recargarCitaciones() {
     if (!CONFIG.urlCitaciones) return;
@@ -6363,6 +6364,8 @@ function verCitaciones() {
                     <option value="acuerdos">Acuerdos por revisar</option>
                     <option value="incumplidos">Incumplidos</option>
                 </select>
+                <input type="text" id="buscarCitaciones" placeholder="🔍 Buscar estudiante..." oninput="_buscarCitaciones=this.value; renderTablaCitaciones();" style="padding:8px;min-width:220px;">
+                <button class="btn btn-success" onclick="exportarCitacionesPDF()">📥 PDF</button>
             </div>
             <div class="table-container">
                 <table>
@@ -6378,6 +6381,8 @@ function verCitaciones() {
     document.body.appendChild(overlay);
     const sel = document.getElementById('filtroCitaciones');
     if (sel) sel.value = _filtroCitaciones;
+    const bsc = document.getElementById('buscarCitaciones');
+    if (bsc) bsc.value = _buscarCitaciones;
     renderTablaCitaciones();
 }
 
@@ -6393,11 +6398,31 @@ function citacionPasaFiltro(c) {
     }
 }
 
+// Quita acentos y pasa a minúsculas (para buscar sin importar tildes)
+function _sinAcentos(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Citaciones visibles según año activo + filtro + búsqueda por estudiante
+function citacionesVisibles() {
+    const q = _sinAcentos((_buscarCitaciones || '').trim());
+    return (datosCitaciones || []).filter(c => {
+        if (!esAnioActivo(c) || !citacionPasaFiltro(c)) return false;
+        if (q) {
+            const nom = _sinAcentos(c['Estudiante'] || c['Nombre Estudiante'] || '');
+            if (!nom.includes(q)) return false;
+        }
+        return true;
+    });
+}
+
 function renderTablaCitaciones() {
     const tbody = document.getElementById('bodyCitaciones');
     if (!tbody) return;
+    const q = _sinAcentos((_buscarCitaciones || '').trim());
     const filas = datosCitaciones.map((c, i) => {
         if (!esAnioActivo(c) || !citacionPasaFiltro(c)) return '';
+        if (q && !_sinAcentos(c['Estudiante'] || c['Nombre Estudiante'] || '').includes(q)) return '';
         const nom = c['Estudiante'] || '-';
         const cur = c['Curso'] || '-';
         const mot = c['Motivo'] || '';
@@ -6436,9 +6461,65 @@ function renderTablaCitaciones() {
     tbody.innerHTML = filas.length ? filas.join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:#999;">No hay citaciones para este filtro.</td></tr>';
 }
 
+// ---- Exportar PDF de la búsqueda/filtro actual ----
+function exportarCitacionesPDF() {
+    const lista = citacionesVisibles();
+    if (!lista.length) {
+        avisoCitacion('No hay citaciones para exportar con el filtro/búsqueda actual.');
+        return;
+    }
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        avisoCitacion('No se pudo generar el PDF (falta la librería).');
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
+    const q = (_buscarCitaciones || '').trim();
+    const titulo = q ? `Citaciones — ${q}` : `Citaciones a Padres ${ANIO_ACTIVO || ''}`;
+    const startY = agregarEncabezadoCENSA(doc, titulo);
+
+    const body = lista.map(c => [
+        c['Estudiante'] || c['Nombre Estudiante'] || '',
+        c['Curso'] || '',
+        c['Motivo'] || '',
+        formatearFechaCorta(c['Fecha de la cita'] || ''),
+        c['Medio'] || '',
+        c['Asistencia'] || 'Pendiente',
+        c['Acuerdos'] || '',
+        c['Cumplimiento'] || 'Sin revisar'
+    ]);
+
+    doc.autoTable({
+        startY: startY,
+        head: [['Estudiante', 'Curso', 'Motivo', 'Cita', 'Medio', 'Asistencia', 'Acuerdos', 'Cumplimiento']],
+        body: body,
+        theme: 'grid',
+        headStyles: { fillColor: [5, 150, 105] },
+        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+        columnStyles: {
+            0: { cellWidth: 48 },
+            1: { cellWidth: 16, halign: 'center' },
+            2: { cellWidth: 32 },
+            3: { cellWidth: 20, halign: 'center' },
+            4: { cellWidth: 20 },
+            5: { cellWidth: 24, halign: 'center' },
+            6: { cellWidth: 65 },
+            7: { cellWidth: 24, halign: 'center' }
+        }
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text(`Total: ${lista.length} citación(es)`, 14, finalY);
+    if (q) doc.text(`Búsqueda: "${q}"`, 14, finalY + 5);
+    doc.text(`Generado el: ${new Date().toLocaleString('es-DO')}`, 14, finalY + (q ? 10 : 5));
+
+    const sufijo = (q || ANIO_ACTIVO || '').replace(/[^a-z0-9áéíóúñ]/gi, '_');
+    doc.save(`Citaciones_${sufijo}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
 // ---- Nueva citación ----
-function abrirNuevaCitacion() {
-    const existente = document.getElementById('modalNuevaCitacion');
+function abrirNuevaCitacion() {    const existente = document.getElementById('modalNuevaCitacion');
     if (existente) existente.remove();
     const overlay = document.createElement('div');
     overlay.id = 'modalNuevaCitacion';
