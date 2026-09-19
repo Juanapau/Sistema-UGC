@@ -5137,6 +5137,14 @@ function abrirHistorialEstudiante(nombreEstudiante) {
         return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
     
+    // Citaciones a padres de este estudiante
+    const citacionesEst = (typeof datosCitaciones !== 'undefined' && Array.isArray(datosCitaciones))
+        ? datosCitaciones.filter(c => {
+            const nom = c['Estudiante'] || c['Nombre Estudiante'] || c.estudiante || '';
+            return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
+        })
+        : [];
+    
     // Contar incidencias por tipo
     const incidenciasLeves = incidencias.filter(i => {
         const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
@@ -5308,6 +5316,36 @@ function abrirHistorialEstudiante(nombreEstudiante) {
         }
     }
     
+    // Construir sección de citaciones a padres
+    let htmlCitaciones = '';
+    if (!citacionesEst || citacionesEst.length === 0) {
+        htmlCitaciones = '<p style="color:#999;font-style:italic;">Sin citaciones registradas</p>';
+    } else {
+        htmlCitaciones = citacionesEst.map(c => {
+            const fecha = formatearFechaCorta(c['Fecha de la cita'] || c['Fecha de citación'] || '');
+            const motivo = c['Motivo'] || '';
+            const asist = c['Asistencia'] || 'Pendiente';
+            const cumpl = c['Cumplimiento'] || 'Sin revisar';
+            const acuerdos = c['Acuerdos'] || '';
+            const excusa = c['Excusa'] || '';
+            const cAsist = (typeof colorAsistencia === 'function') ? colorAsistencia(asist) : '#f59e0b';
+            const cCumpl = (typeof colorCumplimiento === 'function') ? colorCumplimiento(cumpl) : '#6b7280';
+            return `
+                <div style="background:#f8f9fa;border-left:4px solid ${cAsist};border-radius:8px;padding:12px 15px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                        <strong style="color:#333;">${motivo}</strong>
+                        <span style="color:#666;font-size:0.9em;">${fecha ? '🗓️ ' + fecha : ''}</span>
+                    </div>
+                    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <span style="background:${cAsist};color:white;padding:2px 10px;border-radius:12px;font-size:0.8em;">${asist}</span>
+                        <span style="background:${cCumpl};color:white;padding:2px 10px;border-radius:12px;font-size:0.8em;">${cumpl}</span>
+                    </div>
+                    ${acuerdos ? `<div style="margin-top:8px;color:#333;font-size:0.9em;"><strong>Acuerdos:</strong> ${acuerdos}</div>` : ''}
+                    ${excusa ? `<div style="margin-top:4px;color:#666;font-size:0.9em;"><strong>Excusa:</strong> ${excusa}</div>` : ''}
+                </div>`;
+        }).join('');
+    }
+    
     // Crear modal
     const modalHTML = `
 <div id="modalHistorialEstudiante" class="modal" style="display:block;">
@@ -5365,6 +5403,14 @@ function abrirHistorialEstudiante(nombreEstudiante) {
             </h3>
             <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:15px;margin-bottom:30px;">
                 ${htmlContactos}
+            </div>
+            
+            <!-- CITACIONES A PADRES -->
+            <h3 style="color:#333;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;gap:10px;">
+                📨 Citaciones a Padres
+            </h3>
+            <div style="margin-bottom:30px;">
+                ${htmlCitaciones}
             </div>
             
             <!-- LÍNEA DE TIEMPO -->
