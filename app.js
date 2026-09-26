@@ -5345,7 +5345,6 @@ function abrirHistorialEstudiante(nombreEstudiante) {
                         <span style="background:${cAsist};color:white;padding:2px 10px;border-radius:12px;font-size:0.8em;">${asist}</span>
                         <span style="background:${cCumpl};color:white;padding:2px 10px;border-radius:12px;font-size:0.8em;">${cumpl}</span>
                     </div>
-                    ${acuerdos ? `<div style="margin-top:8px;color:#333;font-size:0.9em;"><strong>Acuerdos:</strong> ${acuerdos}</div>` : ''}
                     ${excusa ? `<div style="margin-top:4px;color:#666;font-size:0.9em;"><strong>Excusa:</strong> ${excusa}</div>` : ''}
                 </div>`;
         }).join('');
@@ -7409,11 +7408,6 @@ async function exportarHistorialPDF(nombreEstudiante) {
                 doc.setTextColor(100, 100, 100);
                 doc.text(`Asistencia: ${evento.asistio} | Cumplimiento: ${evento.cumplimiento || 'Sin revisar'}`, 14, yPos);
                 yPos += 4;
-                if (evento.acuerdos) {
-                    const acuerdosLineas = doc.splitTextToSize(`Acuerdos: ${evento.acuerdos}`, 180);
-                    doc.text(acuerdosLineas, 14, yPos);
-                    yPos += acuerdosLineas.length * 4;
-                }
                 if (evento.excusa) {
                     const excusaLineas = doc.splitTextToSize(`Excusa: ${evento.excusa}`, 180);
                     doc.text(excusaLineas, 14, yPos);
