@@ -7295,29 +7295,58 @@ async function exportarHistorialPDF(nombreEstudiante) {
         });
     });
     
-    // Ordenar por fecha (más reciente primero)
-    eventos.sort((a, b) => b.fecha - a.fecha);
-    
+    // Agrupar por categoría (Citaciones, Reuniones, Tardanzas, Incidencias),
+    // cada grupo ordenado por fecha (más reciente primero).
+    const _ordenGrupos = [
+        { tipo: 'citacion',   label: 'CITACIONES A PADRES' },
+        { tipo: 'reunion',    label: 'REUNIONES CON PADRES' },
+        { tipo: 'tardanza',   label: 'TARDANZAS' },
+        { tipo: 'incidencia', label: 'INCIDENCIAS' }
+    ];
+    const eventosAgrupados = [];
+    _ordenGrupos.forEach(g => {
+        const delGrupo = eventos.filter(e => e.tipo === g.tipo).sort((a, b) => b.fecha - a.fecha);
+        if (delGrupo.length) {
+            eventosAgrupados.push({ __header: g.label });
+            delGrupo.forEach(e => eventosAgrupados.push(e));
+        }
+    });
+
     if (yPos > 230) {
         doc.addPage();
         yPos = 20;
     }
-    
+
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 58, 138);
-    doc.text('LÍNEA DE TIEMPO - HISTORIAL COMPLETO', 14, yPos);
+    doc.text('HISTORIAL POR CATEGORÍAS', 14, yPos);
     yPos += 6;
-    
+
     doc.setTextColor(0, 0, 0);
-    
+
     if (eventos.length === 0) {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 100, 100);
         doc.text('No hay eventos registrados', 14, yPos);
     } else {
-        eventos.forEach((evento, index) => {
+        eventosAgrupados.forEach((evento, index) => {
+            // Encabezado de grupo/categoría
+            if (evento.__header) {
+                if (yPos > 250) { doc.addPage(); yPos = 20; }
+                yPos += 3;
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(30, 58, 138);
+                doc.text(evento.__header, 14, yPos);
+                doc.setDrawColor(30, 58, 138);
+                doc.setLineWidth(0.4);
+                doc.line(14, yPos + 1.5, 196, yPos + 1.5);
+                yPos += 7;
+                doc.setTextColor(0, 0, 0);
+                return;
+            }
             // Verificar espacio en página
             if (yPos > 260) {
                 doc.addPage();
