@@ -7197,11 +7197,11 @@ async function exportarHistorialPDF(nombreEstudiante) {
     doc.setFont('helvetica', 'normal');
     
     if (contacto) {
-        const nombrePadre = contacto['Nombre Padre'] || contacto.nombrePadre || 'No registrado';
-        const telPadre = contacto['Contacto Padre'] || contacto.telPadre || 'Sin teléfono';
-        const nombreMadre = contacto['Nombre Madre'] || contacto.nombreMadre || 'No registrado';
-        const telMadre = contacto['Contacto Madre'] || contacto.telMadre || 'Sin teléfono';
-        const telEmergencia = contacto['Contacto Emergencia'] || contacto.telEmergencia || 'No registrado';
+        const nombrePadre = String(contacto['Nombre Padre'] || contacto.nombrePadre || 'No registrado');
+        const telPadre = String(contacto['Contacto Padre'] || contacto.telPadre || 'Sin teléfono');
+        const nombreMadre = String(contacto['Nombre Madre'] || contacto.nombreMadre || 'No registrado');
+        const telMadre = String(contacto['Contacto Madre'] || contacto.telMadre || 'Sin teléfono');
+        const telEmergencia = String(contacto['Contacto Emergencia'] || contacto.telEmergencia || 'No registrado');
         
         doc.setFont('helvetica', 'bold');
         doc.text('Padre:', 14, yPos);
