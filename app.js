@@ -7066,13 +7066,22 @@ async function exportarHistorialPDF(nombreEstudiante) {
         const nom = c['Nombre Estudiante'] || c['Mombre Estudiante'] || c.estudiante || '';
         return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
-    
+
+    // Citaciones a padres del estudiante (año activo)
+    const citacionesEst = (typeof datosCitaciones !== 'undefined' && Array.isArray(datosCitaciones))
+        ? datosCitaciones.filter(c => {
+            if (!esAnioActivo(c)) return false;
+            const nom = c['Estudiante'] || c['Nombre Estudiante'] || c.estudiante || '';
+            return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
+        })
+        : [];
+
     // Contar incidencias por tipo
     const incidenciasLeves = incidencias.filter(i => {
         const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Leve';
     }).length;
-    
+
     const incidenciasGraves = incidencias.filter(i => {
         const tipo = i['Tipo'] || i['Tipo de falta'] || i['Tipo de Falta'] || i.tipoFalta || i.tipo || '';
         return tipo === 'Grave';
@@ -7274,6 +7283,19 @@ async function exportarHistorialPDF(nombreEstudiante) {
         });
     });
     
+    citacionesEst.forEach(cit => {
+        eventos.push({
+            fecha: new Date(cit['Fecha de la cita'] || cit['Fecha de citación'] || ''),
+            tipo: 'citacion',
+            titulo: 'Citación a Padres',
+            descripcion: cit['Motivo'] || '',
+            asistio: cit['Asistencia'] || 'Pendiente',
+            acuerdos: cit['Acuerdos'] || '',
+            cumplimiento: cit['Cumplimiento'] || 'Sin revisar',
+            excusa: cit['Excusa'] || ''
+        });
+    });
+    
     // Ordenar por fecha (más reciente primero)
     eventos.sort((a, b) => b.fecha - a.fecha);
     
@@ -7325,6 +7347,9 @@ async function exportarHistorialPDF(nombreEstudiante) {
             } else if (evento.tipo === 'tardanza') {
                 icono = 'TARDANZA';
                 colorFondo = [245, 158, 11]; // Naranja
+            } else if (evento.tipo === 'citacion') {
+                icono = 'CITACIÓN';
+                colorFondo = [124, 58, 237]; // Morado
             } else {
                 icono = 'REUNIÓN';
                 colorFondo = [59, 130, 246]; // Azul
@@ -7379,6 +7404,20 @@ async function exportarHistorialPDF(nombreEstudiante) {
                     const acuerdosLineas = doc.splitTextToSize(`Acuerdos: ${evento.acuerdos}`, 180);
                     doc.text(acuerdosLineas, 14, yPos);
                     yPos += acuerdosLineas.length * 4;
+                }
+            } else if (evento.tipo === 'citacion') {
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Asistencia: ${evento.asistio} | Cumplimiento: ${evento.cumplimiento || 'Sin revisar'}`, 14, yPos);
+                yPos += 4;
+                if (evento.acuerdos) {
+                    const acuerdosLineas = doc.splitTextToSize(`Acuerdos: ${evento.acuerdos}`, 180);
+                    doc.text(acuerdosLineas, 14, yPos);
+                    yPos += acuerdosLineas.length * 4;
+                }
+                if (evento.excusa) {
+                    const excusaLineas = doc.splitTextToSize(`Excusa: ${evento.excusa}`, 180);
+                    doc.text(excusaLineas, 14, yPos);
+                    yPos += excusaLineas.length * 4;
                 }
             }
             
