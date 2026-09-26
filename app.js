@@ -7075,6 +7075,10 @@ async function exportarHistorialPDF(nombreEstudiante) {
     const tardanzasTotales = tardanzas.length;
     
     // Inicializar PDF
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('No se pudo generar el PDF: la librería de PDF no cargó. Verifica tu conexión y recarga la página (Ctrl+Shift+R).');
+        return;
+    }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
@@ -7377,9 +7381,16 @@ async function exportarHistorialPDF(nombreEstudiante) {
     }
     
     // SECCIÓN: COMPARATIVA POR AÑO ESCOLAR (gráfico de evolución por año)
+    // Best-effort con límite de tiempo: si la descarga por año se demora,
+    // se omite la comparativa y el PDF se genera igual (no se bloquea la descarga).
     try {
-        const datosComparativa = await obtenerComparativaAnual(nombreEstudiante);
-        yPos = dibujarComparativaAnualPDF(doc, datosComparativa, yPos + 4);
+        const limiteTiempo = new Promise((resolve) => setTimeout(() => resolve('__timeout__'), 6000));
+        const datosComparativa = await Promise.race([obtenerComparativaAnual(nombreEstudiante), limiteTiempo]);
+        if (datosComparativa !== '__timeout__') {
+            yPos = dibujarComparativaAnualPDF(doc, datosComparativa, yPos + 4);
+        } else {
+            console.warn('Comparativa anual omitida (tardó demasiado); el PDF se genera sin ella.');
+        }
     } catch (e) {
         console.error('No se pudo incluir la comparativa anual en el PDF:', e);
     }
