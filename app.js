@@ -867,6 +867,9 @@ const inc = {
     
     if (modoEdicion === 'true') {
         // Actualizar incidencia existente
+        const incExistente = datosIncidencias[parseInt(indiceEdicion)];
+        // Conservar la fila real de la hoja para actualizar el registro correcto
+        if (incExistente && incExistente._fila != null) inc._fila = incExistente._fila;
         datosIncidencias[parseInt(indiceEdicion)] = inc;
         if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc, 'actualizar', parseInt(indiceEdicion));
         mostrarAlerta('alertIncidencias', '✅ Incidencia actualizada correctamente');
@@ -7470,9 +7473,15 @@ async function enviarGoogleSheets(url, datos, accion = 'agregar', indice = null)
         const payload = { hoja };
         if (accion === 'actualizar' && indice !== null) {
             payload.accion = 'actualizar';
-            payload.indice = indice;
+            // Preferir la FILA REAL de la hoja (_fila) para actualizar el registro
+            // correcto aunque la lista se haya cargado filtrada por año.
+            const filaReal = (datos && datos._fila != null && !isNaN(parseInt(datos._fila)))
+                ? (parseInt(datos._fila) - 2)
+                : indice;
+            payload.indice = filaReal;
         }
         for (const key in datos) {
+            if (key === '_fila') continue; // campo interno: no es una columna de la hoja
             payload[key] = datos[key];
         }
 
@@ -7608,25 +7617,40 @@ async function sincronizarRegistrosPendientes() {
     
     for (const registro of cola) {
         try {
+            const esFiltradaPorAnio = /hoja=(Incidencias|Tardanzas|Reuniones)/.test(registro.url || '');
+            const tieneFilaReal = !!(registro.datos && registro.datos._fila != null);
+
+            // Actualización pendiente en una hoja filtrada por año pero SIN fila real:
+            // es un registro viejo cuyo índice ya no es fiable. Se descarta para no
+            // recrear duplicados ni sobrescribir la fila equivocada.
+            if (registro.accion === 'actualizar' && esFiltradaPorAnio && !tieneFilaReal) {
+                console.warn('⏭️ Actualización pendiente descartada (sin fila real, evita duplicado):', registro.id);
+                continue; // no se reenvía y no vuelve a la cola
+            }
+
             const formData = new URLSearchParams();
-            
+
             if (registro.accion === 'actualizar' && registro.indice !== null) {
                 formData.append('accion', 'actualizar');
-                formData.append('indice', registro.indice);
+                const filaReal = (tieneFilaReal && !isNaN(parseInt(registro.datos._fila)))
+                    ? (parseInt(registro.datos._fila) - 2)
+                    : registro.indice;
+                formData.append('indice', filaReal);
             }
-            
+
             for (const key in registro.datos) {
+                if (key === '_fila') continue; // campo interno, no es columna
                 formData.append(key, registro.datos[key]);
             }
-            
+
             const response = await fetch(registro.url, {
                 method: 'POST',
                 body: formData
             });
-            
+
             sincronizados++;
             console.log(`✅ Registro ${registro.id} sincronizado`);
-            
+
         } catch (error) {
             console.error(`❌ Error al sincronizar registro ${registro.id}:`, error);
             fallidos.push(registro);
@@ -8741,7 +8765,9 @@ function registrarReunion(e) {
         // Actualizar reunión existente - preservar el campo Asistió si existe
         const reunionExistente = datosReuniones[parseInt(indiceEdicion)];
         reunion['Asistió'] = reunionExistente['Asistió'] || reunionExistente['asistio'] || reunionExistente.asistio || 'No';
-        
+        // Conservar la fila real de la hoja para actualizar el registro correcto
+        if (reunionExistente && reunionExistente._fila != null) reunion._fila = reunionExistente._fila;
+
         datosReuniones[parseInt(indiceEdicion)] = reunion;
         if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion, 'actualizar', parseInt(indiceEdicion));
         mostrarAlerta('alertReuniones', '✅ Reunión actualizada correctamente');
