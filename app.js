@@ -5253,12 +5253,12 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     
     reuniones.forEach(reun => {
         eventos.push({
-            fecha: new Date(reun['Fecha'] || reun.fecha || ''),
+            fecha: new Date(reun['Fecha y Hora'] || reun['Fecha'] || reun.fecha || ''),
             tipo: 'reunion',
             titulo: 'Reunión con Padres',
             descripcion: reun['Motivo'] || reun.motivo || '',
-            asistio: reun['Asistió'] || reun.asistio || '',
-            acuerdos: reun['Acuerdos'] || reun.acuerdos || ''
+            asistio: leerAsistio(reun) ? 'Sí' : 'No',
+            acuerdos: reun['Acuerdos Establecidos'] || reun['Acuerdos'] || reun.acuerdos || ''
         });
     });
     
@@ -5271,7 +5271,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
         htmlTimeline = '<p style="color:#999;text-align:center;padding:40px;">No hay eventos registrados</p>';
     } else {
         eventos.slice(0, 15).forEach(evento => {
-            const fechaTexto = evento.fecha.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' });
+            const fechaTexto = (evento.fecha && !isNaN(evento.fecha)) ? evento.fecha.toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Sin fecha';
             const horaTexto = evento.fecha.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
             
             let iconoTipo = '';
@@ -7257,12 +7257,12 @@ async function exportarHistorialPDF(nombreEstudiante) {
     
     reuniones.forEach(reun => {
         eventos.push({
-            fecha: new Date(reun['Fecha'] || reun.fecha || ''),
+            fecha: new Date(reun['Fecha y Hora'] || reun['Fecha'] || reun.fecha || ''),
             tipo: 'reunion',
             titulo: 'Reunión con Padres',
             descripcion: reun['Motivo'] || reun.motivo || '',
-            asistio: reun['Asistió'] || reun.asistio || '',
-            acuerdos: reun['Acuerdos'] || reun.acuerdos || ''
+            asistio: leerAsistio(reun) ? 'Sí' : 'No',
+            acuerdos: reun['Acuerdos Establecidos'] || reun['Acuerdos'] || reun.acuerdos || ''
         });
     });
     
@@ -7295,11 +7295,11 @@ async function exportarHistorialPDF(nombreEstudiante) {
                 yPos = 20;
             }
             
-            const fechaTexto = evento.fecha.toLocaleDateString('es-DO', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
+            const fechaTexto = (evento.fecha && !isNaN(evento.fecha)) ? evento.fecha.toLocaleDateString('es-DO', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }) : 'Sin fecha';
             
             // Icono y color según tipo
             let icono = '';
