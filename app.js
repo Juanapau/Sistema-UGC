@@ -7020,6 +7020,7 @@ function cerrarHistorialEstudiante() {
 }
 
 async function exportarHistorialPDF(nombreEstudiante) {
+  try {
     // Buscar información del estudiante
     const estudiante = datosEstudiantes.find(e => {
         const nombre = e['Nombre Completo'] || e.nombre || '';
@@ -7413,6 +7414,10 @@ async function exportarHistorialPDF(nombreEstudiante) {
     // Guardar PDF
     const nombreArchivo = nombre.replace(/ /g, '_');
     doc.save(`Historial_Completo_${nombreArchivo}_${new Date().toISOString().split('T')[0]}.pdf`);
+  } catch (err) {
+    console.error('Error al generar el PDF del historial:', err);
+    alert('No se pudo generar el PDF del historial.\n\nDetalle del error: ' + (err && err.message ? err.message : err));
+  }
 }
 
 function exportarTodo() {
