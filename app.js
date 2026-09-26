@@ -3224,7 +3224,7 @@ function crearModalReuniones() {
                     </div>
                     <div class="form-group">
                         <label>Nombre del Padre/Madre</label>
-                        <select id="selectPadreReunion" style="display:none;width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:0.95em;background:#fff;cursor:pointer;" onchange="onSelectPadreReunion(this.value)">
+                        <select id="selectPadreReunion" style="display:none;width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:0.95em;cursor:pointer;" onchange="onSelectPadreReunion(this.value)">
                             <option value="">-- Seleccione el padre/madre --</option>
                         </select>
                         <input type="text" id="nombrePadreReunion" placeholder="Nombre completo">
