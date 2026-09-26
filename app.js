@@ -5131,6 +5131,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     });
     
     const reuniones = datosReuniones.filter(r => {
+        if (!esAnioActivo(r)) return false;  // solo reuniones del año activo
         const nom = r['Nombre Estudiante'] || r.estudiante || '';
         return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
@@ -5143,6 +5144,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
     // Citaciones a padres de este estudiante
     const citacionesEst = (typeof datosCitaciones !== 'undefined' && Array.isArray(datosCitaciones))
         ? datosCitaciones.filter(c => {
+            if (!esAnioActivo(c)) return false;  // solo citaciones del año activo
             const nom = c['Estudiante'] || c['Nombre Estudiante'] || c.estudiante || '';
             return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
         })
@@ -6390,6 +6392,11 @@ function verCitaciones() {
     const bsc = document.getElementById('buscarCitaciones');
     if (bsc) bsc.value = _buscarCitaciones;
     renderTablaCitaciones();
+    // Recargar del servidor y volver a renderizar (por si la carga inicial
+    // falló o fue lenta y datosCitaciones quedó vacío).
+    if (typeof recargarCitaciones === 'function') {
+        recargarCitaciones().then(() => renderTablaCitaciones()).catch(() => {});
+    }
 }
 
 function citacionPasaFiltro(c) {
@@ -7050,6 +7057,7 @@ async function exportarHistorialPDF(nombreEstudiante) {
     });
     
     const reuniones = datosReuniones.filter(r => {
+        if (!esAnioActivo(r)) return false;  // solo reuniones del año activo
         const nom = r['Nombre Estudiante'] || r.estudiante || '';
         return normalizarNombreCmp(nom) === normalizarNombreCmp(nombreEstudiante);
     });
