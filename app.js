@@ -36,7 +36,7 @@ const CONFIG_PREDETERMINADO = { ...CONFIG };
 let ANIO_ACTIVO = '';
 let ANIOS_DISPONIBLES = [];
 // Hojas cuyos datos se filtran y se sellan por año escolar
-const HOJAS_CON_ANIO = ['Incidencias', 'Tardanzas', 'Reuniones', 'Estudiantes'];
+const HOJAS_CON_ANIO = ['Incidencias', 'Tardanzas', 'Estudiantes'];
 
 // Lee la hoja Config y guarda el año activo y la lista de años disponibles
 async function cargarConfig() {
@@ -8944,6 +8944,10 @@ function cargarTablaReuniones() {
     }
     
     tbody.innerHTML = datosReuniones.map((r, index) => {
+        if (!esAnioActivo(r)) return '';  // mostrar solo el año activo, conservando el índice real
+        const _est = (r['Nombre Estudiante'] || r.estudiante || '').toString().trim();
+        const _fec = (r['Fecha y Hora'] || r.fecha || '').toString().trim();
+        if (!_est && !_fec) return '';  // saltar filas vacías
         const fecha = r['Fecha y Hora'] || r.fecha || '';
         const tipo = r['Tipo'] || r.tipo || 'Presencial';
         const estudiante = r['Nombre Estudiante'] || r.estudiante || '';
@@ -9021,6 +9025,9 @@ function cargarTablaReuniones() {
         </tr>
         `;
     }).join('');
+    if (!tbody.innerHTML.trim()) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#999;">No hay reuniones registradas para el año activo</td></tr>';
+    }
 }
 
 // Función para marcar/desmarcar asistencia a reunión
@@ -9047,25 +9054,26 @@ function toggleAsistencia(indice, asistio) {
 }
 
 function actualizarEstadisticasReuniones() {
-    const totalReuniones = datosReuniones.length;
+    const reunionesAnio = datosReuniones.filter(esAnioActivo);
+    const totalReuniones = reunionesAnio.length;
     const hoy = new Date();
     const mesActual = hoy.getMonth();
     const añoActual = hoy.getFullYear();
-    
-    const reunionesMes = datosReuniones.filter(r => {
+
+    const reunionesMes = reunionesAnio.filter(r => {
         const fecha = r['Fecha y Hora'] || r.fecha || '';
         if (!fecha) return false;
         const fechaReunion = new Date(fecha);
         return fechaReunion.getMonth() === mesActual && fechaReunion.getFullYear() === añoActual;
     }).length;
-    
-    const acuerdosActivos = datosReuniones.filter(r => {
+
+    const acuerdosActivos = reunionesAnio.filter(r => {
         const estado = r['Estado'] || r.estado || '';
         return estado === 'En seguimiento' || estado === 'Parcialmente cumplido';
     }).length;
-    
+
     // Contar TODAS las reuniones con estado "En seguimiento" (sin importar fecha)
-    const seguimientosPendientes = datosReuniones.filter(r => {
+    const seguimientosPendientes = reunionesAnio.filter(r => {
         const estado = r['Estado'] || r.estado || '';
         return estado === 'En seguimiento';
     }).length;
@@ -9082,6 +9090,7 @@ function buscarReuniones() {
     const estado = document.getElementById('filtrarEstadoReunion').value;
     
     const filtrados = datosReuniones.filter(r => {
+        if (!esAnioActivo(r)) return false;  // solo año activo
         const estudiante = (r['Nombre Estudiante'] || r.estudiante || '').toLowerCase();
         const nombrePadre = (r['Nombre Padre/Madre'] || r.nombrePadre || '').toLowerCase();
         const cursoR = r['Curso'] || r.curso || '';
@@ -9419,10 +9428,11 @@ function exportarReunionesPDF() {
     const estado = document.getElementById('filtrarEstadoReunion')?.value || '';
     
     // Filtrar reuniones según búsqueda actual
-    let reunionesAExportar = datosReuniones;
+    let reunionesAExportar = datosReuniones.filter(esAnioActivo);
     
     if (buscar || curso || estado) {
         reunionesAExportar = datosReuniones.filter(r => {
+            if (!esAnioActivo(r)) return false;
             const estudiante = (r['Nombre Estudiante'] || r.estudiante || '').toLowerCase();
             const nombrePadre = (r['Nombre Padre/Madre'] || r.nombrePadre || '').toLowerCase();
             const cursoR = r['Curso'] || r.curso || '';
@@ -9562,6 +9572,7 @@ function realizarBusquedaGlobal() {
     
     // Buscar en reuniones
     datosReuniones.forEach(reun => {
+        if (!esAnioActivo(reun)) return;  // solo año activo
         const estudiante = (reun['Nombre Estudiante'] || reun.estudiante || '').toLowerCase();
         const padre = (reun['Nombre Padre/Madre'] || reun.nombrePadre || '').toLowerCase();
         if (estudiante.includes(query) || padre.includes(query)) {
