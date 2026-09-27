@@ -8845,9 +8845,15 @@ function registrarReunion(e) {
         'Año Escolar': ANIO_ACTIVO
     };
     
-    if (modoEdicion === 'true') {
+    // Solo es una EDICIÓN real si seguimos en modo edición Y el estudiante del
+    // formulario coincide con el de la fila que se abrió. Si cambió, el usuario
+    // está registrando otra reunión: se AGREGA al final (no sobrescribe).
+    const _reunEdit = (modoEdicion === 'true') ? datosReuniones[parseInt(indiceEdicion)] : null;
+    const _esEdicionRealReun = !!_reunEdit && normalizarNombreCmp(_reunEdit['Nombre Estudiante'] || _reunEdit.estudiante || '') === normalizarNombreCmp(reunion['Nombre Estudiante'] || '');
+
+    if (_esEdicionRealReun) {
         // Actualizar reunión existente - preservar el campo Asistió si existe
-        const reunionExistente = datosReuniones[parseInt(indiceEdicion)];
+        const reunionExistente = _reunEdit;
         reunion['Asistió'] = reunionExistente['Asistió'] || reunionExistente['asistio'] || reunionExistente.asistio || 'No';
         // Conservar la fila real de la hoja para actualizar el registro correcto
         if (reunionExistente && reunionExistente._fila != null) reunion._fila = reunionExistente._fila;
@@ -8855,22 +8861,29 @@ function registrarReunion(e) {
         datosReuniones[parseInt(indiceEdicion)] = reunion;
         if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion, 'actualizar', parseInt(indiceEdicion));
         mostrarAlerta('alertReuniones', '✅ Reunión actualizada correctamente');
-        
+
         // Salir del modo edición
         document.getElementById('formReunion').dataset.modoEdicion = 'false';
         document.getElementById('formReunion').dataset.indiceEdicion = '';
-        
+
         // Cambiar texto del botón de vuelta
         const btnSubmit = document.querySelector('#formReunion button[type="submit"]');
         if (btnSubmit) btnSubmit.textContent = 'Registrar Reunión';
-        
+
         // Ocultar botón cancelar
         const btnCancelar = document.getElementById('btnCancelarEdicionReunion');
         if (btnCancelar) btnCancelar.style.display = 'none';
     } else {
-        // Registrar nueva reunión - agregar campo Asistió con valor por defecto
+        // Registrar nueva reunión - asegurar salir de cualquier modo edición activo
+        document.getElementById('formReunion').dataset.modoEdicion = 'false';
+        document.getElementById('formReunion').dataset.indiceEdicion = '';
+        const _btnSubR = document.querySelector('#formReunion button[type="submit"]');
+        if (_btnSubR) _btnSubR.textContent = 'Registrar Reunión';
+        const _btnCanR = document.getElementById('btnCancelarEdicionReunion');
+        if (_btnCanR) _btnCanR.style.display = 'none';
+        delete reunion._fila; // un registro nuevo nunca lleva fila
         reunion['Asistió'] = 'No';
-        
+
         datosReuniones.push(reunion);
         if (CONFIG.urlReuniones) enviarGoogleSheets(CONFIG.urlReuniones, reunion);
         mostrarAlerta('alertReuniones', '✅ Reunión registrada correctamente');
