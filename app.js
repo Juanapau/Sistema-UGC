@@ -865,28 +865,42 @@ const inc = {
     'Año Escolar': ANIO_ACTIVO
 };
     
-    if (modoEdicion === 'true') {
+    // Solo es una EDICIÓN real si seguimos en modo edición Y el estudiante del
+    // formulario coincide con el de la fila que se abrió. Si el estudiante cambió,
+    // el usuario está registrando otra incidencia: se AGREGA al final (no sobrescribe).
+    const _incEdit = (modoEdicion === 'true') ? datosIncidencias[parseInt(indiceEdicion)] : null;
+    const _esEdicionReal = !!_incEdit && normalizarNombreCmp(_incEdit['Nombre Estudiante'] || _incEdit.estudiante || '') === normalizarNombreCmp(inc['Nombre Estudiante'] || '');
+
+    if (_esEdicionReal) {
         // Actualizar incidencia existente
-        const incExistente = datosIncidencias[parseInt(indiceEdicion)];
+        const incExistente = _incEdit;
         // Conservar la fila real de la hoja para actualizar el registro correcto
         if (incExistente && incExistente._fila != null) inc._fila = incExistente._fila;
         datosIncidencias[parseInt(indiceEdicion)] = inc;
         if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc, 'actualizar', parseInt(indiceEdicion));
         mostrarAlerta('alertIncidencias', '✅ Incidencia actualizada correctamente');
-        
+
         // Salir del modo edición
         document.getElementById('formIncidencia').dataset.modoEdicion = 'false';
         document.getElementById('formIncidencia').dataset.indiceEdicion = '';
-        
+
         // Cambiar texto del botón de vuelta
         const btnSubmit = document.querySelector('#formIncidencia button[type="submit"]');
         if (btnSubmit) btnSubmit.textContent = 'Registrar Incidencia';
-        
+
         // Ocultar botón cancelar
         const btnCancelar = document.getElementById('btnCancelarEdicion');
         if (btnCancelar) btnCancelar.style.display = 'none';
     } else {
-        // Registrar nueva incidencia
+        // Registrar nueva incidencia (append al final).
+        // Aseguramos salir de cualquier modo edición que hubiera quedado activo.
+        document.getElementById('formIncidencia').dataset.modoEdicion = 'false';
+        document.getElementById('formIncidencia').dataset.indiceEdicion = '';
+        const _btnSub = document.querySelector('#formIncidencia button[type="submit"]');
+        if (_btnSub) _btnSub.textContent = 'Registrar Incidencia';
+        const _btnCan = document.getElementById('btnCancelarEdicion');
+        if (_btnCan) _btnCan.style.display = 'none';
+        delete inc._fila; // por si acaso, un registro nuevo nunca lleva fila
         datosIncidencias.push(inc);
         if (CONFIG.urlIncidencias) enviarGoogleSheets(CONFIG.urlIncidencias, inc);
         mostrarAlerta('alertIncidencias', '✅ Incidencia registrada');
