@@ -1536,6 +1536,10 @@ document.addEventListener('click', function(e) {
 
 function registrarTardanza(e) {
     e.preventDefault();
+    // Evitar doble/triple envío por clics repetidos
+    if (window._guardandoTardanza) return;
+    window._guardandoTardanza = true;
+    setTimeout(function(){ window._guardandoTardanza = false; }, 1500);
     const fecha = document.getElementById('fechaTardanza').value;
     const estudiante = document.getElementById('estudianteTard').value;
     const curso = document.getElementById('cursoTard').value;
@@ -7690,8 +7694,12 @@ function mostrarNotificacionOffline(cantidad) {
 }
 
 async function sincronizarRegistrosPendientes() {
+    // Evitar ejecuciones concurrentes que reenviarían el mismo registro varias veces
+    if (window._sincronizandoCola) return;
+    window._sincronizandoCola = true;
+    try {
     const cola = JSON.parse(localStorage.getItem('colaOffline') || '[]');
-    
+
     if (cola.length === 0) return;
     
     console.log(`🔄 Iniciando sincronización de ${cola.length} registros pendientes...`);
@@ -7751,8 +7759,11 @@ async function sincronizarRegistrosPendientes() {
     if (sincronizados > 0) {
         mostrarNotificacionSincronizado(sincronizados);
     }
-    
+
     console.log(`✅ Sincronización completada: ${sincronizados} exitosos, ${fallidos.length} pendientes`);
+    } finally {
+        window._sincronizandoCola = false;
+    }
 }
 
 function mostrarNotificacionSincronizado(cantidad) {
