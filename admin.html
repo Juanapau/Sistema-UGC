@@ -2933,44 +2933,70 @@ header img {
     <!-- Scripts para el panel del régimen -->
     <script src="regimen-content.js"></script>
     <script>
+        // Normaliza texto para comparar sin acentos ni mayúsculas
+        function _normReg(s) {
+            return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        }
+
         // Filtrar régimen por tipo
         function cambiarFiltro(btn, tipo) {
             // Actualizar botones activos
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            // Mostrar/ocultar secciones
-            const secciones = document.querySelectorAll('.falta-seccion');
-            secciones.forEach(seccion => {
+
+            // Limpiar búsqueda y restaurar todos los bloques internos que la búsqueda hubiera ocultado
+            document.getElementById('regimenSearch').value = '';
+            document.querySelectorAll('#regimenContent .oculto').forEach(el => el.classList.remove('oculto'));
+
+            // Mostrar/ocultar secciones por tipo
+            document.querySelectorAll('.falta-seccion').forEach(seccion => {
                 if (tipo === 'todas' || seccion.dataset.tipo === tipo) {
                     seccion.classList.remove('oculto');
                 } else {
                     seccion.classList.add('oculto');
                 }
             });
-            
-            // Limpiar búsqueda
-            document.getElementById('regimenSearch').value = '';
         }
 
-        // Buscar en el régimen
+        // Buscar en el régimen (ítems, introducciones, notas y listas de sanciones)
         function filtrarRegimen() {
-            const busqueda = document.getElementById('regimenSearch').value.toLowerCase();
-            const items = document.querySelectorAll('.falta-item');
-            
-            items.forEach(item => {
-                const texto = item.textContent.toLowerCase();
-                if (texto.includes(busqueda)) {
-                    item.classList.remove('oculto');
+            const q = _normReg(document.getElementById('regimenSearch').value.trim());
+            const secciones = document.querySelectorAll('.falta-seccion');
+
+            // Categoría activa (para restaurar cuando se borre la búsqueda)
+            const btnActivo = document.querySelector('.filter-btn.active');
+            const tipoActivo = btnActivo ? btnActivo.dataset.filter : 'todas';
+
+            // Sin texto: restaurar todo según la categoría activa
+            if (!q) {
+                document.querySelectorAll('#regimenContent .oculto').forEach(el => el.classList.remove('oculto'));
+                secciones.forEach(seccion => {
+                    if (tipoActivo === 'todas' || seccion.dataset.tipo === tipoActivo) {
+                        seccion.classList.remove('oculto');
+                    } else {
+                        seccion.classList.add('oculto');
+                    }
+                });
+                return;
+            }
+
+            // Con texto: mostrar solo los bloques que coinciden; ocultar la sección si no tiene ninguno
+            secciones.forEach(seccion => {
+                let algunMatch = false;
+                seccion.querySelectorAll('.falta-item, .seccion-intro, .falta-nota, .sancion-lista').forEach(bloque => {
+                    if (_normReg(bloque.textContent).includes(q)) {
+                        bloque.classList.remove('oculto');
+                        algunMatch = true;
+                    } else {
+                        bloque.classList.add('oculto');
+                    }
+                });
+                if (algunMatch) {
+                    seccion.classList.remove('oculto');
                 } else {
-                    item.classList.add('oculto');
+                    seccion.classList.add('oculto');
                 }
             });
-            
-            // Si hay búsqueda activa, mostrar todas las secciones
-            if (busqueda) {
-                document.querySelectorAll('.falta-seccion').forEach(s => s.classList.remove('oculto'));
-            }
         }
 
         // Copiar texto de la sanción
