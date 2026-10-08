@@ -302,10 +302,11 @@ table th, table td { padding: 8px 6px; }
 <th style="width:70px;">#</th>
 <th>Nombre Completo</th>
 <th style="width:170px;">Curso</th>
+<th style="width:160px;">Acciones</th>
 </tr>
 </thead>
 <tbody id="tbody">
-<tr><td colspan="3" class="loading">📥 Cargando estudiantes...</td></tr>
+<tr><td colspan="4" class="loading">📥 Cargando estudiantes...</td></tr>
 </tbody>
 </table>
 </div>
@@ -330,7 +331,7 @@ async function cargar(){
     const data = await resp.json();
     ESTUDIANTES = Array.isArray(data) ? data : [];
   }catch(e){
-    tb.innerHTML = '<tr><td colspan="3" class="empty">⚠️ Error al cargar los datos.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="4" class="empty">⚠️ Error al cargar los datos.</td></tr>';
     return;
   }
   const cursos = [...new Set(ESTUDIANTES.map(e => (e['Curso']||'').toString().trim()).filter(Boolean))].sort();
@@ -353,8 +354,13 @@ function render(){
     return norm(a['Nombre Completo']).localeCompare(norm(b['Nombre Completo']));
   });
   const tb = document.getElementById('tbody');
-  if(!lista.length){ tb.innerHTML='<tr><td colspan="3" class="empty">No se encontraron resultados.</td></tr>'; return; }
-  tb.innerHTML = lista.map((e,i)=>'<tr><td>'+(i+1)+'</td><td><strong>'+esc(e['Nombre Completo'])+'</strong></td><td><span class="badge">'+esc(e['Curso'])+'</span></td></tr>').join('');
+  if(!lista.length){ tb.innerHTML='<tr><td colspan="4" class="empty">No se encontraron resultados.</td></tr>'; return; }
+  tb.innerHTML = lista.map((e,i)=>{
+    const nom = e['Nombre Completo'] || '';
+    const nEsc = String(nom).replace(/'/g, "\\'");
+    return '<tr><td>'+(i+1)+'</td><td><strong>'+esc(nom)+'</strong></td><td><span class="badge">'+esc(e['Curso'])+'</span></td>'+
+      '<td><button onclick="abrirHistorialEstudiante(\''+nEsc+'\')" style="padding:5px 12px;font-size:0.82em;background:#0891b2;color:#fff;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;">📋 Ver Historial</button></td></tr>';
+  }).join('');
 }
 
 function recargar(){
@@ -416,5 +422,49 @@ function toggleTema(){
 })();
 </script>
 
+<!-- Soporte de datos + historial del estudiante (igual que el panel admin) -->
+<script>
+  // Config y cargador de datos para el historial (vista de consulta)
+  var HOJAS_CON_ANIO_HIST = ['Incidencias','Tardanzas','Reuniones','Estudiantes'];
+  var CONFIG = {
+    urlIncidencias: URL_BASE + '?hoja=Incidencias',
+    urlTardanzas:   URL_BASE + '?hoja=Tardanzas',
+    urlReuniones:   URL_BASE + '?hoja=Reuniones',
+    urlContactos:   URL_BASE + '?hoja=Contactos'
+  };
+  var datosEstudiantes = [], datosIncidencias = [], datosTardanzas = [], datosReuniones = [], datosContactos = [];
+  async function cargarDatosDesdeGoogleSheets(url){
+    try{
+      var u = url;
+      var m = u.match(/[?&]hoja=([^&]+)/);
+      var hoja = m ? decodeURIComponent(m[1]) : '';
+      if (ANIO_CONSULTA && HOJAS_CON_ANIO_HIST.indexOf(hoja) !== -1 && !/[?&]anio=/.test(u)) {
+        u += '&anio=' + encodeURIComponent(ANIO_CONSULTA);
+      }
+      var r = await fetch(u); var d = await r.json();
+      return Array.isArray(d) ? d : [];
+    }catch(e){ console.error('Historial: error al cargar', url, e); return []; }
+  }
+  async function _cargarDatosParaHistorial(){
+    try{
+      var res = await Promise.all([
+        cargarDatosDesdeGoogleSheets(URL_BASE + '?hoja=Estudiantes'),
+        cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias),
+        cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas),
+        cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones),
+        cargarDatosDesdeGoogleSheets(CONFIG.urlContactos)
+      ]);
+      datosEstudiantes = res[0] || [];
+      datosIncidencias = res[1] || [];
+      datosTardanzas   = res[2] || [];
+      datosReuniones   = res[3] || [];
+      datosContactos   = res[4] || [];
+    }catch(e){ console.error('Historial: no se pudieron cargar los datos', e); }
+  }
+  document.addEventListener('DOMContentLoaded', _cargarDatosParaHistorial);
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="historial-estudiante.js"></script>
 </body>
 </html>
