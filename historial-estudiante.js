@@ -799,7 +799,7 @@ function abrirHistorialEstudiante(nombreEstudiante) {
             
             <!-- BOTÓN EXPORTAR -->
             <div style="margin-top:30px;text-align:center;">
-                <button class="btn btn-success" onclick="exportarHistorialPDF('${nombre.replace(/'/g, "\\'")}')">📄 Exportar Historial Completo a PDF</button>
+                <button class="btn btn-success" onclick="exportarHistorialPDF('${nombre.replace(/'/g, "\\'")}')" style="background:linear-gradient(135deg, #28a745 0%, #218838 100%);color:#fff;border:none;padding:14px 28px;border-radius:8px;font-size:1em;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(40,167,69,0.35);">📄 Exportar Historial Completo a PDF</button>
             </div>
             
         </div>
