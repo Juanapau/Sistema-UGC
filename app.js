@@ -4777,18 +4777,6 @@ function crearModalReportes() {
             <p style="font-size:0.78em;color:#9ca3af;margin-top:8px;">
                 * El <strong>Índice de Riesgo</strong> (0–100%) combina tres factores con igual peso: <strong>Gravedad</strong> (qué tan graves son las faltas en promedio), <strong>Cobertura</strong> (qué % del curso tiene incidencias) y <strong>Reincidencia</strong> (faltas promedio por alumno afectado). El curso con mayor riesgo marca 100% y los demás se escalan proporcionalmente.
             </p>
-            
-            
-            <hr style="margin:40px 0;">
-            <h3>Historial del Estudiante</h3>
-            <div class="form-group" style="position:relative;">
-                <label>Buscar Estudiante</label>
-                <input type="text" id="estudianteReporte" data-sugerencias="sugerenciasReporte" placeholder="Escriba el nombre del estudiante..." style="width:100%;">
-                <div id="sugerenciasReporte" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
-            </div>
-            <button class="btn btn-primary" onclick="generarReporteEstudiante()">📋 Ver Historial Completo</button>
-            
-            <div id="contenidoReporte" style="margin-top:30px;"></div>
         </div>
     </div>
 </div>`;
@@ -4799,7 +4787,6 @@ function crearModalReportes() {
     
     // Inicializar autocompletado de búsqueda
     setTimeout(() => {
-        crearAutocompletadoBusqueda('estudianteReporte', 'sugerenciasReporte');
     }, 200);
 }
 
@@ -6025,7 +6012,12 @@ function filaEstudianteHTML(e) {
         <tr>
             <td><strong>${nombre}</strong></td>
             <td>${curso}</td>
-            <td>${estadoCell}</td>
+            <td>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                    ${estadoCell}
+                    <button class="btn" style="padding:4px 12px;font-size:0.8em;margin:0;white-space:nowrap;background:#0891b2;color:#fff;border:none;border-radius:8px;cursor:pointer;" onclick="abrirHistorialEstudiante('${nEsc}')">📋 Ver Historial</button>
+                </div>
+            </td>
         </tr>`;
 }
 
