@@ -262,7 +262,7 @@ vertical-align: top;
 }
 
 table tbody tr {
-cursor: pointer;
+cursor: default;
 transition: all 0.2s;
 }
 
@@ -731,7 +731,7 @@ const tipoClass = tipo !== 'N/A' ? tipo.toLowerCase().replace(/ /g, '-') : 'leve
 const nombreEstudiante = inc['Nombre Estudiante'] || 'N/A';
 
 return `
-<tr onclick="abrirHistorialEstudiante('${nombreEstudiante.replace(/'/g, "\\'")}')">
+<tr>
 <td>${formatearFecha(inc['Fecha y Hora'])}</td>
 <td><strong>${nombreEstudiante}</strong></td>
 <td>${inc['Curso'] || 'N/A'}</td>
@@ -1248,42 +1248,5 @@ function toggleTema(){
 })();
 </script>
 
-<script>
-// Abrir automáticamente el Historial Completo si se llega con ?historial=NOMBRE
-// (por ejemplo, desde la sección Historial de Estadísticas). Carga primero los
-// datos reales del año consultado (estudiantes, contactos, reuniones, tardanzas,
-// incidencias) y luego abre el historial.
-(async function () {
-    var nombreHist = new URLSearchParams(location.search).get('historial');
-    if (!nombreHist) return;
-    nombreHist = decodeURIComponent(nombreHist);
-    try {
-        if (typeof cargarDatosDesdeGoogleSheets === 'function' && typeof CONFIG !== 'undefined') {
-            var res = await Promise.all([
-                CONFIG.urlIncidencias ? cargarDatosDesdeGoogleSheets(CONFIG.urlIncidencias) : Promise.resolve(null),
-                CONFIG.urlEstudiantes ? cargarDatosDesdeGoogleSheets(CONFIG.urlEstudiantes) : Promise.resolve(null),
-                CONFIG.urlContactos   ? cargarDatosDesdeGoogleSheets(CONFIG.urlContactos)   : Promise.resolve(null),
-                CONFIG.urlReuniones   ? cargarDatosDesdeGoogleSheets(CONFIG.urlReuniones)   : Promise.resolve(null),
-                CONFIG.urlTardanzas   ? cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas)   : Promise.resolve(null)
-            ]);
-            if (Array.isArray(res[0])) datosIncidencias = res[0];
-            if (Array.isArray(res[1])) datosEstudiantes = res[1];
-            if (Array.isArray(res[2])) datosContactos   = res[2];
-            if (Array.isArray(res[3])) datosReuniones    = res[3];
-            if (Array.isArray(res[4])) datosTardanzas    = res[4];
-        }
-        if (typeof abrirHistorialEstudiante === 'function') {
-            abrirHistorialEstudiante(nombreHist);
-        }
-    } catch (e) {
-        console.error('No se pudo abrir el historial automáticamente:', e);
-    }
-})();
-</script>
-
-<!-- Historial del estudiante (compartido, igual que el panel admin) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-<script src="historial-estudiante.js"></script>
 </body>
 </html>
