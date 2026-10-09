@@ -558,7 +558,7 @@ function crearModalIncidencias() {
                     </div>
                     <div class="form-group">
                         <label>Tipo de Conducta *</label>
-                        <select id="tipoConducta" required>
+                        <select id="tipoConducta" required onchange="toggleTipoConductaOtro()">
                             <option value="">Seleccione el tipo</option>
                             <option value="Agresión física">Agresión física</option>
                             <option value="Agresión verbal">Agresión verbal</option>
@@ -577,6 +577,7 @@ function crearModalIncidencias() {
                             <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
                             <option value="Otros">Otros</option>
                         </select>
+                        <input type="text" id="tipoConductaOtro" placeholder="Escriba el tipo de conducta..." style="width:100%;margin-top:8px;display:none;">
                     </div>
                 </div>
                 <div class="form-group">
@@ -670,7 +671,7 @@ function crearModalIncidencias() {
                     </button>
                 </div>
                 <button type="submit" class="btn btn-primary">💾 Registrar</button>
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('formIncidencia').reset()">🔄 Limpiar</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('formIncidencia').reset(); toggleTipoConductaOtro();">🔄 Limpiar</button>
             </form>
             
             <hr style="margin: 40px 0;">
@@ -847,18 +848,27 @@ function seleccionarEstudianteIncidencia(nombre, curso) {
 
 function registrarIncidencia(e) {
     e.preventDefault();
-    
+
     // Verificar si estamos en modo edición
     const modoEdicion = document.getElementById('formIncidencia').dataset.modoEdicion;
     const indiceEdicion = document.getElementById('formIncidencia').dataset.indiceEdicion;
-    
+
+    // Si el tipo de conducta es "Otros", usar el texto escrito en el campo libre
+    let _tipoConducta = document.getElementById('tipoConducta').value;
+    if (_tipoConducta === 'Otros') {
+        const _otroEl = document.getElementById('tipoConductaOtro');
+        const _otro = _otroEl ? _otroEl.value.trim() : '';
+        if (!_otro) { alert('⚠️ Escriba el tipo de conducta (seleccionó "Otros").'); return; }
+        _tipoConducta = _otro;
+    }
+
 const inc = {
     'Fecha y Hora': document.getElementById('fechaIncidencia').value,
     'Nombre Estudiante': document.getElementById('nombreEstudianteInc').value,
     'Curso': document.getElementById('cursoIncidencia').value,
     'Tipo de falta': document.getElementById('tipoFalta').value,
     'Docente': document.getElementById('docenteReporta').value,
-    'Tipo de Conducta': document.getElementById('tipoConducta').value,
+    'Tipo de Conducta': _tipoConducta,
     'Descripción': document.getElementById('descripcionIncidencia').value,
     'Acciones Docente': document.getElementById('accionesDocente').value,
     'Seguimiento UGC': document.getElementById('seguimientoUGC').value,
@@ -922,6 +932,7 @@ const inc = {
     }
     
     document.getElementById('formIncidencia').reset();
+    toggleTipoConductaOtro(); // Ocultar campo "Otros" tras limpiar
     cargarTablaIncidencias();
     buscarIncidencias(); // Actualizar tabla de búsqueda también
     actualizarEstadisticasConductas(); // Actualizar estadísticas de conductas
@@ -959,7 +970,20 @@ function editarIncidencia(indice) {
     document.getElementById('cursoIncidencia').value = inc['Curso'] || '';
     document.getElementById('tipoFalta').value = inc['Tipo de falta'] || '';
     document.getElementById('docenteReporta').value = inc['Docente'] || '';
-    document.getElementById('tipoConducta').value = inc['Tipo de Conducta'] || inc['Tipo de conducta'] || '';
+    (function() {
+        const _selTC = document.getElementById('tipoConducta');
+        const _otroTC = document.getElementById('tipoConductaOtro');
+        const _valTC = inc['Tipo de Conducta'] || inc['Tipo de conducta'] || '';
+        const _opciones = Array.from(_selTC.options).map(o => o.value);
+        if (_valTC && _opciones.indexOf(_valTC) === -1) {
+            // Valor personalizado: seleccionar "Otros" y mostrar el texto
+            _selTC.value = 'Otros';
+            if (_otroTC) { _otroTC.style.display = 'block'; _otroTC.value = _valTC; }
+        } else {
+            _selTC.value = _valTC;
+            if (_otroTC) { _otroTC.style.display = 'none'; _otroTC.value = ''; }
+        }
+    })();
     document.getElementById('descripcionIncidencia').value = inc['Descripción'] || '';
     document.getElementById('accionesDocente').value = inc['Acciones Docente'] || '';
     document.getElementById('seguimientoUGC').value = inc['Seguimiento UGC'] || '';
@@ -1001,7 +1025,8 @@ function editarIncidencia(indice) {
 function cancelarEdicionIncidencia() {
     // Limpiar formulario
     document.getElementById('formIncidencia').reset();
-    
+    toggleTipoConductaOtro(); // Ocultar campo "Otros" tras limpiar
+
     // Salir del modo edición
     document.getElementById('formIncidencia').dataset.modoEdicion = 'false';
     document.getElementById('formIncidencia').dataset.indiceEdicion = '';
@@ -6664,6 +6689,19 @@ function toggleMotivoOtro() {
     const otro = document.getElementById('citMotivoOtro');
     if (!sel || !otro) return;
     if (sel.value === 'Otro') {
+        otro.style.display = 'block';
+        otro.focus();
+    } else {
+        otro.style.display = 'none';
+        otro.value = '';
+    }
+}
+
+function toggleTipoConductaOtro() {
+    const sel = document.getElementById('tipoConducta');
+    const otro = document.getElementById('tipoConductaOtro');
+    if (!sel || !otro) return;
+    if (sel.value === 'Otros') {
         otro.style.display = 'block';
         otro.focus();
     } else {
