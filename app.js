@@ -3279,7 +3279,7 @@ function crearModalReuniones() {
                 </div>
                 <div class="form-group">
                     <label>Motivo de la Reunión *</label>
-                    <select id="motivoReunion" required>
+                    <select id="motivoReunion" required onchange="toggleMotivoReunionOtro()">
                         <option value="">Seleccione</option>
                         <option value="Comportamiento en clase">Comportamiento en clase</option>
                         <option value="Agresividad física o verbal">Agresividad física o verbal</option>
@@ -3290,6 +3290,7 @@ function crearModalReuniones() {
                         <option value="Problemas de convivencia">Problemas de convivencia</option>
                         <option value="Otro">Otro</option>
                     </select>
+                    <input type="text" id="motivoReunionOtro" placeholder="Escriba el motivo de la reunión..." style="width:100%;margin-top:8px;display:none;">
                 </div>
                 <div class="form-group">
                     <label>Situación Tratada *</label>
@@ -6710,6 +6711,19 @@ function toggleTipoConductaOtro() {
     }
 }
 
+function toggleMotivoReunionOtro() {
+    const sel = document.getElementById('motivoReunion');
+    const otro = document.getElementById('motivoReunionOtro');
+    if (!sel || !otro) return;
+    if (sel.value === 'Otro') {
+        otro.style.display = 'block';
+        otro.focus();
+    } else {
+        otro.style.display = 'none';
+        otro.value = '';
+    }
+}
+
 async function guardarCitacion(event) {
     event.preventDefault();
     const nombre = document.getElementById('citEstudiante').value.trim();
@@ -8868,7 +8882,16 @@ function registrarReunion(e) {
     // Verificar si estamos en modo edición
     const modoEdicion = document.getElementById('formReunion').dataset.modoEdicion;
     const indiceEdicion = document.getElementById('formReunion').dataset.indiceEdicion;
-    
+
+    // Si el motivo es "Otro", usar el texto escrito en el campo libre
+    let _motivoReunion = document.getElementById('motivoReunion').value;
+    if (_motivoReunion === 'Otro') {
+        const _motOtroEl = document.getElementById('motivoReunionOtro');
+        const _motOtro = _motOtroEl ? _motOtroEl.value.trim() : '';
+        if (!_motOtro) { alert('⚠️ Escriba el motivo de la reunión (seleccionó "Otro").'); return; }
+        _motivoReunion = _motOtro;
+    }
+
     const reunion = {
         'Fecha y Hora': document.getElementById('fechaReunion').value,
         'Tipo': document.getElementById('tipoReunion').value,
@@ -8877,7 +8900,7 @@ function registrarReunion(e) {
         'Padre/Madre Presente': document.getElementById('padrePresente').value,
         'Nombre Padre/Madre': document.getElementById('nombrePadreReunion').value,
         'Personal UGC': document.getElementById('docenteReunion').value,
-        'Motivo': document.getElementById('motivoReunion').value,
+        'Motivo': _motivoReunion,
         'Situación Tratada': document.getElementById('situacionTratada').value,
         'Acuerdos Establecidos': document.getElementById('acuerdosEstablecidos').value,
         'Fecha Seguimiento': document.getElementById('fechaSeguimiento').value,
@@ -8932,6 +8955,7 @@ function registrarReunion(e) {
     }
     
     document.getElementById('formReunion').reset();
+    toggleMotivoReunionOtro(); // Ocultar campo "Otro" tras limpiar
     const selPadre = document.getElementById('selectPadreReunion');
     if (selPadre) { selPadre.style.display = 'none'; selPadre.innerHTML = '<option value="">-- Seleccione el padre/madre --</option>'; }
     cargarTablaReuniones();
@@ -8992,7 +9016,20 @@ function editarReunion(indice) {
     if (_selPadreEdit) _selPadreEdit.style.display = 'none';
     if (_inputPadreEdit) { _inputPadreEdit.style.display = 'block'; _inputPadreEdit.value = reunion['Nombre Padre/Madre'] || ''; }
     document.getElementById('docenteReunion').value = reunion['Personal UGC'] || '';
-    document.getElementById('motivoReunion').value = reunion['Motivo'] || '';
+    (function() {
+        const _selMR = document.getElementById('motivoReunion');
+        const _otroMR = document.getElementById('motivoReunionOtro');
+        const _valMR = reunion['Motivo'] || '';
+        const _opcionesMR = Array.from(_selMR.options).map(o => o.value);
+        if (_valMR && _opcionesMR.indexOf(_valMR) === -1) {
+            // Motivo personalizado: seleccionar "Otro" y mostrar el texto
+            _selMR.value = 'Otro';
+            if (_otroMR) { _otroMR.style.display = 'block'; _otroMR.value = _valMR; }
+        } else {
+            _selMR.value = _valMR;
+            if (_otroMR) { _otroMR.style.display = 'none'; _otroMR.value = ''; }
+        }
+    })();
     document.getElementById('situacionTratada').value = reunion['Situación Tratada'] || '';
     document.getElementById('acuerdosEstablecidos').value = reunion['Acuerdos Establecidos'] || '';
     document.getElementById('fechaSeguimiento').value = fechaSeguimientoFormateada;
@@ -9036,6 +9073,7 @@ function editarReunion(indice) {
 function cancelarEdicionReunion() {
     // Limpiar formulario
     document.getElementById('formReunion').reset();
+    toggleMotivoReunionOtro(); // Ocultar campo "Otro" tras limpiar
     const selPadre2 = document.getElementById('selectPadreReunion');
     if (selPadre2) { selPadre2.style.display = 'none'; selPadre2.innerHTML = '<option value="">-- Seleccione el padre/madre --</option>'; }
     document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
