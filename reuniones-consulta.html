@@ -239,6 +239,11 @@ table th, table td { padding: 8px 5px; }
             border-color: #334155 !important;
             color: #e2e8f0 !important;
         }
+        /* Elementos de sugerencia del autocompletado (hover legible en claro y oscuro) */
+        .sugerencia-item { padding:10px; cursor:pointer; border-bottom:1px solid #eee; transition:background 0.2s; color:#333; }
+        .sugerencia-item:hover { background:#e3f2fd; color:#111; }
+        body.dark-mode .sugerencia-item { color:#e2e8f0; border-bottom-color:#334155; }
+        body.dark-mode .sugerencia-item:hover { background:#334155 !important; color:#ffffff !important; }
         body.dark-mode [style*="background:#f8f9fa"],
         body.dark-mode [style*="background: #f8f9fa"],
         body.dark-mode [style*="background:#f9fafb"],
@@ -550,10 +555,7 @@ return;
 }
 
 sugerencias.innerHTML = estudiantesUnicos.map(nombre => `
-<div onclick="seleccionarEstudiante('${nombre.replace(/'/g, "\\'")}')" 
-style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; transition: background 0.2s;"
-onmouseover="this.style.background='#f0f0f0'"
-onmouseout="this.style.background='white'">
+<div onclick="seleccionarEstudiante('${nombre.replace(/'/g, "\\'")}')" class="sugerencia-item">
 ${nombre}
 </div>
 `).join('');
