@@ -1328,9 +1328,9 @@ function inicializarAutocompletadoNotaRapida() {
             const cursoEscapado = curso.replace(/'/g, "\\'");
             
             return `
-                <div onclick="seleccionarEstudianteNotaRapida('${nombreEscapado}', '${cursoEscapado}')" class="sugerencia-item">
-                    <div style="font-weight:600;">${nombre}</div>
-                    <div style="font-size:0.85em;color:#9ca3af;">${curso}</div>
+                <div onmousedown="event.preventDefault(); seleccionarEstudianteNotaRapida('${nombreEscapado}', '${cursoEscapado}')" class="sugerencia-item" style="pointer-events:auto;">
+                    <div style="font-weight:600;pointer-events:none;">${nombre}</div>
+                    <div style="font-size:0.85em;color:#9ca3af;pointer-events:none;">${curso}</div>
                 </div>
             `;
         }).join('');
