@@ -573,7 +573,7 @@ class NotasRapidas {
                 textoFecha = `📅 ${this.formatearFechaAccion(fechaAccion)}`;
             }
             
-            const colorFecha = esVencida ? '#f97316' : esHoy ? '#3b82f6' : '#059669';
+            const colorFecha = esVencida ? '#dc2626' : esHoy ? '#ea580c' : '#059669';
             fechaAccionHTML = `<div style="font-weight:600;color:${colorFecha};margin-top:6px;font-size:0.9em;">${textoFecha}</div>`;
         }
         
@@ -783,8 +783,15 @@ class NotasRapidas {
         document.getElementById('notaEstudiante').value = nota.estudiante;
         document.getElementById('notaTipo').value = nota.tipo;
         document.getElementById('notaPrioridad').value = nota.prioridad;
-        document.getElementById('notaTexto').value = nota.texto;
-        
+        // Extraer el Tipo de Conducta embebido en el texto (si lo hay)
+        let _txtEd = nota.texto || '';
+        const _mtc = _txtEd.match(/^\[Tipo de conducta:\s*([^\]]+)\]\s*/i);
+        const _tcEd = document.getElementById('notaTipoConducta');
+        if (_tcEd) _tcEd.value = (_mtc ? _mtc[1].trim() : '');
+        if (_mtc) _txtEd = _txtEd.replace(/^\[Tipo de conducta:\s*[^\]]*\]\s*/i, '');
+        document.getElementById('notaTexto').value = _txtEd;
+        if (typeof toggleNotaTipoConducta === 'function') toggleNotaTipoConducta(); // Mostrar/ocultar según el tipo
+
         // Intentar obtener estudiantes de múltiples fuentes
         let estudiantes = [];
         if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
@@ -932,7 +939,8 @@ function closeNotasPanel() {
 function mostrarFormNuevaNota() {
     const form = document.getElementById('formNuevaNota');
     form.classList.remove('oculto');
-    
+    if (typeof toggleNotaTipoConducta === 'function') toggleNotaTipoConducta(); // Estado correcto del campo Tipo de Conducta
+
     // Inicializar autocompletado si no está inicializado
     setTimeout(() => {
         inicializarAutocompletadoNotaRapida();
@@ -949,7 +957,8 @@ function cancelarNuevaNota() {
     document.getElementById('notaPrioridad').value = 'media';
     document.getElementById('notaTexto').value = '';
     document.getElementById('notaFecha').value = ''; // Limpiar fecha
-    
+    if (typeof toggleNotaTipoConducta === 'function') toggleNotaTipoConducta(); // Ocultar Tipo de Conducta
+
     // Limpiar curso y sugerencias
     document.getElementById('cursoNotaRapida').style.display = 'none';
     document.getElementById('sugerenciasNotaRapida').style.display = 'none';
@@ -965,12 +974,38 @@ function cancelarNuevaNota() {
     }
 }
 
+// Muestra/oculta el campo "Tipo de Conducta" según el Tipo de nota.
+// Solo aparece cuando el tipo es "Incidencia" (misma lista que el módulo Incidencias).
+function toggleNotaTipoConducta() {
+    const sel = document.getElementById('notaTipo');
+    const grupo = document.getElementById('notaTipoConductaGroup');
+    const tc = document.getElementById('notaTipoConducta');
+    if (!sel || !grupo) return;
+    if (sel.value === 'incidencia') {
+        grupo.style.display = 'block';
+    } else {
+        grupo.style.display = 'none';
+        if (tc) tc.value = '';
+    }
+}
+
 async function guardarNota() {
     const estudiante = document.getElementById('notaEstudiante').value.trim();
     const tipo = document.getElementById('notaTipo').value;
     const prioridad = document.getElementById('notaPrioridad').value;
-    const texto = document.getElementById('notaTexto').value.trim();
+    let texto = document.getElementById('notaTexto').value.trim();
     const fechaAccion = document.getElementById('notaFecha').value; // NUEVO
+
+    // Tipo de Conducta (solo aplica cuando el tipo es "Incidencia").
+    // Se integra al texto de la nota para conservarlo sin cambiar la hoja.
+    let tipoConducta = '';
+    const _tcEl = document.getElementById('notaTipoConducta');
+    if (tipo === 'incidencia' && _tcEl) tipoConducta = (_tcEl.value || '').trim();
+    // Quitar cualquier etiqueta previa para no duplicarla al editar
+    texto = texto.replace(/^\[Tipo de conducta:\s*[^\]]*\]\s*/i, '').trim();
+    if (tipoConducta) {
+        texto = `[Tipo de conducta: ${tipoConducta}] ${texto}`.trim();
+    }
 
     if (!estudiante) {
         notificaciones.advertencia('Campo requerido', 'Por favor ingresa el nombre del estudiante');
@@ -1112,7 +1147,7 @@ function actualizarContadoresPestanas() {
     // Actualizar badges
     const badgeHoy = document.getElementById('countHoy');
     const badgeProximas = document.getElementById('countProximas');
-    const badgeTodas = document.getElementById('countTodasNotas');
+    const badgeTodas = document.getElementById('countTodas');
     
     if (badgeHoy) badgeHoy.textContent = countHoy;
     if (badgeProximas) badgeProximas.textContent = countProximas;
@@ -1272,8 +1307,8 @@ function inicializarAutocompletadoNotaRapida() {
             return `
                 <div onclick="seleccionarEstudianteNotaRapida('${nombreEscapado}', '${cursoEscapado}')" 
                      style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;"
-                     class="sugerencia-item" 
-                     >
+                     onmouseover="this.style.background='#f0fdf4'" 
+                     onmouseout="this.style.background='white'">
                     <div style="font-weight:600;">${nombre}</div>
                     <div style="font-size:0.85em;color:#666;">${curso}</div>
                 </div>
