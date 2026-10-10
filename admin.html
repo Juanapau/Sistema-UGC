@@ -3113,13 +3113,35 @@ header img {
             </div>
             <div class="form-group-nota">
                 <label>📂 Tipo:</label>
-                <select id="notaTipo">
+                <select id="notaTipo" onchange="toggleNotaTipoConducta()">
                     <option value="tardanza">📚 Tardanza</option>
                     <option value="incidencia">⚠️ Incidencia</option>
                     <option value="llamada">📞 Llamada Pendiente</option>
                     <option value="reunion">👥 Reunión</option>
                     <option value="recordatorio">🔔 Recordatorio</option>
                     <option value="otros">📝 Otros</option>
+                </select>
+            </div>
+            <div class="form-group-nota" id="notaTipoConductaGroup" style="display:none;">
+                <label>⚠️ Tipo de Conducta:</label>
+                <select id="notaTipoConducta">
+                    <option value="">Seleccione el tipo</option>
+                    <option value="Agresión física">Agresión física</option>
+                    <option value="Agresión verbal">Agresión verbal</option>
+                    <option value="Bullying">Bullying</option>
+                    <option value="Cyber bullying">Cyber bullying</option>
+                    <option value="Indisciplina en el aula">Indisciplina en el aula</option>
+                    <option value="Llegada tarde al aula">Llegada tarde al aula</option>
+                    <option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
+                    <option value="Falta de respeto a compañeros">Falta de respeto a compañeros</option>
+                    <option value="Falta de respeto al maestro/a">Falta de respeto al maestro/a</option>
+                    <option value="Desafío de la autoridad">Desafío de la autoridad</option>
+                    <option value="Reincidencia por uniformidad">Reincidencia por uniformidad</option>
+                    <option value="Corte de pelo no permitido">Corte de pelo no permitido</option>
+                    <option value="Peinado no permitido">Peinado no permitido</option>
+                    <option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
+                    <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
+                    <option value="Otros">Otros</option>
                 </select>
             </div>
             <div class="form-group-nota">
