@@ -379,6 +379,14 @@ function inicializarSistema() {
         console.log('No hay configuración guardada, usando URLs del código');
     }
     cargarDatosEjemplo();
+
+    // Inicializar el sistema de notificaciones al cargar la página, para que el
+    // contador (badge rojo) de la campanita se actualice en segundo plano sin
+    // necesidad de abrir el panel. Arranca el sondeo periódico que refresca el badge.
+    if (typeof inicializarSistemaNotificaciones === 'function' &&
+        (CONFIG.urlNotificaciones || (typeof urlNotificaciones !== 'undefined' && urlNotificaciones))) {
+        inicializarSistemaNotificaciones();
+    }
 }
 
 // Ejecutar en múltiples eventos para compatibilidad con móviles
