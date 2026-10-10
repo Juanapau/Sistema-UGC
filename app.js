@@ -3287,7 +3287,7 @@ function crearModalReuniones() {
                 </div>
                 <div class="form-group">
                     <label>Motivo de la Reunión *</label>
-                    <select id="motivoReunion" required onchange="toggleMotivoReunionOtro()">
+                    <select id="motivoReunion" required onchange="onCambioMotivoReunion()">
                         <option value="">Seleccione</option>
                         <option value="Comportamiento en clase">Comportamiento en clase</option>
                         <option value="Agresividad física o verbal">Agresividad física o verbal</option>
@@ -3299,6 +3299,11 @@ function crearModalReuniones() {
                         <option value="Otro">Otro</option>
                     </select>
                     <input type="text" id="motivoReunionOtro" placeholder="Escriba el motivo de la reunión..." style="width:100%;margin-top:8px;display:none;">
+                    <div id="tardanzasReunionHelper" style="display:none;margin-top:10px;padding:12px 14px;border:1px dashed #d97706;border-radius:8px;background:#fff7ed;">
+                        <div style="font-size:0.9em;color:#92400e;margin-bottom:8px;">💡 Puede añadir al acta las fechas en que el estudiante seleccionado ha llegado tarde.</div>
+                        <button type="button" onclick="agregarTardanzasAlActa()" style="background:#d97706;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">➕ Añadir tardanzas del estudiante</button>
+                        <span id="tardanzasReunionInfo" style="margin-left:10px;font-size:0.85em;color:#6b7280;"></span>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Situación Tratada *</label>
@@ -6732,6 +6737,89 @@ function toggleMotivoReunionOtro() {
     }
 }
 
+// Manejador combinado del campo Motivo de la Reunión: controla el campo "Otro"
+// y el panel para añadir las tardanzas del estudiante cuando el motivo es
+// "Tardanzas frecuentes".
+function onCambioMotivoReunion() {
+    toggleMotivoReunionOtro();
+    const sel = document.getElementById('motivoReunion');
+    const helper = document.getElementById('tardanzasReunionHelper');
+    const info = document.getElementById('tardanzasReunionInfo');
+    if (helper) {
+        helper.style.display = (sel && sel.value === 'Tardanzas frecuentes') ? 'block' : 'none';
+    }
+    if (info) info.textContent = '';
+}
+
+// Añade al campo "Situación Tratada" la lista de fechas en que el estudiante
+// seleccionado ha llegado tarde (año escolar activo), sin borrar lo ya escrito.
+async function agregarTardanzasAlActa() {
+    const nombre = (document.getElementById('estudianteReunion').value || '').trim();
+    const info = document.getElementById('tardanzasReunionInfo');
+    const setInfo = (txt) => { if (info) info.textContent = txt; };
+
+    if (!nombre) { setInfo('⚠️ Seleccione primero un estudiante.'); return; }
+
+    // Cargar tardanzas si aún no están en memoria
+    if ((!datosTardanzas || datosTardanzas.length === 0) && CONFIG.urlTardanzas && typeof cargarDatosDesdeGoogleSheets === 'function') {
+        setInfo('Cargando tardanzas...');
+        try {
+            const datos = await cargarDatosDesdeGoogleSheets(CONFIG.urlTardanzas);
+            if (datos && datos.length > 0) datosTardanzas = datos;
+        } catch (e) { /* continúa con lo que haya */ }
+    }
+
+    const objetivo = normalizarNombreCmp(nombre);
+    const tardsEst = (datosTardanzas || []).filter(t => {
+        const n = t['Nombre Estudiante'] || t.estudiante || '';
+        if (normalizarNombreCmp(n) !== objetivo) return false;
+        const anio = t['Año Escolar'] || '';
+        return !anio || anio === ANIO_ACTIVO; // solo año activo
+    });
+
+    if (tardsEst.length === 0) {
+        setInfo('No hay tardanzas registradas para este estudiante en el año actual.');
+        return;
+    }
+
+    // Clave de orden cronológico tolerante al formato
+    const keyOf = (f) => {
+        const m = String(f).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return m ? (m[1] + m[2] + m[3]) : String(f);
+    };
+    // Formato dd/mm/aaaa sin desfase de zona horaria para fechas ISO
+    const fmt = (f) => {
+        const s = String(f);
+        const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+        const d = new Date(s);
+        return isNaN(d) ? s : (String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear());
+    };
+
+    const fechas = tardsEst
+        .map(t => t['Fecha'] || t.fecha || '')
+        .filter(Boolean)
+        .sort((a, b) => { const ka = keyOf(a), kb = keyOf(b); return ka < kb ? -1 : ka > kb ? 1 : 0; });
+
+    if (fechas.length === 0) {
+        setInfo('El estudiante tiene tardanzas pero sin fecha registrada.');
+        return;
+    }
+
+    const listado = fechas.map((f, i) => `${i + 1}. ${fmt(f)}`).join('\n');
+    const bloque = `Tardanzas registradas (${fechas.length}):\n${listado}`;
+
+    const ta = document.getElementById('situacionTratada');
+    const actual = (ta.value || '').trim();
+    // Evitar duplicar el bloque si ya se añadió
+    if (actual.includes('Tardanzas registradas (')) {
+        setInfo('Ya se agregó la lista de tardanzas al acta.');
+        return;
+    }
+    ta.value = actual ? (actual + '\n\n' + bloque) : bloque;
+    setInfo(`✓ ${fechas.length} tardanza(s) añadida(s) al acta.`);
+}
+
 async function guardarCitacion(event) {
     event.preventDefault();
     const nombre = document.getElementById('citEstudiante').value.trim();
@@ -8963,7 +9051,7 @@ function registrarReunion(e) {
     }
     
     document.getElementById('formReunion').reset();
-    toggleMotivoReunionOtro(); // Ocultar campo "Otro" tras limpiar
+    onCambioMotivoReunion(); // Ocultar campo "Otro" y panel de tardanzas tras limpiar
     const selPadre = document.getElementById('selectPadreReunion');
     if (selPadre) { selPadre.style.display = 'none'; selPadre.innerHTML = '<option value="">-- Seleccione el padre/madre --</option>'; }
     cargarTablaReuniones();
@@ -9037,6 +9125,9 @@ function editarReunion(indice) {
             _selMR.value = _valMR;
             if (_otroMR) { _otroMR.style.display = 'none'; _otroMR.value = ''; }
         }
+        // Mostrar el panel de tardanzas si corresponde al motivo cargado
+        const _helperMR = document.getElementById('tardanzasReunionHelper');
+        if (_helperMR) _helperMR.style.display = (_selMR.value === 'Tardanzas frecuentes') ? 'block' : 'none';
     })();
     document.getElementById('situacionTratada').value = reunion['Situación Tratada'] || '';
     document.getElementById('acuerdosEstablecidos').value = reunion['Acuerdos Establecidos'] || '';
@@ -9081,7 +9172,7 @@ function editarReunion(indice) {
 function cancelarEdicionReunion() {
     // Limpiar formulario
     document.getElementById('formReunion').reset();
-    toggleMotivoReunionOtro(); // Ocultar campo "Otro" tras limpiar
+    onCambioMotivoReunion(); // Ocultar campo "Otro" y panel de tardanzas tras limpiar
     const selPadre2 = document.getElementById('selectPadreReunion');
     if (selPadre2) { selPadre2.style.display = 'none'; selPadre2.innerHTML = '<option value="">-- Seleccione el padre/madre --</option>'; }
     document.getElementById('fechaReunion').value = new Date().toISOString().slice(0,16);
