@@ -3292,7 +3292,6 @@ function crearModalReuniones() {
                         <option value="Comportamiento en clase">Comportamiento en clase</option>
                         <option value="Agresividad física o verbal">Agresividad física o verbal</option>
                         <option value="Tardanzas frecuentes">Tardanzas frecuentes</option>
-                        <option value="Inasistencias">Inasistencias</option>
                         <option value="Bajo rendimiento académico">Bajo rendimiento académico</option>
                         <option value="Seguimiento de acuerdos previos">Seguimiento de acuerdos previos</option>
                         <option value="Problemas de convivencia">Problemas de convivencia</option>
@@ -6812,6 +6811,13 @@ const ACUERDOS_POR_MOTIVO = {
         'El padre/madre o tutor acompañará al estudiante en el fortalecimiento de sus relaciones interpersonales y el respeto hacia los demás.',
         'La UGC dará seguimiento a la convivencia del estudiante y ofrecerá las orientaciones necesarias para mejorar la situación.',
         'De continuar los inconvenientes, se aplicarán las medidas previstas en el Manual de Convivencia y se convocará a una nueva reunión.'
+    ],
+    'Seguimiento de acuerdos previos': [
+        'Se revisaron los acuerdos establecidos en la reunión anterior y se verificó su nivel de cumplimiento por parte del estudiante y la familia.',
+        'El estudiante y el padre/madre o tutor reconocen los avances alcanzados y se comprometen a mantener las conductas y hábitos positivos logrados.',
+        'El estudiante y la familia se comprometen a cumplir los acuerdos que aún están pendientes, en el plazo establecido por el centro.',
+        'La UGC continuará dando seguimiento al caso y registrará el cumplimiento o incumplimiento de los compromisos asumidos.',
+        'De no evidenciarse mejoría ni cumplimiento de los acuerdos, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
     'Daño a mobiliario de la escuela': [
         'El estudiante reconoce la falta cometida y se compromete a cuidar y hacer buen uso del mobiliario y las instalaciones del centro.',
