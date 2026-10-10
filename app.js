@@ -6769,16 +6769,28 @@ async function agregarTardanzasAlActa() {
         } catch (e) { /* continúa con lo que haya */ }
     }
 
+    // Mes actual (aaaa-mm) a partir de la fecha de hoy; cada mes se trabaja aparte
+    const _hoy = new Date();
+    const anioMesActual = _hoy.getFullYear() + '-' + String(_hoy.getMonth() + 1).padStart(2, '0');
+    const nombreMesActual = _hoy.toLocaleString('es', { month: 'long' });
+    // aaaa-mm de una fecha, tolerante al formato (sin desfase de zona horaria)
+    const mesKey = (f) => {
+        const m = String(f).match(/^(\d{4})-(\d{2})/);
+        if (m) return m[1] + '-' + m[2];
+        const d = new Date(f);
+        return isNaN(d) ? '' : (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+    };
+
     const objetivo = normalizarNombreCmp(nombre);
     const tardsEst = (datosTardanzas || []).filter(t => {
         const n = t['Nombre Estudiante'] || t.estudiante || '';
         if (normalizarNombreCmp(n) !== objetivo) return false;
-        const anio = t['Año Escolar'] || '';
-        return !anio || anio === ANIO_ACTIVO; // solo año activo
+        // Solo las tardanzas del mes actual
+        return mesKey(t['Fecha'] || t.fecha || '') === anioMesActual;
     });
 
     if (tardsEst.length === 0) {
-        setInfo('No hay tardanzas registradas para este estudiante en el año actual.');
+        setInfo(`No hay tardanzas de este estudiante en ${nombreMesActual}.`);
         return;
     }
 
@@ -6806,13 +6818,14 @@ async function agregarTardanzasAlActa() {
         return;
     }
 
+    const _mesCap = nombreMesActual.charAt(0).toUpperCase() + nombreMesActual.slice(1);
     const listado = fechas.map((f, i) => `${i + 1}. ${fmt(f)}`).join('\n');
-    const bloque = `Tardanzas registradas (${fechas.length}):\n${listado}`;
+    const bloque = `Tardanzas registradas en ${_mesCap} (${fechas.length}):\n${listado}`;
 
     const ta = document.getElementById('situacionTratada');
     const actual = (ta.value || '').trim();
     // Evitar duplicar el bloque si ya se añadió
-    if (actual.includes('Tardanzas registradas (')) {
+    if (actual.includes('Tardanzas registradas')) {
         setInfo('Ya se agregó la lista de tardanzas al acta.');
         return;
     }
