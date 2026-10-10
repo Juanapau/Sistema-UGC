@@ -3300,9 +3300,12 @@ function crearModalReuniones() {
                     </select>
                     <input type="text" id="motivoReunionOtro" placeholder="Escriba el motivo de la reunión..." style="width:100%;margin-top:8px;display:none;">
                     <div id="tardanzasReunionHelper" style="display:none;margin-top:10px;padding:12px 14px;border:1px dashed #d97706;border-radius:8px;background:#fff7ed;">
-                        <div style="font-size:0.9em;color:#92400e;margin-bottom:8px;">💡 Puede añadir al acta las fechas en que el estudiante seleccionado ha llegado tarde.</div>
-                        <button type="button" onclick="agregarTardanzasAlActa()" style="background:#d97706;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">➕ Añadir tardanzas del estudiante</button>
-                        <span id="tardanzasReunionInfo" style="margin-left:10px;font-size:0.85em;color:#6b7280;"></span>
+                        <div style="font-size:0.9em;color:#92400e;margin-bottom:8px;">💡 Para agilizar el acta puede añadir las tardanzas del mes del estudiante y/o los acuerdos sugeridos para este motivo.</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <button type="button" onclick="agregarTardanzasAlActa()" style="background:#d97706;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">➕ Añadir tardanzas del estudiante</button>
+                            <button type="button" onclick="agregarAcuerdosTardanzas()" style="background:#1e3a5f;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">📝 Añadir acuerdos sugeridos</button>
+                        </div>
+                        <span id="tardanzasReunionInfo" style="display:block;margin-top:8px;font-size:0.85em;color:#6b7280;"></span>
                     </div>
                 </div>
                 <div class="form-group">
@@ -6753,6 +6756,32 @@ function onCambioMotivoReunion() {
 
 // Añade al campo "Situación Tratada" la lista de fechas en que el estudiante
 // seleccionado ha llegado tarde (año escolar activo), sin borrar lo ya escrito.
+// Acuerdos sugeridos para el motivo "Tardanzas frecuentes"
+const ACUERDOS_TARDANZAS = [
+    'El padre/madre o tutor se compromete a garantizar la llegada puntual del estudiante al centro, respetando el horario de entrada establecido.',
+    'La familia revisará y ajustará la rutina matutina (hora de dormir, preparación la noche anterior, transporte) para evitar nuevas tardanzas.',
+    'El tutor notificará por escrito al centro cualquier situación justificada que pueda ocasionar una llegada tardía; esta notificación la puede entregar el mismo estudiante a su llegada.',
+    'La UGC dará seguimiento a la asistencia del estudiante durante las próximas semanas y registrará cualquier nueva tardanza.',
+    'Se informará a la familia si persisten las tardanzas, pudiendo aplicarse las medidas contempladas en el Manual de Convivencia.'
+];
+
+// Inserta en "Acuerdos Establecidos" los acuerdos sugeridos para el motivo
+// "Tardanzas frecuentes", sin borrar lo ya escrito y sin duplicar.
+function agregarAcuerdosTardanzas() {
+    const info = document.getElementById('tardanzasReunionInfo');
+    const setInfo = (txt) => { if (info) info.textContent = txt; };
+    const ta = document.getElementById('acuerdosEstablecidos');
+    if (!ta) return;
+    const actual = (ta.value || '').trim();
+    if (actual.includes(ACUERDOS_TARDANZAS[0])) {
+        setInfo('Los acuerdos sugeridos ya están en el acta.');
+        return;
+    }
+    const bloque = ACUERDOS_TARDANZAS.map((a, i) => `${i + 1}. ${a}`).join('\n');
+    ta.value = actual ? (actual + '\n' + bloque) : bloque;
+    setInfo('✓ Acuerdos sugeridos añadidos.');
+}
+
 async function agregarTardanzasAlActa() {
     const nombre = (document.getElementById('estudianteReunion').value || '').trim();
     const info = document.getElementById('tardanzasReunionInfo');
