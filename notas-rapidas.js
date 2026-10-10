@@ -586,7 +586,7 @@ class NotasRapidas {
                 <span class="nota-prioridad ${nota.prioridad}">${this.obtenerIconoPrioridad(nota.prioridad)} ${nota.prioridad.toUpperCase()}</span>
             </div>
             <div class="nota-estudiante">👤 ${nota.estudiante}${cursoHTML}</div>
-            <div class="nota-texto">${nota.texto}</div>
+            <div class="nota-texto">${limpiarEtiquetaConducta(nota.texto)}</div>
             ${fechaAccionHTML}
             <div class="nota-fecha">🕐 Creada ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
             <div class="nota-acciones">
@@ -726,7 +726,7 @@ class NotasRapidas {
                     if (estudianteInput) estudianteInput.value = nota.estudiante;
                     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
                     if (horaInput) horaInput.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    if (motivoTextarea) motivoTextarea.value = nota.texto;
+                    if (motivoTextarea) motivoTextarea.value = limpiarEtiquetaConducta(nota.texto);
 
                 } else if (moduloDestino === 'incidencias') {
                     // Formulario de incidencias
@@ -744,7 +744,7 @@ class NotasRapidas {
                         };
                         tipoSelect.value = mapeoTipos[nota.prioridad] || 'Leve';
                     }
-                    if (detallesTextarea) detallesTextarea.value = nota.texto;
+                    if (detallesTextarea) detallesTextarea.value = limpiarEtiquetaConducta(nota.texto);
 
                 } else if (moduloDestino === 'reuniones') {
                     // Formulario de reuniones
@@ -756,7 +756,7 @@ class NotasRapidas {
                     if (estudianteInput) estudianteInput.value = nota.estudiante;
                     if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
                     if (horaInput) horaInput.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    if (motivoTextarea) motivoTextarea.value = nota.texto;
+                    if (motivoTextarea) motivoTextarea.value = limpiarEtiquetaConducta(nota.texto);
                 }
 
                 // Scroll al formulario
@@ -847,7 +847,7 @@ class NotasRapidas {
 
         const notifConfirm = notificaciones.advertencia(
             '¿Eliminar nota?',
-            `${nota.estudiante} - ${nota.texto.substring(0, 40)}...`,
+            `${nota.estudiante} - ${limpiarEtiquetaConducta(nota.texto).substring(0, 40)}...`,
             0
         );
 
@@ -976,6 +976,12 @@ function cancelarNuevaNota() {
 
 // Muestra/oculta el campo "Tipo de Conducta" según el Tipo de nota.
 // Solo aparece cuando el tipo es "Incidencia" (misma lista que el módulo Incidencias).
+// Quita la etiqueta antigua "[Tipo de conducta: ...]" del inicio del texto.
+// Se usa al mostrar/usar notas que se guardaron con esa etiqueta.
+function limpiarEtiquetaConducta(texto) {
+    return String(texto || '').replace(/^\[Tipo de conducta:\s*[^\]]*\]\s*/i, '');
+}
+
 function toggleNotaTipoConducta() {
     const sel = document.getElementById('notaTipo');
     const grupo = document.getElementById('notaTipoConductaGroup');
@@ -1019,16 +1025,10 @@ async function guardarNota() {
     let texto = document.getElementById('notaTexto').value.trim();
     const fechaAccion = document.getElementById('notaFecha').value; // NUEVO
 
-    // Tipo de Conducta (solo aplica cuando el tipo es "Incidencia").
-    // Se integra al texto de la nota para conservarlo sin cambiar la hoja.
-    let tipoConducta = '';
-    const _tcEl = document.getElementById('notaTipoConducta');
-    if (tipo === 'incidencia' && _tcEl) tipoConducta = (_tcEl.value || '').trim();
-    // Quitar cualquier etiqueta previa para no duplicarla al editar
-    texto = texto.replace(/^\[Tipo de conducta:\s*[^\]]*\]\s*/i, '').trim();
-    if (tipoConducta) {
-        texto = `[Tipo de conducta: ${tipoConducta}] ${texto}`.trim();
-    }
+    // La nota se guarda tal cual la escribe la usuaria. El Tipo de Conducta ya
+    // queda reflejado en el texto autogenerado, así que NO se añade ninguna
+    // etiqueta. Se limpia cualquier etiqueta antigua por si quedó de antes.
+    texto = limpiarEtiquetaConducta(texto).trim();
 
     if (!estudiante) {
         notificaciones.advertencia('Campo requerido', 'Por favor ingresa el nombre del estudiante');
