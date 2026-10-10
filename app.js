@@ -3296,14 +3296,21 @@ function crearModalReuniones() {
                         <option value="Bajo rendimiento académico">Bajo rendimiento académico</option>
                         <option value="Seguimiento de acuerdos previos">Seguimiento de acuerdos previos</option>
                         <option value="Problemas de convivencia">Problemas de convivencia</option>
+                        <option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
+                        <option value="Bullying">Bullying</option>
+                        <option value="Cyber Bullying">Cyber Bullying</option>
+                        <option value="Uso de dispositivos sin autorización">Uso de dispositivos sin autorización</option>
+                        <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
+                        <option value="Faltas frecuentes a la uniformidad">Faltas frecuentes a la uniformidad</option>
+                        <option value="Presentación personal">Presentación personal</option>
                         <option value="Otro">Otro</option>
                     </select>
                     <input type="text" id="motivoReunionOtro" placeholder="Escriba el motivo de la reunión..." style="width:100%;margin-top:8px;display:none;">
                     <div id="tardanzasReunionHelper" style="display:none;margin-top:10px;padding:12px 14px;border:1px dashed #d97706;border-radius:8px;background:#fff7ed;">
-                        <div style="font-size:0.9em;color:#92400e;margin-bottom:8px;">💡 Para agilizar el acta puede añadir las tardanzas del mes del estudiante y/o los acuerdos sugeridos para este motivo.</div>
+                        <div id="reunionHelperTexto" style="font-size:0.9em;color:#92400e;margin-bottom:8px;">💡 Para agilizar el acta puede añadir los acuerdos sugeridos para este motivo.</div>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                            <button type="button" onclick="agregarTardanzasAlActa()" style="background:#d97706;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">➕ Añadir tardanzas del estudiante</button>
-                            <button type="button" onclick="agregarAcuerdosTardanzas()" style="background:#1e3a5f;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">📝 Añadir acuerdos sugeridos</button>
+                            <button type="button" id="btnTardanzasReunion" onclick="agregarTardanzasAlActa()" style="display:none;background:#d97706;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">➕ Añadir tardanzas del estudiante</button>
+                            <button type="button" id="btnAcuerdosReunion" onclick="agregarAcuerdosSugeridos()" style="background:#1e3a5f;color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">📝 Añadir acuerdos sugeridos</button>
                         </div>
                         <span id="tardanzasReunionInfo" style="display:block;margin-top:8px;font-size:0.85em;color:#6b7280;"></span>
                     </div>
@@ -6740,44 +6747,143 @@ function toggleMotivoReunionOtro() {
     }
 }
 
-// Manejador combinado del campo Motivo de la Reunión: controla el campo "Otro"
-// y el panel para añadir las tardanzas del estudiante cuando el motivo es
-// "Tardanzas frecuentes".
+// Manejador combinado del campo Motivo de la Reunión: controla el campo "Otro",
+// el botón para añadir tardanzas (solo "Tardanzas frecuentes") y el botón de
+// acuerdos sugeridos (todos los motivos que tengan acuerdos definidos).
 function onCambioMotivoReunion() {
     toggleMotivoReunionOtro();
     const sel = document.getElementById('motivoReunion');
+    const motivo = sel ? sel.value : '';
     const helper = document.getElementById('tardanzasReunionHelper');
     const info = document.getElementById('tardanzasReunionInfo');
-    if (helper) {
-        helper.style.display = (sel && sel.value === 'Tardanzas frecuentes') ? 'block' : 'none';
+    const btnTard = document.getElementById('btnTardanzasReunion');
+    const btnAcu = document.getElementById('btnAcuerdosReunion');
+    const texto = document.getElementById('reunionHelperTexto');
+
+    const esTardanzas = (motivo === 'Tardanzas frecuentes');
+    const tieneAcuerdos = !!(typeof ACUERDOS_POR_MOTIVO !== 'undefined' && ACUERDOS_POR_MOTIVO[motivo]);
+
+    if (btnTard) btnTard.style.display = esTardanzas ? 'inline-block' : 'none';
+    if (btnAcu) btnAcu.style.display = tieneAcuerdos ? 'inline-block' : 'none';
+    if (helper) helper.style.display = (esTardanzas || tieneAcuerdos) ? 'block' : 'none';
+    if (texto) {
+        texto.textContent = esTardanzas
+            ? '💡 Para agilizar el acta puede añadir las tardanzas del mes del estudiante y/o los acuerdos sugeridos para este motivo.'
+            : '💡 Para agilizar el acta puede añadir los acuerdos sugeridos para este motivo.';
     }
     if (info) info.textContent = '';
 }
 
 // Añade al campo "Situación Tratada" la lista de fechas en que el estudiante
 // seleccionado ha llegado tarde (año escolar activo), sin borrar lo ya escrito.
-// Acuerdos sugeridos para el motivo "Tardanzas frecuentes"
-const ACUERDOS_TARDANZAS = [
-    'El padre/madre o tutor se compromete a garantizar la llegada puntual del estudiante al centro, respetando el horario de entrada establecido.',
-    'La familia revisará y ajustará la rutina matutina (hora de dormir, preparación la noche anterior, transporte) para evitar nuevas tardanzas.',
-    'El tutor notificará por escrito al centro cualquier situación justificada que pueda ocasionar una llegada tardía; esta notificación la puede entregar el mismo estudiante a su llegada.',
-    'La UGC dará seguimiento a la asistencia del estudiante durante las próximas semanas y registrará cualquier nueva tardanza.',
-    'Se informará a la familia si persisten las tardanzas, pudiendo aplicarse las medidas contempladas en el Manual de Convivencia.'
-];
+// Acuerdos sugeridos por motivo de la reunión (texto fijo aprobado por el centro)
+const ACUERDOS_POR_MOTIVO = {
+    'Tardanzas frecuentes': [
+        'El padre/madre o tutor se compromete a garantizar la llegada puntual del estudiante al centro, respetando el horario de entrada establecido.',
+        'La familia revisará y ajustará la rutina matutina (hora de dormir, preparación la noche anterior, transporte) para evitar nuevas tardanzas.',
+        'El tutor notificará por escrito al centro cualquier situación justificada que pueda ocasionar una llegada tardía; esta notificación la puede entregar el mismo estudiante a su llegada.',
+        'La UGC dará seguimiento a la asistencia del estudiante durante las próximas semanas y registrará cualquier nueva tardanza.',
+        'Se informará a la familia si persisten las tardanzas, pudiendo aplicarse las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Comportamiento en clase': [
+        'El estudiante se compromete a mantener una conducta respetuosa y a seguir las indicaciones del docente durante el desarrollo de las clases.',
+        'El estudiante respetará las normas del aula y evitará interrumpir el proceso de enseñanza-aprendizaje de sus compañeros.',
+        'El padre/madre o tutor dará seguimiento en casa a la conducta del estudiante y reforzará la importancia del respeto y la disciplina.',
+        'La UGC, junto con los docentes, observará la conducta del estudiante durante las próximas semanas y registrará cualquier nueva incidencia.',
+        'De persistir la situación, se aplicarán las medidas contempladas en el Manual de Convivencia y se convocará a una nueva reunión de seguimiento.'
+    ],
+    'Bajo rendimiento académico': [
+        'El estudiante se compromete a cumplir con sus tareas, asignaciones y a participar activamente en clase.',
+        'El estudiante establecerá un horario de estudio en casa y se pondrá al día con los contenidos y evaluaciones pendientes.',
+        'El padre/madre o tutor supervisará el cumplimiento de las tareas y mantendrá comunicación constante con los docentes y la UGC.',
+        'El centro brindará el acompañamiento y las orientaciones necesarias para apoyar la mejora del rendimiento del estudiante.',
+        'Se dará seguimiento al progreso académico y se convocará a una nueva reunión para evaluar los avances en el plazo establecido.'
+    ],
+    'Agresividad física o verbal': [
+        'El estudiante se compromete a mantener un trato respetuoso hacia sus compañeros, docentes y demás miembros de la comunidad educativa.',
+        'El estudiante evitará todo tipo de agresión física o verbal y buscará resolver los conflictos de manera pacífica y dialogada.',
+        'El padre/madre o tutor reforzará en casa los valores de respeto, tolerancia y sana convivencia.',
+        'La UGC dará acompañamiento al estudiante y, de considerarse necesario, derivará el caso a orientación psicológica.',
+        'De repetirse la conducta, se aplicarán las medidas disciplinarias contempladas en el Manual de Convivencia.'
+    ],
+    'Problemas de convivencia': [
+        'El estudiante se compromete a contribuir a un ambiente de respeto y sana convivencia dentro del centro educativo.',
+        'El estudiante evitará conductas que afecten la armonía del grupo y cumplirá con las normas de convivencia establecidas.',
+        'El padre/madre o tutor acompañará al estudiante en el fortalecimiento de sus relaciones interpersonales y el respeto hacia los demás.',
+        'La UGC dará seguimiento a la convivencia del estudiante y ofrecerá las orientaciones necesarias para mejorar la situación.',
+        'De continuar los inconvenientes, se aplicarán las medidas previstas en el Manual de Convivencia y se convocará a una nueva reunión.'
+    ],
+    'Daño a mobiliario de la escuela': [
+        'El estudiante reconoce la falta cometida y se compromete a cuidar y hacer buen uso del mobiliario y las instalaciones del centro.',
+        'El padre/madre o tutor se compromete a reparar o reponer el daño ocasionado, según lo que determine el centro.',
+        'El estudiante se compromete a no repetir conductas que dañen los bienes de la escuela ni los de sus compañeros.',
+        'La UGC dará seguimiento a la conducta del estudiante y verificará el cumplimiento de la reparación acordada.',
+        'De repetirse la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Bullying': [
+        'El estudiante se compromete a cesar de inmediato toda conducta de acoso, intimidación o maltrato hacia sus compañeros.',
+        'El estudiante mantendrá un trato respetuoso y contribuirá a un ambiente escolar seguro y libre de violencia.',
+        'El padre/madre o tutor reforzará en casa los valores de respeto, empatía y sana convivencia, y acompañará el proceso de cambio del estudiante.',
+        'La UGC dará seguimiento al caso, brindará acompañamiento al estudiante afectado y, de ser necesario, derivará a orientación psicológica.',
+        'De persistir el acoso, se aplicarán las medidas disciplinarias contempladas en el Manual de Convivencia.'
+    ],
+    'Cyber Bullying': [
+        'El estudiante se compromete a eliminar el contenido ofensivo y a cesar toda conducta de acoso o intimidación a través de medios digitales.',
+        'El estudiante hará un uso responsable y respetuoso de las redes sociales y las plataformas digitales.',
+        'El padre/madre o tutor supervisará el uso que el estudiante hace de los dispositivos e internet, y reforzará las normas de convivencia digital.',
+        'La UGC dará seguimiento al caso, brindará acompañamiento al estudiante afectado y orientará sobre el uso seguro de las tecnologías.',
+        'De repetirse la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Uso de dispositivos sin autorización': [
+        'El estudiante se compromete a no utilizar dispositivos electrónicos dentro del centro sin la debida autorización.',
+        'El estudiante mantendrá el dispositivo apagado o guardado durante la jornada, según las normas establecidas por el centro.',
+        'El padre/madre o tutor apoyará el cumplimiento de esta norma y reforzará en casa el uso responsable de los dispositivos.',
+        'La UGC dará seguimiento al cumplimiento de este acuerdo durante las próximas semanas.',
+        'De reincidir, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Uso inadecuado de redes sociales': [
+        'El estudiante se compromete a hacer un uso responsable y respetuoso de las redes sociales, dentro y fuera del centro.',
+        'El estudiante evitará publicar o difundir contenido que afecte la imagen, la dignidad o la integridad de compañeros, docentes o del centro educativo.',
+        'El padre/madre o tutor supervisará la actividad del estudiante en redes sociales y reforzará las normas de convivencia digital.',
+        'La UGC orientará al estudiante sobre el uso seguro y responsable de las redes sociales y dará seguimiento a la situación.',
+        'De persistir la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Faltas frecuentes a la uniformidad': [
+        'El estudiante se compromete a asistir al centro con el uniforme completo y correcto, según lo establecido por la institución.',
+        'El padre/madre o tutor velará por que el estudiante cuente con el uniforme adecuado y lo porte correctamente cada día.',
+        'El estudiante mantendrá el uniforme limpio y en buen estado como muestra de respeto a la institución.',
+        'La UGC dará seguimiento al cumplimiento de la uniformidad durante las próximas semanas y registrará cualquier nueva falta.',
+        'De persistir las faltas, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Presentación personal': [
+        'El estudiante se compromete a mantener una presentación personal adecuada, de acuerdo con las normas de aseo e imagen establecidas por el centro.',
+        'El estudiante cuidará su higiene y su arreglo personal como parte de su formación integral.',
+        'El padre/madre o tutor apoyará y supervisará el cumplimiento de las normas de presentación personal del estudiante.',
+        'La UGC dará seguimiento al cumplimiento de este acuerdo y orientará al estudiante cuando sea necesario.',
+        'De persistir la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ]
+};
 
-// Inserta en "Acuerdos Establecidos" los acuerdos sugeridos para el motivo
-// "Tardanzas frecuentes", sin borrar lo ya escrito y sin duplicar.
-function agregarAcuerdosTardanzas() {
+// Inserta en "Acuerdos Establecidos" los acuerdos sugeridos del motivo
+// seleccionado, sin borrar lo ya escrito y sin duplicar.
+function agregarAcuerdosSugeridos() {
     const info = document.getElementById('tardanzasReunionInfo');
     const setInfo = (txt) => { if (info) info.textContent = txt; };
+    const sel = document.getElementById('motivoReunion');
+    const motivo = sel ? sel.value : '';
+    const acuerdos = ACUERDOS_POR_MOTIVO[motivo];
+    if (!acuerdos || acuerdos.length === 0) {
+        setInfo('No hay acuerdos sugeridos para este motivo.');
+        return;
+    }
     const ta = document.getElementById('acuerdosEstablecidos');
     if (!ta) return;
     const actual = (ta.value || '').trim();
-    if (actual.includes(ACUERDOS_TARDANZAS[0])) {
+    if (actual.includes(acuerdos[0])) {
         setInfo('Los acuerdos sugeridos ya están en el acta.');
         return;
     }
-    const bloque = ACUERDOS_TARDANZAS.map((a, i) => `${i + 1}. ${a}`).join('\n');
+    const bloque = acuerdos.map((a, i) => `${i + 1}. ${a}`).join('\n');
     ta.value = actual ? (actual + '\n' + bloque) : bloque;
     setInfo('✓ Acuerdos sugeridos añadidos.');
 }
@@ -9167,10 +9273,9 @@ function editarReunion(indice) {
             _selMR.value = _valMR;
             if (_otroMR) { _otroMR.style.display = 'none'; _otroMR.value = ''; }
         }
-        // Mostrar el panel de tardanzas si corresponde al motivo cargado
-        const _helperMR = document.getElementById('tardanzasReunionHelper');
-        if (_helperMR) _helperMR.style.display = (_selMR.value === 'Tardanzas frecuentes') ? 'block' : 'none';
     })();
+    // Mostrar el panel y los botones según el motivo cargado
+    onCambioMotivoReunion();
     document.getElementById('situacionTratada').value = reunion['Situación Tratada'] || '';
     document.getElementById('acuerdosEstablecidos').value = reunion['Acuerdos Establecidos'] || '';
     document.getElementById('fechaSeguimiento').value = fechaSeguimientoFormateada;
