@@ -989,6 +989,29 @@ function toggleNotaTipoConducta() {
     }
 }
 
+// Al elegir un Tipo de Conducta, autocompleta el campo Nota con una plantilla:
+// "Hacer el reporte por <Tipo de conducta> al estudiante <Estudiante>."
+// Solo sobrescribe si la nota está vacía o es una plantilla autogenerada, para
+// no borrar un texto escrito manualmente.
+function onCambioNotaTipoConducta() {
+    const tc = document.getElementById('notaTipoConducta');
+    const est = document.getElementById('notaEstudiante');
+    const ta = document.getElementById('notaTexto');
+    if (!tc || !ta) return;
+    const conducta = (tc.value || '').trim();
+    const estudiante = est ? (est.value || '').trim() : '';
+    const actual = (ta.value || '').trim();
+    const esAuto = (actual === '' || /^Hacer el reporte por /i.test(actual));
+    if (!esAuto) return; // respetar nota escrita manualmente
+    if (!conducta) {
+        if (/^Hacer el reporte por /i.test(actual)) ta.value = '';
+        return;
+    }
+    ta.value = estudiante
+        ? `Hacer el reporte por ${conducta} al estudiante ${estudiante}.`
+        : `Hacer el reporte por ${conducta}.`;
+}
+
 async function guardarNota() {
     const estudiante = document.getElementById('notaEstudiante').value.trim();
     const tipo = document.getElementById('notaTipo').value;
@@ -1340,8 +1363,15 @@ function seleccionarEstudianteNotaRapida(nombre, curso) {
         cursoDiv.textContent = `📚 ${curso}`;
         cursoDiv.style.display = 'block';
     }
-    
+
     sugerencias.style.display = 'none';
+
+    // Si ya hay un Tipo de Conducta elegido y la nota es autogenerada, actualizarla
+    // con el nombre del estudiante recién seleccionado.
+    if (typeof onCambioNotaTipoConducta === 'function') {
+        const _tc = document.getElementById('notaTipoConducta');
+        if (_tc && _tc.value) onCambioNotaTipoConducta();
+    }
 }
 
 // Cerrar sugerencias al hacer click fuera
