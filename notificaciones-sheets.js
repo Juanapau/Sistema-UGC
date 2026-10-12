@@ -26,6 +26,33 @@ function esNotificacionLeida(notif) {
     return valor === 'true';
 }
 
+// Extrae el nombre del estudiante de una notificación para poder abrir su
+// historial. Si en el futuro existe un campo propio (Estudiante) se usa ese;
+// de lo contrario se obtiene del mensaje según el tipo de notificación.
+function extraerEstudianteDeNotif(notif) {
+    if (!notif) return '';
+    if (notif.Estudiante) return String(notif.Estudiante).trim();
+    const msg = String(notif.Mensaje || '');
+    const tipo = String(notif.Tipo || '').toLowerCase();
+    const strongs = [];
+    const re = /<strong>(.*?)<\/strong>/gi;
+    let m;
+    while ((m = re.exec(msg)) !== null) strongs.push(m[1].trim());
+
+    if (tipo === 'incidencia') {
+        const mm = msg.match(/para\s+<strong>(.*?)<\/strong>\s+por/i);
+        if (mm) return mm[1].trim();
+        if (strongs.length >= 2) return strongs[1];
+    } else if (tipo === 'contacto') {
+        const mm = msg.match(/estudiante\s+<strong>(.*?)<\/strong>/i);
+        if (mm) return mm[1].trim();
+        if (strongs.length) return strongs[strongs.length - 1];
+    } else if (tipo === 'tardanzas') {
+        if (strongs.length) return strongs[0];
+    }
+    return strongs.length ? strongs[strongs.length - 1] : '';
+}
+
 // ========================================
 // CLASE PRINCIPAL
 // ========================================
@@ -429,12 +456,15 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
             'info': '#0d6efd'
         };
         
-        const estiloNotif = leida 
+        const estiloNotif = leida
             ? `background: #f8f9fa; opacity: 0.85; border-left: 4px solid #6c757d;`
             : `background: white; border-left: 4px solid ${colorBorde[prioridad]}; cursor: pointer;`;
-        
+
+        const estudianteNotif = extraerEstudianteDeNotif(notif);
+        const _estEsc = estudianteNotif.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+
         return `
-            <div class="notif-item ${leida ? 'leida' : 'sin-leer'}" 
+            <div class="notif-item ${leida ? 'leida' : 'sin-leer'}"
                  data-id-unico="${notif.ID_Unico}"
                  style="${estiloNotif}">
                 <div class="notif-header-item">
@@ -448,6 +478,7 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
                 <p class="notif-mensaje" style="${leida ? 'color: #868e96;' : ''}">${notif.Mensaje}</p>
                 <div class="notif-acciones">
                     ${!leida ? '<span class="notif-nuevo">🆕 NUEVA</span>' : '<span class="notif-archivada">📂 Archivada</span>'}
+                    ${estudianteNotif ? `<button class="btn-ver-historial-notif" data-estudiante="${_estEsc}">👆 Clic para ver el historial</button>` : ''}
                     <button class="btn-eliminar-notif" data-id="${notif.ID_Unico}">
                         🗑️ Eliminar
                     </button>
@@ -473,6 +504,25 @@ function agregarEventListeners() {
             event.stopPropagation();
             const idUnico = this.dataset.id;
             eliminarNotifSheets(idUnico);
+        });
+    });
+
+    // Event listeners para "Clic para ver el historial"
+    document.querySelectorAll('.btn-ver-historial-notif').forEach(btn => {
+        btn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            const estudiante = this.dataset.estudiante;
+            if (!estudiante) return;
+            if (typeof abrirHistorialEstudiante === 'function') {
+                // Cerrar el panel de notificaciones antes de abrir el historial
+                const panel = document.getElementById('notifPanel');
+                if (panel && panel.classList.contains('active') && typeof toggleNotificacionesSheets === 'function') {
+                    toggleNotificacionesSheets();
+                }
+                setTimeout(() => abrirHistorialEstudiante(estudiante), 150);
+            } else {
+                console.warn('⚠️ abrirHistorialEstudiante no está disponible en esta página');
+            }
         });
     });
 }
@@ -801,6 +851,22 @@ styleSheet.textContent = `
         font-size: 11px;
         font-weight: 600;
         opacity: 0.7;
+    }
+
+    .btn-ver-historial-notif {
+        background: transparent;
+        color: #d97706;
+        border: none;
+        padding: 4px 6px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.2s, color 0.2s;
+    }
+    .btn-ver-historial-notif:hover {
+        background: rgba(217, 119, 6, 0.12);
+        color: #b45309;
     }
 `;
 document.head.appendChild(styleSheet);
