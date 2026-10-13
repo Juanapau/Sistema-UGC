@@ -16,6 +16,9 @@ let intervaloActualizacionBackground = null;
 // ha borrado. Evita que una notificación recién eliminada reaparezca cuando una
 // recarga en segundo plano (3s/5s/15s) llega antes de que el servidor la elimine.
 let _notifEliminadasPendientes = new Set();
+// IDs marcados como leídos localmente que el servidor quizá aún no ha confirmado.
+// Evita que una recarga en segundo plano (3s/5s/15s) los vuelva a mostrar sin leer.
+let _notifLeidasPendientes = new Set();
 
 // ========================================
 // FUNCIÓN AUXILIAR
@@ -86,6 +89,20 @@ class NotificacionesGoogleSheets {
                 if (data.success && Array.isArray(data.data)) {
                     const cantidadAnterior = datosNotificaciones.length;
                     const servidor = data.data;
+
+                    // Mantener como leídas las notificaciones marcadas localmente
+                    // aunque el servidor aún no haya procesado el cambio.
+                    if (_notifLeidasPendientes.size > 0) {
+                        servidor.forEach(n => {
+                            if (_notifLeidasPendientes.has(n.ID_Unico)) {
+                                if (esNotificacionLeida(n)) {
+                                    _notifLeidasPendientes.delete(n.ID_Unico); // servidor ya confirmó
+                                } else {
+                                    n.Leida = 'true'; // conservar como leída
+                                }
+                            }
+                        });
+                    }
 
                     // Olvidar los tombstones que el servidor ya eliminó realmente
                     if (_notifEliminadasPendientes.size > 0) {
@@ -172,6 +189,9 @@ class NotificacionesGoogleSheets {
         try {
             console.log('🔵 [JS] Iniciando marcar como leída:', idUnico);
             
+            // Recordar que quedó leída, por si la recarga llega antes que el servidor
+            _notifLeidasPendientes.add(idUnico);
+
             // 1. Actualizar localmente PRIMERO
             const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
             if (notif) {
@@ -206,6 +226,7 @@ class NotificacionesGoogleSheets {
         try {
             // Marcar como eliminada para que ninguna recarga posterior la resucite
             _notifEliminadasPendientes.add(idUnico);
+            _notifLeidasPendientes.delete(idUnico);
             datosNotificaciones = datosNotificaciones.filter(n => n.ID_Unico !== idUnico);
             actualizarPanelNotificaciones();
 
@@ -231,6 +252,7 @@ class NotificacionesGoogleSheets {
             datosNotificaciones.forEach(n => {
                 if (n.Usuario === 'todos' || n.Usuario === this.usuarioActual) {
                     n.Leida = 'true';
+                    _notifLeidasPendientes.add(n.ID_Unico); // conservar hasta confirmación del servidor
                 }
             });
             actualizarPanelNotificaciones();
