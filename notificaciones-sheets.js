@@ -66,7 +66,7 @@ function extraerDocenteDeNotif(notif) {
 }
 
 // Abre WhatsApp con un acuse de recibido al docente que reportó la incidencia.
-function enviarAcuseReciboNotif(docente, estudiante) {
+async function enviarAcuseReciboNotif(docente, estudiante) {
     const nombreDoc = (docente || '').trim();
     const nombreEst = (estudiante || '').trim();
     if (!nombreDoc) {
@@ -77,17 +77,48 @@ function enviarAcuseReciboNotif(docente, estudiante) {
     // Normalizador tolerante al orden/acentos (usa el del sistema si existe)
     const norm = (s) => (typeof normalizarNombreCmp === 'function')
         ? normalizarNombreCmp(s)
-        : String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+        : String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[.,;:]/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).sort().join(' ');
 
-    // Buscar el teléfono del docente en el módulo de Docentes
-    let telefono = '';
-    const lista = (typeof datosMaestros !== 'undefined' && Array.isArray(datosMaestros)) ? datosMaestros : [];
+    // Cargar la lista de docentes si aún no está en memoria (desde notificaciones
+    // puede no haberse abierto el módulo de Maestros, por eso estaría vacía).
+    let lista = (typeof datosMaestros !== 'undefined' && Array.isArray(datosMaestros)) ? datosMaestros : [];
+    if (lista.length === 0 && typeof cargarDatosDesdeGoogleSheets === 'function') {
+        try {
+            let url = (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.urlMaestros) ? CONFIG.urlMaestros
+                    : ((typeof URL_BASE !== 'undefined') ? (URL_BASE + '?hoja=Docentes') : '');
+            if (url) {
+                let d = await cargarDatosDesdeGoogleSheets(url);
+                if (!(Array.isArray(d) && d.length) && typeof URL_BASE !== 'undefined') {
+                    d = await cargarDatosDesdeGoogleSheets(URL_BASE + '?hoja=Maestros');
+                }
+                if (Array.isArray(d) && d.length) {
+                    lista = d;
+                    try { datosMaestros = d; } catch (e) {}
+                }
+            }
+        } catch (e) { /* continúa con lo que haya */ }
+    }
+
+    // Emparejar por nombre: exacto y, si no, por subconjunto de palabras
+    // (para nombres con un apellido/nombre extra en el registro).
     const objetivo = norm(nombreDoc);
+    const palabrasObj = objetivo.split(' ').filter(Boolean);
+    const coincide = (nomMaestro) => {
+        const a = norm(nomMaestro);
+        if (!a) return false;
+        if (a === objetivo) return true;
+        const setA = a.split(' ').filter(Boolean);
+        if (palabrasObj.length >= 2 && palabrasObj.every(w => setA.includes(w))) return true; // docente ⊆ maestro
+        if (setA.length >= 2 && setA.every(w => palabrasObj.includes(w))) return true;          // maestro ⊆ docente
+        return false;
+    };
+
+    let telefono = '';
     for (let i = 0; i < lista.length; i++) {
         const nom = (typeof nombreDocenteDe === 'function') ? nombreDocenteDe(lista[i]) : (lista[i]['Nombre'] || '');
-        if (norm(nom) === objetivo) {
+        if (coincide(nom)) {
             telefono = (typeof telefonoDocenteDe === 'function') ? telefonoDocenteDe(lista[i]) : (lista[i]['Teléfono'] || lista[i]['Telefono'] || '');
-            break;
+            if (telefono) break;
         }
     }
 
