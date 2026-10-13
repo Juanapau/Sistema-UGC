@@ -56,6 +56,61 @@ function extraerEstudianteDeNotif(notif) {
     return strongs.length ? strongs[strongs.length - 1] : '';
 }
 
+// Extrae el docente que reporta (solo en notificaciones de incidencia, que
+// incluyen "Docente: <strong>...</strong>" en el mensaje).
+function extraerDocenteDeNotif(notif) {
+    if (!notif) return '';
+    if (notif.Docente) return String(notif.Docente).trim();
+    const mm = String(notif.Mensaje || '').match(/Docente:\s*<strong>(.*?)<\/strong>/i);
+    return mm ? mm[1].trim() : '';
+}
+
+// Abre WhatsApp con un acuse de recibido al docente que reportó la incidencia.
+function enviarAcuseReciboNotif(docente, estudiante) {
+    const nombreDoc = (docente || '').trim();
+    const nombreEst = (estudiante || '').trim();
+    if (!nombreDoc) {
+        if (typeof mostrarNotificacionToast === 'function') mostrarNotificacionToast('⚠️ No se identificó el docente');
+        return;
+    }
+
+    // Normalizador tolerante al orden/acentos (usa el del sistema si existe)
+    const norm = (s) => (typeof normalizarNombreCmp === 'function')
+        ? normalizarNombreCmp(s)
+        : String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+
+    // Buscar el teléfono del docente en el módulo de Docentes
+    let telefono = '';
+    const lista = (typeof datosMaestros !== 'undefined' && Array.isArray(datosMaestros)) ? datosMaestros : [];
+    const objetivo = norm(nombreDoc);
+    for (let i = 0; i < lista.length; i++) {
+        const nom = (typeof nombreDocenteDe === 'function') ? nombreDocenteDe(lista[i]) : (lista[i]['Nombre'] || '');
+        if (norm(nom) === objetivo) {
+            telefono = (typeof telefonoDocenteDe === 'function') ? telefonoDocenteDe(lista[i]) : (lista[i]['Teléfono'] || lista[i]['Telefono'] || '');
+            break;
+        }
+    }
+
+    if (!telefono) {
+        const msg = `No se encontró el teléfono del docente <strong>${nombreDoc}</strong> en el módulo de Docentes. Verifique que esté registrado con su número.`;
+        if (typeof mostrarModalConfirmacion === 'function') {
+            mostrarModalConfirmacion('📵 Número no encontrado', msg, false, null, 'Entendido');
+        } else {
+            alert(msg.replace(/<[^>]*>/g, ''));
+        }
+        return;
+    }
+
+    const mensaje = `Hola prof. ${nombreDoc}!. He recibido el reporte de ${nombreEst}. Le daré seguimiento lo antes posible. ¡Muchas gracias!`;
+    if (typeof abrirWhatsApp === 'function') {
+        abrirWhatsApp(telefono, mensaje);
+    } else {
+        const tel = String(telefono).replace(/[\s\-\(\)]/g, '');
+        const num = tel.startsWith('+') ? tel.replace('+', '') : ('1' + tel);
+        window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
+}
+
 // ========================================
 // CLASE PRINCIPAL
 // ========================================
@@ -498,6 +553,9 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
         const _estEsc = estudianteNotif.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
         const _fila = (notif._fila != null ? notif._fila : '');
         const _ts = String(notif.Timestamp || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        // Acuse de recibido por WhatsApp: solo en incidencias con docente
+        const docenteNotif = (String(notif.Tipo || '').toLowerCase() === 'incidencia') ? extraerDocenteDeNotif(notif) : '';
+        const _docEsc = docenteNotif.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
         return `
             <div class="notif-item ${leida ? 'leida' : 'sin-leer'}"
@@ -517,6 +575,7 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
                 <div class="notif-acciones">
                     ${!leida ? '<span class="notif-nuevo">🆕 NUEVA</span>' : '<span class="notif-archivada">📂 Archivada</span>'}
                     ${estudianteNotif ? `<button class="btn-ver-historial-notif" data-estudiante="${_estEsc}">👆 Clic para ver el historial</button>` : ''}
+                    ${docenteNotif ? `<button class="btn-acuse-notif" data-docente="${_docEsc}" data-estudiante="${_estEsc}">💬 Acuse de recibido</button>` : ''}
                     <button class="btn-eliminar-notif" data-id="${notif.ID_Unico}" data-fila="${_fila}" data-ts="${_ts}">
                         🗑️ Eliminar
                     </button>
@@ -541,6 +600,14 @@ function agregarEventListeners() {
         btn.addEventListener('click', function(event) {
             event.stopPropagation();
             eliminarNotifSheets(this.dataset.fila, this.dataset.ts, this.dataset.id);
+        });
+    });
+
+    // Event listeners para "Acuse de recibido" (WhatsApp al docente)
+    document.querySelectorAll('.btn-acuse-notif').forEach(btn => {
+        btn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            enviarAcuseReciboNotif(this.dataset.docente, this.dataset.estudiante);
         });
     });
 
@@ -905,6 +972,21 @@ styleSheet.textContent = `
     .btn-ver-historial-notif:hover {
         background: rgba(217, 119, 6, 0.12);
         color: #b45309;
+    }
+
+    .btn-acuse-notif {
+        background: #25D366;
+        color: #fff;
+        border: none;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+    .btn-acuse-notif:hover {
+        background: #1da851;
     }
 `;
 document.head.appendChild(styleSheet);
