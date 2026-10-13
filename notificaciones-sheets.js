@@ -90,13 +90,17 @@ class NotificacionesGoogleSheets {
                     const cantidadAnterior = datosNotificaciones.length;
                     const servidor = data.data;
 
+                    // NOTA: los "pendientes" se identifican por Timestamp, que es
+                    // único por notificación y estable (a diferencia del ID, que
+                    // puede repetirse, o de la fila, que cambia al borrar).
+
                     // Mantener como leídas las notificaciones marcadas localmente
                     // aunque el servidor aún no haya procesado el cambio.
                     if (_notifLeidasPendientes.size > 0) {
                         servidor.forEach(n => {
-                            if (_notifLeidasPendientes.has(n.ID_Unico)) {
+                            if (_notifLeidasPendientes.has(n.Timestamp)) {
                                 if (esNotificacionLeida(n)) {
-                                    _notifLeidasPendientes.delete(n.ID_Unico); // servidor ya confirmó
+                                    _notifLeidasPendientes.delete(n.Timestamp); // servidor ya confirmó
                                 } else {
                                     n.Leida = 'true'; // conservar como leída
                                 }
@@ -106,16 +110,16 @@ class NotificacionesGoogleSheets {
 
                     // Olvidar los tombstones que el servidor ya eliminó realmente
                     if (_notifEliminadasPendientes.size > 0) {
-                        const idsServidor = new Set(servidor.map(n => n.ID_Unico));
-                        _notifEliminadasPendientes.forEach(id => {
-                            if (!idsServidor.has(id)) _notifEliminadasPendientes.delete(id);
+                        const tsServidor = new Set(servidor.map(n => n.Timestamp));
+                        _notifEliminadasPendientes.forEach(ts => {
+                            if (!tsServidor.has(ts)) _notifEliminadasPendientes.delete(ts);
                         });
                     }
 
                     // Ocultar las que se eliminaron localmente pero siguen en el
                     // servidor (aún no procesó el borrado), para que no reaparezcan
                     datosNotificaciones = (_notifEliminadasPendientes.size > 0)
-                        ? servidor.filter(n => !_notifEliminadasPendientes.has(n.ID_Unico))
+                        ? servidor.filter(n => !_notifEliminadasPendientes.has(n.Timestamp))
                         : servidor;
 
                     if (!silencioso && datosNotificaciones.length > cantidadAnterior) {
@@ -183,29 +187,28 @@ class NotificacionesGoogleSheets {
         }
     }
 
-    async marcarComoLeida(idUnico) {
+    async marcarComoLeida(fila, ts, idUnico) {
         if (!this.url) return false;
 
         try {
-            console.log('🔵 [JS] Iniciando marcar como leída:', idUnico);
-            
-            // Recordar que quedó leída, por si la recarga llega antes que el servidor
-            _notifLeidasPendientes.add(idUnico);
+            console.log('🔵 [JS] Marcar como leída (fila ' + fila + '):', idUnico);
 
-            // 1. Actualizar localmente PRIMERO
-            const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
+            // Recordar por Timestamp, por si la recarga llega antes que el servidor
+            if (ts) _notifLeidasPendientes.add(ts);
+
+            // 1. Actualizar localmente PRIMERO (la notificación exacta por fila/ts)
+            const notif = datosNotificaciones.find(n => String(n._fila) === String(fila))
+                       || datosNotificaciones.find(n => n.Timestamp === ts);
             if (notif) {
-                console.log('✅ [JS] Encontrada localmente');
                 notif.Leida = 'true';
                 actualizarPanelNotificaciones();
             } else {
                 console.warn('⚠️ [JS] No encontrada localmente');
             }
 
-            // 2. Enviar a Google Sheets
+            // 2. Enviar a Google Sheets (por fila exacta)
             const _hojaNotif2 = (this.url.match(/[?&]hoja=([^&]+)/) || [])[1] || 'Notificaciones';
-            const urlML = this.url.split('?')[0] + '?' + new URLSearchParams({ hoja: _hojaNotif2, action: 'marcarLeida', idUnico }).toString();
-            console.log('📤 [JS] Enviando a Google Sheets...');
+            const urlML = this.url.split('?')[0] + '?' + new URLSearchParams({ hoja: _hojaNotif2, action: 'marcarLeida', fila: fila, idUnico: idUnico || '' }).toString();
             fetch(urlML, { method: 'POST', mode: 'no-cors', redirect: 'follow' }).catch(error => {
                 console.log('Error al enviar:', error);
             });
@@ -220,18 +223,22 @@ class NotificacionesGoogleSheets {
         }
     }
 
-    async eliminarNotificacion(idUnico) {
+    async eliminarNotificacion(fila, ts, idUnico) {
         if (!this.url) return false;
 
         try {
-            // Marcar como eliminada para que ninguna recarga posterior la resucite
-            _notifEliminadasPendientes.add(idUnico);
-            _notifLeidasPendientes.delete(idUnico);
-            datosNotificaciones = datosNotificaciones.filter(n => n.ID_Unico !== idUnico);
+            // Tombstone por Timestamp para que ninguna recarga posterior la resucite
+            if (ts) {
+                _notifEliminadasPendientes.add(ts);
+                _notifLeidasPendientes.delete(ts);
+            }
+            // Quitar localmente SOLO la notificación exacta (por fila/ts)
+            datosNotificaciones = datosNotificaciones.filter(n =>
+                !(String(n._fila) === String(fila) || (ts && n.Timestamp === ts)));
             actualizarPanelNotificaciones();
 
             const _hojaNotif3 = (this.url.match(/[?&]hoja=([^&]+)/) || [])[1] || 'Notificaciones';
-            const urlEl = this.url.split('?')[0] + '?' + new URLSearchParams({ hoja: _hojaNotif3, action: 'eliminar', idUnico }).toString();
+            const urlEl = this.url.split('?')[0] + '?' + new URLSearchParams({ hoja: _hojaNotif3, action: 'eliminar', fila: fila, idUnico: idUnico || '' }).toString();
             fetch(urlEl, { method: 'POST', mode: 'no-cors', redirect: 'follow' }).catch(error => {
                 console.log('Error al enviar:', error);
             });
@@ -252,7 +259,7 @@ class NotificacionesGoogleSheets {
             datosNotificaciones.forEach(n => {
                 if (n.Usuario === 'todos' || n.Usuario === this.usuarioActual) {
                     n.Leida = 'true';
-                    _notifLeidasPendientes.add(n.ID_Unico); // conservar hasta confirmación del servidor
+                    if (n.Timestamp) _notifLeidasPendientes.add(n.Timestamp); // conservar hasta confirmación
                 }
             });
             actualizarPanelNotificaciones();
@@ -300,8 +307,11 @@ class NotificacionesGoogleSheets {
     }
 
     generarIdUnico(tipo, contenido) {
-        const texto = `${tipo}-${contenido}-${Date.now()}`;
-        return texto.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 100);
+        // La parte única (tiempo + aleatorio) va al FINAL y nunca se recorta,
+        // para que dos notificaciones nunca compartan el mismo ID.
+        const base = `${tipo}-${contenido}`.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 60);
+        const unico = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+        return `${base}-${unico}`;
     }
 
     obtenerMisNotificaciones() {
@@ -392,17 +402,19 @@ function mostrarIndicadorActualizacion(mostrar) {
 function manejarClickNotificacion(event) {
     const notifItem = event.currentTarget;
     const idUnico = notifItem.dataset.idUnico;
-    
+    const fila = notifItem.dataset.fila;
+    const ts = notifItem.dataset.ts;
+
     // Si ya está leída, no hacer nada
     if (notifItem.classList.contains('leida')) {
         console.log('🚫 [CLICK] Notificación ya leída, ignorando');
         return;
     }
-    
-    console.log('👆 [CLICK] Notificación clickeada:', idUnico);
-    
-    if (sistemaNotificacionesSheets && idUnico) {
-        sistemaNotificacionesSheets.marcarComoLeida(idUnico);
+
+    console.log('👆 [CLICK] Notificación clickeada (fila ' + fila + ')');
+
+    if (sistemaNotificacionesSheets) {
+        sistemaNotificacionesSheets.marcarComoLeida(fila, ts, idUnico);
     }
 }
 
@@ -484,10 +496,14 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
 
         const estudianteNotif = extraerEstudianteDeNotif(notif);
         const _estEsc = estudianteNotif.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        const _fila = (notif._fila != null ? notif._fila : '');
+        const _ts = String(notif.Timestamp || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
         return `
             <div class="notif-item ${leida ? 'leida' : 'sin-leer'}"
                  data-id-unico="${notif.ID_Unico}"
+                 data-fila="${_fila}"
+                 data-ts="${_ts}"
                  style="${estiloNotif}">
                 <div class="notif-header-item">
                     <span class="notif-badge-type badge-${prioridad}">
@@ -501,7 +517,7 @@ function mostrarNotificacionesSheets(filtro = 'todas') {
                 <div class="notif-acciones">
                     ${!leida ? '<span class="notif-nuevo">🆕 NUEVA</span>' : '<span class="notif-archivada">📂 Archivada</span>'}
                     ${estudianteNotif ? `<button class="btn-ver-historial-notif" data-estudiante="${_estEsc}">👆 Clic para ver el historial</button>` : ''}
-                    <button class="btn-eliminar-notif" data-id="${notif.ID_Unico}">
+                    <button class="btn-eliminar-notif" data-id="${notif.ID_Unico}" data-fila="${_fila}" data-ts="${_ts}">
                         🗑️ Eliminar
                     </button>
                 </div>
@@ -524,8 +540,7 @@ function agregarEventListeners() {
     document.querySelectorAll('.btn-eliminar-notif').forEach(btn => {
         btn.addEventListener('click', function(event) {
             event.stopPropagation();
-            const idUnico = this.dataset.id;
-            eliminarNotifSheets(idUnico);
+            eliminarNotifSheets(this.dataset.fila, this.dataset.ts, this.dataset.id);
         });
     });
 
@@ -589,18 +604,19 @@ function cambiarTabNotifSheets(tab) {
     mostrarNotificacionesSheets(tab);
 }
 
-async function eliminarNotifSheets(idUnico) {
+async function eliminarNotifSheets(fila, ts, idUnico) {
     if (!sistemaNotificacionesSheets) return;
-    
-    const notif = datosNotificaciones.find(n => n.ID_Unico === idUnico);
+
+    const notif = datosNotificaciones.find(n => String(n._fila) === String(fila))
+               || datosNotificaciones.find(n => n.Timestamp === ts);
     if (!notif) return;
-    
+
     mostrarModalConfirmacion(
         '🗑️ Eliminar notificación',
         `¿Estás seguro de que deseas eliminar esta notificación?<br><br><strong>${notif.Titulo}</strong>`,
         true,
         async function() {
-            await sistemaNotificacionesSheets.eliminarNotificacion(idUnico);
+            await sistemaNotificacionesSheets.eliminarNotificacion(fila, ts, idUnico);
             mostrarNotificacionToast('✅ Notificación eliminada');
         }
     );
