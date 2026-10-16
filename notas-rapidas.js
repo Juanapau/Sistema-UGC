@@ -933,6 +933,22 @@ function agregarSalidaAlCalendario(id) {
 
 // ---- Alarma dentro de la app (cuando el sistema está abierto) ----
 let _intervaloAlarmasSalida = null;
+let _audioCtxAlarma = null;
+
+// Desbloquea el audio con el primer gesto del usuario (requisito en móviles)
+function _desbloquearAudioAlarma() {
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!_audioCtxAlarma) _audioCtxAlarma = new Ctx();
+        if (_audioCtxAlarma.state === 'suspended' && _audioCtxAlarma.resume) _audioCtxAlarma.resume();
+    } catch (e) {}
+}
+try {
+    ['click', 'touchstart', 'keydown'].forEach(function (ev) {
+        document.addEventListener(ev, _desbloquearAudioAlarma, { passive: true });
+    });
+} catch (e) {}
 
 function _salidasAlarmadas() {
     try { return JSON.parse(localStorage.getItem('salidasAlarmadas') || '[]'); } catch (e) { return []; }
@@ -955,8 +971,10 @@ function verificarAlarmasSalida() {
             const t = new Date(nota.fechaAccion).getTime();
             if (isNaN(t)) return;
             const clave = (nota.id || '') + '|' + nota.fechaAccion;
-            // Disparar si estamos dentro de los 2 min posteriores a la hora y aún no se alarmó
-            if (ahora >= t && ahora < t + 120000 && yaAlarmadas.indexOf(clave) === -1) {
+            // Disparar si la hora ya llegó (hasta 30 min después, para "alcanzar"
+            // una salida que pasó mientras el teléfono estaba bloqueado) y aún no
+            // se ha alarmado.
+            if (ahora >= t && ahora < t + 30 * 60000 && yaAlarmadas.indexOf(clave) === -1) {
                 _marcarSalidaAlarmada(clave);
                 dispararAlarmaSalida(nota);
             }
@@ -983,24 +1001,22 @@ function dispararAlarmaSalida(nota) {
 
 function _beepAlarma() {
     try {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return;
-        const ctx = new Ctx();
-        if (ctx.state === 'suspended' && ctx.resume) { try { ctx.resume(); } catch (e) {} }
+        _desbloquearAudioAlarma();
+        const ctx = _audioCtxAlarma;
+        if (!ctx) return;
         let t = ctx.currentTime;
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 4; i++) {
             const o = ctx.createOscillator();
             const g = ctx.createGain();
             o.type = 'sine';
             o.frequency.value = 880;
             g.gain.setValueAtTime(0.0001, t);
-            g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
             g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
             o.connect(g); g.connect(ctx.destination);
             o.start(t); o.stop(t + 0.37);
             t += 0.5;
         }
-        setTimeout(() => { try { ctx.close(); } catch (e) {} }, 2500);
     } catch (e) {}
 }
 
@@ -1018,12 +1034,54 @@ function inicializarSistemaNotas() {
         sistemaNotas = new NotasRapidas();
     }
     sistemaNotas.inicializar();
-    // Arrancar el verificador de alarmas de salida (una sola vez)
+    _arrancarAlarmasSalida();
+}
+
+// Carga las notas en segundo plano (si no están) para que las alarmas de salida
+// funcionen aunque no se haya abierto el panel de notas.
+async function _asegurarNotasParaAlarmas() {
+    try {
+        if (sistemaNotas && Array.isArray(sistemaNotas.notas) && sistemaNotas._notasCargadasAlarma) return;
+        if (typeof cargarNotasDesdeGoogleSheets === 'function' && urlNotasRapidas) {
+            const notas = await cargarNotasDesdeGoogleSheets();
+            if (Array.isArray(notas)) {
+                datosNotas = notas;
+                if (!sistemaNotas) sistemaNotas = new NotasRapidas();
+                sistemaNotas.notas = notas;
+                sistemaNotas._notasCargadasAlarma = true;
+            }
+        }
+    } catch (e) {}
+}
+
+// Arranca el verificador de alarmas de salida de forma independiente del panel.
+// Incluye: intervalo periódico + verificación al volver la app a primer plano
+// (clave en el celular, al desbloquear o volver a la app).
+let _alarmasArrancadas = false;
+function _arrancarAlarmasSalida() {
+    if (_alarmasArrancadas) { _asegurarNotasParaAlarmas().then(verificarAlarmasSalida); return; }
+    _alarmasArrancadas = true;
     if (!_intervaloAlarmasSalida) {
         _intervaloAlarmasSalida = setInterval(verificarAlarmasSalida, 30000);
-        setTimeout(verificarAlarmasSalida, 3000);
     }
+    try {
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                _asegurarNotasParaAlarmas().then(verificarAlarmasSalida);
+            }
+        });
+    } catch (e) {}
+    _asegurarNotasParaAlarmas().then(verificarAlarmasSalida);
 }
+
+// Arranque automático al cargar la página (no depende de abrir el panel de notas)
+try {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _arrancarAlarmasSalida);
+    } else {
+        _arrancarAlarmasSalida();
+    }
+} catch (e) {}
 
 function toggleNotasPanel() {
     const overlay = document.getElementById('notasOverlay');
