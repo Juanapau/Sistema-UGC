@@ -590,6 +590,7 @@ class NotasRapidas {
             ${fechaAccionHTML}
             <div class="nota-fecha">🕐 Creada ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
             <div class="nota-acciones">
+                ${(nota.tipo === 'salida' && nota.fechaAccion) ? `<button class="nota-btn nota-btn-calendario" data-nota-id="${nota.id}" data-accion="calendario" style="background:#0ea5e9;color:#fff;">⏰ Agregar al calendario</button>` : ''}
                 <button class="nota-btn nota-btn-registrar" data-nota-id="${nota.id}" data-accion="registrar">
                     📋 Registrar
                 </button>
@@ -601,12 +602,16 @@ class NotasRapidas {
                 </button>
             </div>
         `;
-        
+
         // Agregar event listeners a los botones
         const btnRegistrar = div.querySelector('[data-accion="registrar"]');
         const btnEditar = div.querySelector('[data-accion="editar"]');
         const btnBorrar = div.querySelector('[data-accion="borrar"]');
-        
+        const btnCalendario = div.querySelector('[data-accion="calendario"]');
+
+        if (btnCalendario) {
+            btnCalendario.addEventListener('click', () => agregarSalidaAlCalendario(nota.id));
+        }
         if (btnRegistrar) {
             btnRegistrar.addEventListener('click', () => this.registrarIncidencia(nota.id));
         }
@@ -653,6 +658,7 @@ class NotasRapidas {
             llamada: '📞',
             reunion: '👥',
             recordatorio: '🔔',
+            salida: '🚪',
             otros: '📝'
         };
         return iconos[tipo] || '📝';
@@ -665,6 +671,7 @@ class NotasRapidas {
             llamada: 'Llamada Pendiente',
             reunion: 'Reunión',
             recordatorio: 'Recordatorio',
+            salida: 'Salida',
             otros: 'Otros'
         };
         return nombres[tipo] || tipo;
@@ -890,11 +897,132 @@ class NotasRapidas {
 let sistemaNotas = null;
 
 // Inicializar cuando se configure la URL
+// ========================================
+// SALIDAS: agregar al calendario + alarma dentro de la app
+// ========================================
+
+// Convierte "YYYY-MM-DDTHH:MM" (hora local) a "YYYYMMDDTHHMMSSZ" (UTC) para Google Calendar
+function _fechaCalendario(dateObj) {
+    const p = (n) => String(n).padStart(2, '0');
+    return dateObj.getUTCFullYear() + p(dateObj.getUTCMonth() + 1) + p(dateObj.getUTCDate()) + 'T' +
+           p(dateObj.getUTCHours()) + p(dateObj.getUTCMinutes()) + '00Z';
+}
+
+function agregarSalidaAlCalendario(id) {
+    const nota = sistemaNotas ? sistemaNotas.obtenerNota(id) : null;
+    if (!nota) return;
+    if (!nota.fechaAccion) {
+        if (typeof mostrarNotificacionToast === 'function') mostrarNotificacionToast('⚠️ La salida no tiene fecha/hora');
+        return;
+    }
+    const inicio = new Date(nota.fechaAccion);
+    if (isNaN(inicio.getTime())) {
+        if (typeof mostrarNotificacionToast === 'function') mostrarNotificacionToast('⚠️ Fecha no válida');
+        return;
+    }
+    const fin = new Date(inicio.getTime() + 30 * 60000); // +30 min
+
+    const titulo = ('Salida: ' + (nota.estudiante || '')).trim();
+    const detalle = (nota.texto || '') + (nota.curso ? ('\nCurso: ' + nota.curso) : '');
+    const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+        + '&text=' + encodeURIComponent(titulo)
+        + '&dates=' + _fechaCalendario(inicio) + '/' + _fechaCalendario(fin)
+        + '&details=' + encodeURIComponent(detalle);
+    window.open(url, '_blank');
+}
+
+// ---- Alarma dentro de la app (cuando el sistema está abierto) ----
+let _intervaloAlarmasSalida = null;
+
+function _salidasAlarmadas() {
+    try { return JSON.parse(localStorage.getItem('salidasAlarmadas') || '[]'); } catch (e) { return []; }
+}
+function _marcarSalidaAlarmada(clave) {
+    try {
+        const arr = _salidasAlarmadas();
+        if (arr.indexOf(clave) === -1) { arr.push(clave); localStorage.setItem('salidasAlarmadas', JSON.stringify(arr.slice(-300))); }
+    } catch (e) {}
+}
+
+function verificarAlarmasSalida() {
+    try {
+        const notas = (sistemaNotas && Array.isArray(sistemaNotas.notas)) ? sistemaNotas.notas
+                    : (Array.isArray(datosNotas) ? datosNotas : []);
+        const ahora = Date.now();
+        const yaAlarmadas = _salidasAlarmadas();
+        notas.forEach(nota => {
+            if (nota.tipo !== 'salida' || !nota.fechaAccion) return;
+            const t = new Date(nota.fechaAccion).getTime();
+            if (isNaN(t)) return;
+            const clave = (nota.id || '') + '|' + nota.fechaAccion;
+            // Disparar si estamos dentro de los 2 min posteriores a la hora y aún no se alarmó
+            if (ahora >= t && ahora < t + 120000 && yaAlarmadas.indexOf(clave) === -1) {
+                _marcarSalidaAlarmada(clave);
+                dispararAlarmaSalida(nota);
+            }
+        });
+    } catch (e) { console.log('Error verificando alarmas de salida:', e); }
+}
+
+function dispararAlarmaSalida(nota) {
+    const titulo = '🚪 Salida: ' + (nota.estudiante || '');
+    const cuerpo = (nota.texto || 'Es la hora de la salida programada.');
+    // Vibración (Android/Chrome)
+    try { if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]); } catch (e) {}
+    // Notificación del sistema (usa el sonido/vibración configurado en el teléfono)
+    try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(titulo, { body: cuerpo });
+        }
+    } catch (e) {}
+    // Sonido de respaldo dentro de la app
+    _beepAlarma();
+    // Aviso visual
+    if (typeof mostrarNotificacionToast === 'function') mostrarNotificacionToast(titulo);
+}
+
+function _beepAlarma() {
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        if (ctx.state === 'suspended' && ctx.resume) { try { ctx.resume(); } catch (e) {} }
+        let t = ctx.currentTime;
+        for (let i = 0; i < 3; i++) {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.value = 880;
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(t); o.stop(t + 0.37);
+            t += 0.5;
+        }
+        setTimeout(() => { try { ctx.close(); } catch (e) {} }, 2500);
+    } catch (e) {}
+}
+
+// Pedir permiso de notificaciones (para la alarma de salida)
+function solicitarPermisoNotificacionesSalida() {
+    try {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().catch(function () {});
+        }
+    } catch (e) {}
+}
+
 function inicializarSistemaNotas() {
     if (!sistemaNotas) {
         sistemaNotas = new NotasRapidas();
     }
     sistemaNotas.inicializar();
+    // Arrancar el verificador de alarmas de salida (una sola vez)
+    if (!_intervaloAlarmasSalida) {
+        _intervaloAlarmasSalida = setInterval(verificarAlarmasSalida, 30000);
+        setTimeout(verificarAlarmasSalida, 3000);
+    }
 }
 
 function toggleNotasPanel() {
@@ -1025,6 +1153,11 @@ async function guardarNota() {
     let texto = document.getElementById('notaTexto').value.trim();
     const fechaAccion = document.getElementById('notaFecha').value; // NUEVO
 
+    // Si es una "Salida", pedir permiso de notificaciones para la alarma
+    if (tipo === 'salida' && typeof solicitarPermisoNotificacionesSalida === 'function') {
+        solicitarPermisoNotificacionesSalida();
+    }
+
     // La nota se guarda tal cual la escribe la usuaria. El Tipo de Conducta ya
     // queda reflejado en el texto autogenerado, así que NO se añade ninguna
     // etiqueta. Se limpia cualquier etiqueta antigua por si quedó de antes.
@@ -1039,6 +1172,13 @@ async function guardarNota() {
     if (!texto) {
         notificaciones.advertencia('Campo requerido', 'Por favor escribe una nota');
         document.getElementById('notaTexto').focus();
+        return;
+    }
+
+    // Una "Salida" necesita fecha y hora para poder avisar y agregarse al calendario
+    if (tipo === 'salida' && !fechaAccion) {
+        notificaciones.advertencia('Fecha requerida', 'La "Salida" necesita fecha y hora para poder avisarte.');
+        document.getElementById('notaFecha').focus();
         return;
     }
 
