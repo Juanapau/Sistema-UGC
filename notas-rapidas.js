@@ -476,15 +476,12 @@ class NotasRapidas {
         
         switch(this.tabActiva) {
             case 'hoy':
-                // Notas para hoy o vencidas
+                // SOLO las notas cuya fecha es HOY. Las vencidas y las que no
+                // tienen fecha aparecen únicamente en la pestaña "Todas".
                 return this.notas.filter(nota => {
-                    if (!nota.fechaAccion) {
-                        // Notas sin fecha también se muestran en "hoy"
-                        return true;
-                    }
+                    if (!nota.fechaAccion) return false;
                     const fechaNota = new Date(nota.fechaAccion);
-                    // Incluir vencidas y de hoy
-                    return fechaNota <= finHoy;
+                    return fechaNota >= ahora && fechaNota <= finHoy;
                 });
                 
             case 'proximas':
