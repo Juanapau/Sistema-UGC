@@ -2008,21 +2008,28 @@
             position: absolute;
             top: -7px;
             right: -7px;
-            background: #dc2626;
-            color: white;
-            border-radius: 50%;
-            min-width: 30px;
-            height: 30px;
-            padding: 0 6px;
+            display: flex;
+            align-items: stretch;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 2px solid white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+            font-size: 13px;
+            line-height: 1;
+            font-weight: bold;
+        }
+        .fab-main .badge-contador .cont-seg {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            line-height: 1;
-            font-weight: bold;
-            border: 2px solid white;
+            min-width: 22px;
+            height: 26px;
+            padding: 0 7px;
+            color: #fff;
             box-sizing: border-box;
         }
+        .fab-main .badge-contador .cont-rojo { background: #dc2626; }
+        .fab-main .badge-contador .cont-verde { background: #059669; }
         /* En modo consulta (año pasado) se ocultan Notas y Configuración; el Año queda disponible */
         .fab-menu.modo-consulta #fabNotas,
         .fab-menu.modo-consulta #fabConfig { display: none; }
@@ -3053,7 +3060,7 @@ header img {
         </div>
         <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" title="Menú" aria-label="Menú">
             <span id="fabMainIcon">☰</span>
-            <span class="badge-contador" id="contadorNotas">0</span>
+            <span class="badge-contador" id="contadorNotas"><span class="cont-seg cont-rojo" id="contPendientes" title="Hoy + vencidas">0</span><span class="cont-seg cont-verde" id="contProximas" title="Próximas">0</span></span>
         </button>
     </div>
 
