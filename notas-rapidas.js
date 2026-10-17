@@ -1368,8 +1368,10 @@ function actualizarContadoresPestanas() {
     // Actualizar badges
     const badgeHoy = document.getElementById('countHoy');
     const badgeProximas = document.getElementById('countProximas');
-    const badgeTodas = document.getElementById('countTodas');
-    
+    // El badge de "Todas" de Notas es countTodasNotas (countTodas pertenece al
+    // panel de Notificaciones; usarlo aquí dejaba el de Notas siempre en 0).
+    const badgeTodas = document.getElementById('countTodasNotas');
+
     if (badgeHoy) badgeHoy.textContent = countHoy;
     if (badgeProximas) badgeProximas.textContent = countProximas;
     if (badgeTodas) badgeTodas.textContent = countTodas;
