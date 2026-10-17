@@ -374,42 +374,43 @@ class NotasRapidas {
 
     actualizarContador() {
         const contador = document.getElementById('contadorNotas');
-        if (contador) {
-            // Contar notas para hoy
-            const ahora = new Date();
-            ahora.setHours(0, 0, 0, 0);
-            const finHoy = new Date(ahora);
-            finHoy.setHours(23, 59, 59, 999);
-            
-            const notasHoy = this.notas.filter(nota => {
-                if (!nota.fechaAccion) return true; // Sin fecha también cuenta como "hoy"
-                const fechaNota = new Date(nota.fechaAccion);
-                return fechaNota <= finHoy; // Incluye vencidas y de hoy
-            });
-            
-            // Actualizar badge
-            const total = this.notas.length;
-            const hoy = notasHoy.length;
-            
-            if (hoy > 0) {
-                // Mostrar cantidad para hoy con fuego
-                contador.innerHTML = `${hoy} 🔥`;
-                contador.style.background = '#ea580c';
-            } else if (total > 0) {
-                // Solo mostrar total
-                contador.textContent = total;
-                contador.style.background = '#059669';
-            }
-            
-            contador.style.display = total > 0 ? 'flex' : 'none';
-            
-            // Mostrar notificación al abrir el sistema (solo una vez)
-            if (!this.notificacionMostrada && hoy > 0) {
-                setTimeout(() => {
-                    mostrarNotificacionNotasHoy();
-                }, 1000);
-                this.notificacionMostrada = true;
-            }
+        if (!contador) return;
+
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0);
+        const finHoy = new Date(ahora);
+        finHoy.setHours(23, 59, 59, 999);
+
+        // Dos cifras: pendientes (hoy + vencidas + sin fecha) y próximas (futuras)
+        let pendientes = 0;
+        let proximas = 0;
+        this.notas.forEach(nota => {
+            if (!nota.fechaAccion) { pendientes++; return; }
+            const fechaNota = new Date(nota.fechaAccion);
+            if (fechaNota > finHoy) proximas++;   // futura
+            else pendientes++;                      // hoy o vencida
+        });
+        const total = this.notas.length;
+
+        const segP = document.getElementById('contPendientes');
+        const segX = document.getElementById('contProximas');
+        if (segP) {
+            segP.textContent = pendientes;
+            segP.style.display = pendientes > 0 ? 'flex' : 'none';
+        }
+        if (segX) {
+            segX.textContent = proximas;
+            segX.style.display = proximas > 0 ? 'flex' : 'none';
+        }
+
+        contador.style.display = total > 0 ? 'flex' : 'none';
+
+        // Mostrar notificación al abrir el sistema (solo una vez) si hay pendientes
+        if (!this.notificacionMostrada && pendientes > 0) {
+            setTimeout(() => {
+                mostrarNotificacionNotasHoy();
+            }, 1000);
+            this.notificacionMostrada = true;
         }
     }
 
