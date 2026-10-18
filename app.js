@@ -598,9 +598,9 @@ function crearModalIncidencias() {
                         <label>Tipo de Falta *</label>
                         <select id="tipoFalta" required>
                             <option value="">Seleccione</option>
-                            <option value="Leve">Falta Leve</option>
-                            <option value="Grave">Falta Grave</option>
-                            <option value="Muy Grave">Falta Muy Grave</option>
+                            <option value="Leve">Leve</option>
+                            <option value="Grave">Grave</option>
+                            <option value="Muy Grave">Muy Grave</option>
                         </select>
                     </div>
                 </div>
