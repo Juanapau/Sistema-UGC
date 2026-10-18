@@ -6642,16 +6642,19 @@ function abrirNuevaCitacion() {    const existente = document.getElementById('mo
                     <label>Motivo *</label>
                     <select id="citMotivo" required style="width:100%;" onchange="toggleMotivoOtro()">
                         <option value="">-- Seleccione --</option>
-                        <option value="Tardanzas">Tardanzas</option>
-                        <option value="Incidencia">Incidencia (disciplina)</option>
-                        <option value="Corte de pelo">Corte de pelo</option>
-                        <option value="Uso de maquillaje">Uso de maquillaje</option>
-                        <option value="Uso de uñas pintadas">Uso de uñas pintadas</option>
-                        <option value="Uso de uñas acrílicas o con gel">Uso de uñas acrílicas o con gel</option>
-                        <option value="Uniformidad">Uniformidad</option>
-                        <option value="Uso incorrecto del uniforme">Uso incorrecto del uniforme</option>
-                        <option value="Reincidencia de indisciplina">Reincidencia de indisciplina</option>
-                        <option value="Incumplimiento de acuerdos">Incumplimiento de acuerdos</option>
+                        <option value="Comportamiento en clase">Comportamiento en clase</option>
+                        <option value="Agresividad física o verbal">Agresividad física o verbal</option>
+                        <option value="Tardanzas frecuentes">Tardanzas frecuentes</option>
+                        <option value="Bajo rendimiento académico">Bajo rendimiento académico</option>
+                        <option value="Seguimiento de acuerdos previos">Seguimiento de acuerdos previos</option>
+                        <option value="Problemas de convivencia">Problemas de convivencia</option>
+                        <option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
+                        <option value="Bullying">Bullying</option>
+                        <option value="Cyber Bullying">Cyber Bullying</option>
+                        <option value="Uso de dispositivos sin autorización">Uso de dispositivos sin autorización</option>
+                        <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
+                        <option value="Faltas frecuentes a la uniformidad">Faltas frecuentes a la uniformidad</option>
+                        <option value="Presentación personal">Presentación personal</option>
                         <option value="Otro">Otro (especificar)</option>
                     </select>
                     <input type="text" id="citMotivoOtro" placeholder="Escriba el motivo..." style="width:100%;margin-top:8px;display:none;">
