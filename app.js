@@ -3302,6 +3302,8 @@ function crearModalReuniones() {
                         <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
                         <option value="Faltas frecuentes a la uniformidad">Faltas frecuentes a la uniformidad</option>
                         <option value="Presentación personal">Presentación personal</option>
+                        <option value="Falta de respeto a maestro/a">Falta de respeto a maestro/a</option>
+                        <option value="Falta de respeto a personal administrativo o de apoyo">Falta de respeto a personal administrativo o de apoyo</option>
                         <option value="Otro">Otro</option>
                     </select>
                     <input type="text" id="motivoReunionOtro" placeholder="Escriba el motivo de la reunión..." style="width:100%;margin-top:8px;display:none;">
@@ -6655,6 +6657,8 @@ function abrirNuevaCitacion() {    const existente = document.getElementById('mo
                         <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
                         <option value="Faltas frecuentes a la uniformidad">Faltas frecuentes a la uniformidad</option>
                         <option value="Presentación personal">Presentación personal</option>
+                        <option value="Falta de respeto a maestro/a">Falta de respeto a maestro/a</option>
+                        <option value="Falta de respeto a personal administrativo o de apoyo">Falta de respeto a personal administrativo o de apoyo</option>
                         <option value="Otro">Otro (especificar)</option>
                     </select>
                     <input type="text" id="citMotivoOtro" placeholder="Escriba el motivo..." style="width:100%;margin-top:8px;display:none;">
