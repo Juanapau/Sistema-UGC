@@ -3305,21 +3305,30 @@ function crearModalReuniones() {
                     <label>Motivo de la Reunión *</label>
                     <select id="motivoReunion" required onchange="onCambioMotivoReunion()">
                         <option value="">Seleccione</option>
-                        <option value="Comportamiento en clase">Comportamiento en clase</option>
-                        <option value="Agresividad física o verbal">Agresividad física o verbal</option>
+                        <option value="Indisciplina en el aula">Indisciplina en el aula</option>
                         <option value="Tardanzas frecuentes">Tardanzas frecuentes</option>
-                        <option value="Bajo rendimiento académico">Bajo rendimiento académico</option>
-                        <option value="Seguimiento de acuerdos previos">Seguimiento de acuerdos previos</option>
-                        <option value="Problemas de convivencia">Problemas de convivencia</option>
-                        <option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
+                        <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
+                        <option value="Uso de lenguaje obsceno o soez">Uso de lenguaje obsceno o soez</option>
+                        <option value="Faltas frecuentes por uniformidad">Faltas frecuentes por uniformidad</option>
+                        <option value="Presentación personal (corte de pelo, uso correcto del uniforme)">Presentación personal (corte de pelo, uso correcto del uniforme)</option>
+                        <option value="Presentación personal (uñas postizas, maquillaje, tintes o mechones)">Presentación personal (uñas postizas, maquillaje, tintes o mechones)</option>
+                        <option value="Agresión verbal">Agresión verbal</option>
                         <option value="Bullying">Bullying</option>
-                        <option value="Cyber Bullying">Cyber Bullying</option>
-                        <option value="Uso de dispositivos sin autorización">Uso de dispositivos sin autorización</option>
-                        <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
-                        <option value="Faltas frecuentes a la uniformidad">Faltas frecuentes a la uniformidad</option>
-                        <option value="Presentación personal">Presentación personal</option>
+                        <option value="Falta de respeto a compañero/a">Falta de respeto a compañero/a</option>
                         <option value="Falta de respeto a maestro/a">Falta de respeto a maestro/a</option>
                         <option value="Falta de respeto a personal administrativo o de apoyo">Falta de respeto a personal administrativo o de apoyo</option>
+                        <option value="Desafío a la autoridad">Desafío a la autoridad</option>
+                        <option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
+                        <option value="Daño a pertenencia de compañero/a">Daño a pertenencia de compañero/a</option>
+                        <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
+                        <option value="Fraude académico / copia en evaluaciones">Fraude académico / copia en evaluaciones</option>
+                        <option value="Conducta inapropiada en actos cívicos o actividades institucionales">Conducta inapropiada en actos cívicos o actividades institucionales</option>
+                        <option value="Agresión física">Agresión física</option>
+                        <option value="Cyberbullying">Cyberbullying</option>
+                        <option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
+                        <option value="Consumo o portación de sustancias prohibidas">Consumo o portación de sustancias prohibidas</option>
+                        <option value="Portación de objetos peligrosos o prohibidos">Portación de objetos peligrosos o prohibidos</option>
+                        <option value="Falsificación de firma o documentos">Falsificación de firma o documentos</option>
                         <option value="Otro">Otro</option>
                     </select>
                     <input type="text" id="motivoReunionOtro" placeholder="Escriba el motivo de la reunión..." style="width:100%;margin-top:8px;display:none;">
@@ -6849,6 +6858,13 @@ function onCambioMotivoReunion() {
 // seleccionado ha llegado tarde (año escolar activo), sin borrar lo ya escrito.
 // Acuerdos sugeridos por motivo de la reunión (texto fijo aprobado por el centro)
 const ACUERDOS_POR_MOTIVO = {
+    'Indisciplina en el aula': [
+        'El estudiante se compromete a mantener una conducta disciplinada y respetuosa, siguiendo las indicaciones del docente durante el desarrollo de las clases.',
+        'El estudiante respetará las normas del aula y evitará interrumpir el proceso de enseñanza-aprendizaje de sus compañeros.',
+        'El padre/madre o tutor dará seguimiento en casa a la conducta del estudiante y reforzará la importancia de la disciplina y el respeto.',
+        'La UGC, junto con los docentes, observará la conducta del estudiante durante las próximas semanas y registrará cualquier nueva incidencia.',
+        'De persistir la indisciplina, se aplicarán las medidas contempladas en el Manual de Convivencia y se convocará a una nueva reunión de seguimiento.'
+    ],
     'Tardanzas frecuentes': [
         'El padre/madre o tutor se compromete a garantizar la llegada puntual del estudiante al centro, respetando el horario de entrada establecido.',
         'La familia revisará y ajustará la rutina matutina (hora de dormir, preparación la noche anterior, transporte) para evitar nuevas tardanzas.',
@@ -6856,47 +6872,47 @@ const ACUERDOS_POR_MOTIVO = {
         'La UGC dará seguimiento a la asistencia del estudiante durante las próximas semanas y registrará cualquier nueva tardanza.',
         'Se informará a la familia si persisten las tardanzas, pudiendo aplicarse las medidas contempladas en el Manual de Convivencia.'
     ],
-    'Comportamiento en clase': [
-        'El estudiante se compromete a mantener una conducta respetuosa y a seguir las indicaciones del docente durante el desarrollo de las clases.',
-        'El estudiante respetará las normas del aula y evitará interrumpir el proceso de enseñanza-aprendizaje de sus compañeros.',
-        'El padre/madre o tutor dará seguimiento en casa a la conducta del estudiante y reforzará la importancia del respeto y la disciplina.',
-        'La UGC, junto con los docentes, observará la conducta del estudiante durante las próximas semanas y registrará cualquier nueva incidencia.',
-        'De persistir la situación, se aplicarán las medidas contempladas en el Manual de Convivencia y se convocará a una nueva reunión de seguimiento.'
+    'Uso de dispositivos tecnológicos sin autorización': [
+        'El estudiante se compromete a no utilizar dispositivos electrónicos dentro del centro sin la debida autorización.',
+        'El estudiante mantendrá el dispositivo apagado o guardado durante la jornada, según las normas establecidas por el centro.',
+        'El padre/madre o tutor apoyará el cumplimiento de esta norma y reforzará en casa el uso responsable de los dispositivos.',
+        'La UGC dará seguimiento al cumplimiento de este acuerdo durante las próximas semanas.',
+        'De reincidir, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
-    'Bajo rendimiento académico': [
-        'El estudiante se compromete a cumplir con sus tareas, asignaciones y a participar activamente en clase.',
-        'El estudiante establecerá un horario de estudio en casa y se pondrá al día con los contenidos y evaluaciones pendientes.',
-        'El padre/madre o tutor supervisará el cumplimiento de las tareas y mantendrá comunicación constante con los docentes y la UGC.',
-        'El centro brindará el acompañamiento y las orientaciones necesarias para apoyar la mejora del rendimiento del estudiante.',
-        'Se dará seguimiento al progreso académico y se convocará a una nueva reunión para evaluar los avances en el plazo establecido.'
+    'Uso de lenguaje obsceno o soez': [
+        'El estudiante se compromete a expresarse con respeto y a eliminar de su vocabulario el uso de lenguaje obsceno o soez dentro del centro.',
+        'El estudiante mantendrá un trato cordial y respetuoso hacia sus compañeros, docentes y demás miembros de la comunidad educativa.',
+        'El padre/madre o tutor reforzará en casa los valores de respeto y buena comunicación.',
+        'La UGC dará seguimiento a la conducta del estudiante y, de ser necesario, le ofrecerá orientación.',
+        'De repetirse la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
-    'Agresividad física o verbal': [
+    'Faltas frecuentes por uniformidad': [
+        'El estudiante se compromete a asistir al centro con el uniforme completo y correcto, según lo establecido por la institución.',
+        'El padre/madre o tutor velará por que el estudiante cuente con el uniforme adecuado y lo porte correctamente cada día.',
+        'El estudiante mantendrá el uniforme limpio y en buen estado como muestra de respeto a la institución.',
+        'La UGC dará seguimiento al cumplimiento de la uniformidad durante las próximas semanas y registrará cualquier nueva falta.',
+        'De persistir las faltas, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Presentación personal (corte de pelo, uso correcto del uniforme)': [
+        'El estudiante se compromete a mantener una presentación personal adecuada, con el corte de pelo y el uso correcto del uniforme según las normas establecidas por el centro.',
+        'El estudiante portará el uniforme completo, limpio y en buen estado como muestra de respeto a la institución.',
+        'El padre/madre o tutor apoyará y supervisará el cumplimiento de las normas de presentación personal del estudiante.',
+        'La UGC dará seguimiento al cumplimiento de este acuerdo y orientará al estudiante cuando sea necesario.',
+        'De persistir la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Presentación personal (uñas postizas, maquillaje, tintes o mechones)': [
+        'El estudiante se compromete a asistir al centro sin uñas postizas, maquillaje, tintes o mechones no permitidos, de acuerdo con las normas de imagen establecidas por la institución.',
+        'El estudiante mantendrá una presentación personal sobria y acorde con el reglamento del centro.',
+        'El padre/madre o tutor apoyará y supervisará el cumplimiento de estas normas de presentación personal.',
+        'La UGC dará seguimiento al cumplimiento de este acuerdo y orientará al estudiante cuando sea necesario.',
+        'De persistir la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Agresión verbal': [
         'El estudiante se compromete a mantener un trato respetuoso hacia sus compañeros, docentes y demás miembros de la comunidad educativa.',
-        'El estudiante evitará todo tipo de agresión física o verbal y buscará resolver los conflictos de manera pacífica y dialogada.',
+        'El estudiante evitará toda agresión verbal (insultos, burlas o amenazas) y buscará resolver los conflictos de manera pacífica y dialogada.',
         'El padre/madre o tutor reforzará en casa los valores de respeto, tolerancia y sana convivencia.',
         'La UGC dará acompañamiento al estudiante y, de considerarse necesario, derivará el caso a orientación psicológica.',
         'De repetirse la conducta, se aplicarán las medidas disciplinarias contempladas en el Manual de Convivencia.'
-    ],
-    'Problemas de convivencia': [
-        'El estudiante se compromete a contribuir a un ambiente de respeto y sana convivencia dentro del centro educativo.',
-        'El estudiante evitará conductas que afecten la armonía del grupo y cumplirá con las normas de convivencia establecidas.',
-        'El padre/madre o tutor acompañará al estudiante en el fortalecimiento de sus relaciones interpersonales y el respeto hacia los demás.',
-        'La UGC dará seguimiento a la convivencia del estudiante y ofrecerá las orientaciones necesarias para mejorar la situación.',
-        'De continuar los inconvenientes, se aplicarán las medidas previstas en el Manual de Convivencia y se convocará a una nueva reunión.'
-    ],
-    'Seguimiento de acuerdos previos': [
-        'Se revisaron los acuerdos establecidos en la reunión anterior y se verificó su nivel de cumplimiento por parte del estudiante y la familia.',
-        'El estudiante y el padre/madre o tutor reconocen los avances alcanzados y se comprometen a mantener las conductas y hábitos positivos logrados.',
-        'El estudiante y la familia se comprometen a cumplir los acuerdos que aún están pendientes, en el plazo establecido por el centro.',
-        'La UGC continuará dando seguimiento al caso y registrará el cumplimiento o incumplimiento de los compromisos asumidos.',
-        'De no evidenciarse mejoría ni cumplimiento de los acuerdos, se aplicarán las medidas contempladas en el Manual de Convivencia.'
-    ],
-    'Daño a mobiliario de la escuela': [
-        'El estudiante reconoce la falta cometida y se compromete a cuidar y hacer buen uso del mobiliario y las instalaciones del centro.',
-        'El padre/madre o tutor se compromete a reparar o reponer el daño ocasionado, según lo que determine el centro.',
-        'El estudiante se compromete a no repetir conductas que dañen los bienes de la escuela ni los de sus compañeros.',
-        'La UGC dará seguimiento a la conducta del estudiante y verificará el cumplimiento de la reparación acordada.',
-        'De repetirse la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
     'Bullying': [
         'El estudiante se compromete a cesar de inmediato toda conducta de acoso, intimidación o maltrato hacia sus compañeros.',
@@ -6905,19 +6921,47 @@ const ACUERDOS_POR_MOTIVO = {
         'La UGC dará seguimiento al caso, brindará acompañamiento al estudiante afectado y, de ser necesario, derivará a orientación psicológica.',
         'De persistir el acoso, se aplicarán las medidas disciplinarias contempladas en el Manual de Convivencia.'
     ],
-    'Cyber Bullying': [
-        'El estudiante se compromete a eliminar el contenido ofensivo y a cesar toda conducta de acoso o intimidación a través de medios digitales.',
-        'El estudiante hará un uso responsable y respetuoso de las redes sociales y las plataformas digitales.',
-        'El padre/madre o tutor supervisará el uso que el estudiante hace de los dispositivos e internet, y reforzará las normas de convivencia digital.',
-        'La UGC dará seguimiento al caso, brindará acompañamiento al estudiante afectado y orientará sobre el uso seguro de las tecnologías.',
-        'De repetirse la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    'Falta de respeto a compañero/a': [
+        'El estudiante se compromete a mantener un trato respetuoso y cordial hacia sus compañeros/as.',
+        'El estudiante evitará burlas, ofensas o cualquier conducta que afecte la dignidad de sus compañeros/as.',
+        'El padre/madre o tutor reforzará en casa los valores de respeto, empatía y sana convivencia.',
+        'La UGC dará seguimiento a la conducta del estudiante y, de ser necesario, lo derivará a orientación.',
+        'De repetirse la falta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
-    'Uso de dispositivos sin autorización': [
-        'El estudiante se compromete a no utilizar dispositivos electrónicos dentro del centro sin la debida autorización.',
-        'El estudiante mantendrá el dispositivo apagado o guardado durante la jornada, según las normas establecidas por el centro.',
-        'El padre/madre o tutor apoyará el cumplimiento de esta norma y reforzará en casa el uso responsable de los dispositivos.',
-        'La UGC dará seguimiento al cumplimiento de este acuerdo durante las próximas semanas.',
-        'De reincidir, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    'Falta de respeto a maestro/a': [
+        'El estudiante se compromete a mantener un trato respetuoso hacia sus maestros/as y a acatar sus indicaciones.',
+        'El estudiante evitará responder de forma irrespetuosa, desafiante u ofensiva hacia el personal docente.',
+        'El padre/madre o tutor reforzará en casa la importancia del respeto a la autoridad y al personal del centro.',
+        'La UGC dará seguimiento a la conducta del estudiante y, de ser necesario, lo derivará a orientación.',
+        'De repetirse la falta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Falta de respeto a personal administrativo o de apoyo': [
+        'El estudiante se compromete a mantener un trato respetuoso hacia el personal administrativo y de apoyo del centro.',
+        'El estudiante reconocerá y valorará la labor de todo el personal de la institución, dirigiéndose a ellos con cortesía.',
+        'El padre/madre o tutor reforzará en casa la importancia del respeto hacia todos los miembros de la comunidad educativa.',
+        'La UGC dará seguimiento a la conducta del estudiante y, de ser necesario, lo derivará a orientación.',
+        'De repetirse la falta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Desafío a la autoridad': [
+        'El estudiante se compromete a acatar las indicaciones y disposiciones del personal docente, administrativo y directivo del centro.',
+        'El estudiante evitará conductas desafiantes o de desobediencia ante las normas e instrucciones de la institución.',
+        'El padre/madre o tutor reforzará en casa el respeto a la autoridad y el cumplimiento de las normas.',
+        'La UGC dará seguimiento a la conducta del estudiante y, de considerarse necesario, lo derivará a orientación psicológica.',
+        'De persistir la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Daño a mobiliario de la escuela': [
+        'El estudiante reconoce la falta cometida y se compromete a cuidar y hacer buen uso del mobiliario y las instalaciones del centro.',
+        'El padre/madre o tutor se compromete a reparar o reponer el daño ocasionado, según lo que determine el centro.',
+        'El estudiante se compromete a no repetir conductas que dañen los bienes de la escuela ni los de sus compañeros.',
+        'La UGC dará seguimiento a la conducta del estudiante y verificará el cumplimiento de la reparación acordada.',
+        'De repetirse la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Daño a pertenencia de compañero/a': [
+        'El estudiante reconoce la falta cometida y se compromete a respetar y cuidar las pertenencias de sus compañeros/as.',
+        'El padre/madre o tutor se compromete a reparar o reponer el daño ocasionado, según lo que determine el centro.',
+        'El estudiante se compromete a no repetir conductas que dañen los bienes de sus compañeros/as.',
+        'La UGC dará seguimiento a la conducta del estudiante y verificará el cumplimiento de la reparación acordada.',
+        'De repetirse la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
     'Uso inadecuado de redes sociales': [
         'El estudiante se compromete a hacer un uso responsable y respetuoso de las redes sociales, dentro y fuera del centro.',
@@ -6926,19 +6970,61 @@ const ACUERDOS_POR_MOTIVO = {
         'La UGC orientará al estudiante sobre el uso seguro y responsable de las redes sociales y dará seguimiento a la situación.',
         'De persistir la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
-    'Faltas frecuentes a la uniformidad': [
-        'El estudiante se compromete a asistir al centro con el uniforme completo y correcto, según lo establecido por la institución.',
-        'El padre/madre o tutor velará por que el estudiante cuente con el uniforme adecuado y lo porte correctamente cada día.',
-        'El estudiante mantendrá el uniforme limpio y en buen estado como muestra de respeto a la institución.',
-        'La UGC dará seguimiento al cumplimiento de la uniformidad durante las próximas semanas y registrará cualquier nueva falta.',
-        'De persistir las faltas, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    'Fraude académico / copia en evaluaciones': [
+        'El estudiante reconoce la falta cometida y se compromete a actuar con honestidad en todas sus evaluaciones y asignaciones.',
+        'El estudiante evitará copiar, plagiar o utilizar medios no permitidos durante las evaluaciones.',
+        'El padre/madre o tutor reforzará en casa los valores de honestidad, responsabilidad y esfuerzo personal.',
+        'La UGC y los docentes darán seguimiento al desempeño del estudiante y aplicarán los criterios de evaluación correspondientes a la falta.',
+        'De repetirse la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ],
-    'Presentación personal': [
-        'El estudiante se compromete a mantener una presentación personal adecuada, de acuerdo con las normas de aseo e imagen establecidas por el centro.',
-        'El estudiante cuidará su higiene y su arreglo personal como parte de su formación integral.',
-        'El padre/madre o tutor apoyará y supervisará el cumplimiento de las normas de presentación personal del estudiante.',
-        'La UGC dará seguimiento al cumplimiento de este acuerdo y orientará al estudiante cuando sea necesario.',
-        'De persistir la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    'Conducta inapropiada en actos cívicos o actividades institucionales': [
+        'El estudiante se compromete a mantener una conducta respetuosa y apropiada durante los actos cívicos y las actividades institucionales.',
+        'El estudiante participará con orden y respeto, evitando conductas que interrumpan o desluzcan dichas actividades.',
+        'El padre/madre o tutor reforzará en casa la importancia del respeto a los símbolos patrios y a las actividades del centro.',
+        'La UGC dará seguimiento a la conducta del estudiante en futuras actividades institucionales.',
+        'De repetirse la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Agresión física': [
+        'El estudiante se compromete a mantener un trato respetuoso y pacífico hacia sus compañeros, docentes y demás miembros de la comunidad educativa.',
+        'El estudiante evitará toda agresión física (golpes, empujones u otras formas de violencia) y buscará resolver los conflictos de manera dialogada.',
+        'El padre/madre o tutor reforzará en casa los valores de respeto, autocontrol y sana convivencia.',
+        'La UGC dará acompañamiento al estudiante y, de considerarse necesario, derivará el caso a orientación psicológica.',
+        'De repetirse la conducta, se aplicarán las medidas disciplinarias contempladas en el Manual de Convivencia.'
+    ],
+    'Cyberbullying': [
+        'El estudiante se compromete a eliminar el contenido ofensivo y a cesar toda conducta de acoso o intimidación a través de medios digitales.',
+        'El estudiante hará un uso responsable y respetuoso de las redes sociales y las plataformas digitales.',
+        'El padre/madre o tutor supervisará el uso que el estudiante hace de los dispositivos e internet, y reforzará las normas de convivencia digital.',
+        'La UGC dará seguimiento al caso, brindará acompañamiento al estudiante afectado y orientará sobre el uso seguro de las tecnologías.',
+        'De repetirse la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Salida del centro sin autorización': [
+        'El estudiante reconoce la falta cometida y se compromete a permanecer dentro del centro durante toda la jornada escolar.',
+        'El estudiante no abandonará las instalaciones sin la debida autorización de las autoridades del centro y de su padre/madre o tutor.',
+        'El padre/madre o tutor reforzará en casa la importancia de permanecer en el centro y de respetar las normas de seguridad.',
+        'La UGC dará seguimiento a la asistencia y permanencia del estudiante durante las próximas semanas.',
+        'De repetirse la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Consumo o portación de sustancias prohibidas': [
+        'El estudiante reconoce la gravedad de la falta y se compromete a no consumir ni portar sustancias prohibidas dentro ni fuera del centro.',
+        'El estudiante acepta participar en los procesos de orientación y acompañamiento que determine la institución.',
+        'El padre/madre o tutor se compromete a dar seguimiento cercano al estudiante y a colaborar con el centro en su acompañamiento.',
+        'La UGC dará seguimiento al caso y, de considerarse necesario, lo derivará a orientación psicológica o a las instancias correspondientes.',
+        'De repetirse la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Portación de objetos peligrosos o prohibidos': [
+        'El estudiante reconoce la falta cometida y se compromete a no portar objetos peligrosos o prohibidos dentro del centro.',
+        'El estudiante entregará cualquier objeto de este tipo a las autoridades del centro y respetará las normas de seguridad.',
+        'El padre/madre o tutor reforzará en casa la importancia de la seguridad y supervisará los objetos que el estudiante trae al centro.',
+        'La UGC dará seguimiento a la conducta del estudiante durante las próximas semanas.',
+        'De repetirse la situación, se aplicarán las medidas contempladas en el Manual de Convivencia.'
+    ],
+    'Falsificación de firma o documentos': [
+        'El estudiante reconoce la falta cometida y se compromete a actuar con honestidad, absteniéndose de falsificar firmas o documentos.',
+        'El estudiante se compromete a manejar de forma responsable y veraz las comunicaciones entre el centro y la familia.',
+        'El padre/madre o tutor reforzará en casa los valores de honestidad y responsabilidad, y verificará las comunicaciones del centro.',
+        'La UGC dará seguimiento a la conducta del estudiante y verificará la autenticidad de los documentos presentados.',
+        'De repetirse la conducta, se aplicarán las medidas contempladas en el Manual de Convivencia.'
     ]
 };
 
