@@ -550,13 +550,43 @@ function crearModalIncidencias() {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Tipo de Falta *</label>
-                        <select id="tipoFalta" required>
-                            <option value="">Seleccione</option>
-                            <option value="Leve">Falta Leve</option>
-                            <option value="Grave">Falta Grave</option>
-                            <option value="Muy Grave">Falta Muy Grave</option>
+                        <label>Tipo de Conducta *</label>
+                        <select id="tipoConducta" required onchange="onCambioTipoConducta()">
+                            <option value="">Seleccione el tipo</option>
+                            <optgroup label="FALTAS LEVES">
+                                <option value="Llegada tarde al aula">Llegada tarde al aula</option>
+                                <option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
+                                <option value="Indisciplina en el aula">Indisciplina en el aula</option>
+                                <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
+                                <option value="Uso de lenguaje obsceno o soez">Uso de lenguaje obsceno o soez</option>
+                                <option value="Faltas frecuentes por uniformidad">Faltas frecuentes por uniformidad</option>
+                                <option value="Presentación personal (corte de pelo, uso correcto del uniforme)">Presentación personal (corte de pelo, uso correcto del uniforme)</option>
+                                <option value="Presentación personal (uñas postizas, maquillaje, tintes o mechones)">Presentación personal (uñas postizas, maquillaje, tintes o mechones)</option>
+                            </optgroup>
+                            <optgroup label="FALTAS GRAVES">
+                                <option value="Agresión verbal">Agresión verbal</option>
+                                <option value="Bullying">Bullying</option>
+                                <option value="Falta de respeto a compañero/a">Falta de respeto a compañero/a</option>
+                                <option value="Falta de respeto a maestro/a">Falta de respeto a maestro/a</option>
+                                <option value="Falta de respeto a personal administrativo o de apoyo">Falta de respeto a personal administrativo o de apoyo</option>
+                                <option value="Desafío a la autoridad">Desafío a la autoridad</option>
+                                <option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
+                                <option value="Daño a pertenencia de compañero/a">Daño a pertenencia de compañero/a</option>
+                                <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
+                                <option value="Fraude académico / copia en evaluaciones">Fraude académico / copia en evaluaciones</option>
+                                <option value="Conducta inapropiada en actos cívicos o actividades institucionales">Conducta inapropiada en actos cívicos o actividades institucionales</option>
+                            </optgroup>
+                            <optgroup label="FALTAS MUY GRAVES">
+                                <option value="Agresión física">Agresión física</option>
+                                <option value="Cyberbullying">Cyberbullying</option>
+                                <option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
+                                <option value="Consumo o portación de sustancias prohibidas">Consumo o portación de sustancias prohibidas</option>
+                                <option value="Portación de objetos peligrosos o prohibidos">Portación de objetos peligrosos o prohibidos</option>
+                                <option value="Falsificación de firma o documentos">Falsificación de firma o documentos</option>
+                            </optgroup>
+                            <option value="Otros">Otros (especificar)</option>
                         </select>
+                        <input type="text" id="tipoConductaOtro" placeholder="Escriba el tipo de conducta..." style="width:100%;margin-top:8px;display:none;">
                     </div>
                 </div>
                 <div class="form-row">
@@ -565,27 +595,13 @@ function crearModalIncidencias() {
                         <input type="text" id="docenteReporta" required>
                     </div>
                     <div class="form-group">
-                        <label>Tipo de Conducta *</label>
-                        <select id="tipoConducta" required onchange="toggleTipoConductaOtro()">
-                            <option value="">Seleccione el tipo</option>
-                            <option value="Agresión física">Agresión física</option>
-                            <option value="Agresión verbal">Agresión verbal</option>
-                            <option value="Bullying">Bullying</option>
-                            <option value="Cyber bullying">Cyber bullying</option>
-                            <option value="Indisciplina en el aula">Indisciplina en el aula</option>
-                            <option value="Llegada tarde al aula">Llegada tarde al aula</option>
-                            <option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
-                            <option value="Falta de respeto a compañeros">Falta de respeto a compañeros</option>
-                            <option value="Falta de respeto al maestro/a">Falta de respeto al maestro/a</option>
-                            <option value="Desafío de la autoridad">Desafío de la autoridad</option>
-                            <option value="Reincidencia por uniformidad">Reincidencia por uniformidad</option>
-                            <option value="Corte de pelo no permitido">Corte de pelo no permitido</option>
-                            <option value="Peinado no permitido">Peinado no permitido</option>
-                            <option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
-                            <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
-                            <option value="Otros">Otros</option>
+                        <label>Tipo de Falta *</label>
+                        <select id="tipoFalta" required>
+                            <option value="">Seleccione</option>
+                            <option value="Leve">Falta Leve</option>
+                            <option value="Grave">Falta Grave</option>
+                            <option value="Muy Grave">Falta Muy Grave</option>
                         </select>
-                        <input type="text" id="tipoConductaOtro" placeholder="Escriba el tipo de conducta..." style="width:100%;margin-top:8px;display:none;">
                     </div>
                 </div>
                 <div class="form-group">
@@ -4919,9 +4935,10 @@ function mostrarEstadisticasMes(mes, año) {
         (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Bullying'
     ).length;
     
-    const cyberBullying = incidenciasMes.filter(i => 
-        (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '') === 'Cyber bullying'
-    ).length;
+    const cyberBullying = incidenciasMes.filter(i => {
+        const _tc = (i['Tipo de Conducta'] || i['tipo de conducta'] || i['tipoConducta'] || '');
+        return _tc === 'Cyber bullying' || _tc === 'Cyberbullying';
+    }).length;
     
     // Actualizar interfaz
     const elemFisica = document.getElementById('historialAgresionFisica');
@@ -6738,6 +6755,54 @@ function toggleTipoConductaOtro() {
         otro.style.display = 'none';
         otro.value = '';
     }
+}
+
+// Mapa que clasifica cada Tipo de Conducta en su Tipo de Falta (Leve / Grave / Muy Grave)
+const MAPA_CONDUCTA_FALTA = {
+    // FALTAS LEVES
+    'Llegada tarde al aula': 'Leve',
+    'Salir sin permiso del aula': 'Leve',
+    'Indisciplina en el aula': 'Leve',
+    'Uso de dispositivos tecnológicos sin autorización': 'Leve',
+    'Uso de lenguaje obsceno o soez': 'Leve',
+    'Faltas frecuentes por uniformidad': 'Leve',
+    'Presentación personal (corte de pelo, uso correcto del uniforme)': 'Leve',
+    'Presentación personal (uñas postizas, maquillaje, tintes o mechones)': 'Leve',
+    // FALTAS GRAVES
+    'Agresión verbal': 'Grave',
+    'Bullying': 'Grave',
+    'Falta de respeto a compañero/a': 'Grave',
+    'Falta de respeto a maestro/a': 'Grave',
+    'Falta de respeto a personal administrativo o de apoyo': 'Grave',
+    'Desafío a la autoridad': 'Grave',
+    'Daño a mobiliario de la escuela': 'Grave',
+    'Daño a pertenencia de compañero/a': 'Grave',
+    'Uso inadecuado de redes sociales': 'Grave',
+    'Fraude académico / copia en evaluaciones': 'Grave',
+    'Conducta inapropiada en actos cívicos o actividades institucionales': 'Grave',
+    // FALTAS MUY GRAVES
+    'Agresión física': 'Muy Grave',
+    'Cyberbullying': 'Muy Grave',
+    'Salida del centro sin autorización': 'Muy Grave',
+    'Consumo o portación de sustancias prohibidas': 'Muy Grave',
+    'Portación de objetos peligrosos o prohibidos': 'Muy Grave',
+    'Falsificación de firma o documentos': 'Muy Grave'
+};
+
+// Al elegir el Tipo de Conducta: autollena el Tipo de Falta según la categoría
+// y muestra/oculta el campo libre cuando se elige "Otros".
+function onCambioTipoConducta() {
+    const selCond = document.getElementById('tipoConducta');
+    const selFalta = document.getElementById('tipoFalta');
+    if (selCond && selFalta) {
+        const falta = MAPA_CONDUCTA_FALTA[selCond.value];
+        if (falta) {
+            // Conducta categorizada: autollenar el Tipo de Falta
+            selFalta.value = falta;
+        }
+        // Si es "Otros" (o vacío), se deja el Tipo de Falta como está para elección manual
+    }
+    toggleTipoConductaOtro();
 }
 
 function toggleMotivoReunionOtro() {
