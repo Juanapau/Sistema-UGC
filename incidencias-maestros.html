@@ -310,21 +310,51 @@ autocomplete="off"
 </div>
 
 <div class="form-group">
-<label for="tipoFalta">Tipo de Falta <span class="required">*</span></label>
-<select id="tipoFalta" required>
+<label for="tipoConducta">Tipo de Conducta <span class="required">*</span></label>
+<select id="tipoConducta" required onchange="onCambioTipoConducta()">
 <option value="">Seleccione el tipo</option>
-<option value="Leve">Leve</option>
-<option value="Grave">Grave</option>
-<option value="Muy Grave">Muy Grave</option>
+<optgroup label="FALTAS LEVES">
+<option value="Llegada tarde al aula">Llegada tarde al aula</option>
+<option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
+<option value="Indisciplina en el aula">Indisciplina en el aula</option>
+<option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
+<option value="Uso de lenguaje obsceno o soez">Uso de lenguaje obsceno o soez</option>
+<option value="Faltas frecuentes por uniformidad">Faltas frecuentes por uniformidad</option>
+<option value="Presentación personal (corte de pelo, uso correcto del uniforme)">Presentación personal (corte de pelo, uso correcto del uniforme)</option>
+<option value="Presentación personal (uñas postizas, maquillaje, tintes o mechones)">Presentación personal (uñas postizas, maquillaje, tintes o mechones)</option>
+</optgroup>
+<optgroup label="FALTAS GRAVES">
+<option value="Agresión verbal">Agresión verbal</option>
+<option value="Bullying">Bullying</option>
+<option value="Falta de respeto a compañero/a">Falta de respeto a compañero/a</option>
+<option value="Falta de respeto a maestro/a">Falta de respeto a maestro/a</option>
+<option value="Falta de respeto a personal administrativo o de apoyo">Falta de respeto a personal administrativo o de apoyo</option>
+<option value="Desafío a la autoridad">Desafío a la autoridad</option>
+<option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
+<option value="Daño a pertenencia de compañero/a">Daño a pertenencia de compañero/a</option>
+<option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
+<option value="Fraude académico / copia en evaluaciones">Fraude académico / copia en evaluaciones</option>
+<option value="Conducta inapropiada en actos cívicos o actividades institucionales">Conducta inapropiada en actos cívicos o actividades institucionales</option>
+</optgroup>
+<optgroup label="FALTAS MUY GRAVES">
+<option value="Agresión física">Agresión física</option>
+<option value="Cyberbullying">Cyberbullying</option>
+<option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
+<option value="Consumo o portación de sustancias prohibidas">Consumo o portación de sustancias prohibidas</option>
+<option value="Portación de objetos peligrosos o prohibidos">Portación de objetos peligrosos o prohibidos</option>
+<option value="Falsificación de firma o documentos">Falsificación de firma o documentos</option>
+</optgroup>
+<option value="Otros">Otros (especificar)</option>
 </select>
+<input type="text" id="tipoConductaOtro" placeholder="Escriba el tipo de conducta..." style="width:100%;margin-top:8px;display:none;">
 </div>
 
 <div class="form-row">
 <div class="form-group autocomplete-container">
 <label for="docenteReporta">Docente que Reporta <span class="required">*</span></label>
-<input 
-type="text" 
-id="docenteReporta" 
+<input
+type="text"
+id="docenteReporta"
 placeholder="Escriba el nombre del docente..."
 autocomplete="off"
 required
@@ -333,25 +363,12 @@ required
 </div>
 
 <div class="form-group">
-<label for="tipoConducta">Tipo de Conducta <span class="required">*</span></label>
-<select id="tipoConducta" required>
+<label for="tipoFalta">Tipo de Falta <span class="required">*</span></label>
+<select id="tipoFalta" required>
 <option value="">Seleccione el tipo</option>
-<option value="Agresión física">Agresión física</option>
-<option value="Agresión verbal">Agresión verbal</option>
-<option value="Bullying">Bullying</option>
-<option value="Cyber bullying">Cyber bullying</option>
-<option value="Indisciplina en el aula">Indisciplina en el aula</option>
-<option value="Llegada tarde al aula">Llegada tarde al aula</option>
-<option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
-<option value="Falta de respeto a compañeros">Falta de respeto a compañeros</option>
-<option value="Falta de respeto al maestro/a">Falta de respeto al maestro/a</option>
-<option value="Desafío de la autoridad">Desafío de la autoridad</option>
-<option value="Reincidencia por uniformidad">Reincidencia por uniformidad</option>
-<option value="Corte de pelo no permitido">Corte de pelo no permitido</option>
-<option value="Peinado no permitido">Peinado no permitido</option>
-<option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
-<option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
-<option value="Otros">Otros</option>
+<option value="Leve">Leve</option>
+<option value="Grave">Grave</option>
+<option value="Muy Grave">Muy Grave</option>
 </select>
 </div>
 </div>
@@ -420,6 +437,63 @@ window.urlNotificaciones = CONFIG.urlNotificaciones;
 
 let estudiantes = [];
 let docentes = [];
+
+// ==========================================
+// MAPA CONDUCTA → TIPO DE FALTA
+// ==========================================
+// Clasifica cada Tipo de Conducta en su Tipo de Falta (Leve / Grave / Muy Grave)
+const MAPA_CONDUCTA_FALTA = {
+// FALTAS LEVES
+'Llegada tarde al aula': 'Leve',
+'Salir sin permiso del aula': 'Leve',
+'Indisciplina en el aula': 'Leve',
+'Uso de dispositivos tecnológicos sin autorización': 'Leve',
+'Uso de lenguaje obsceno o soez': 'Leve',
+'Faltas frecuentes por uniformidad': 'Leve',
+'Presentación personal (corte de pelo, uso correcto del uniforme)': 'Leve',
+'Presentación personal (uñas postizas, maquillaje, tintes o mechones)': 'Leve',
+// FALTAS GRAVES
+'Agresión verbal': 'Grave',
+'Bullying': 'Grave',
+'Falta de respeto a compañero/a': 'Grave',
+'Falta de respeto a maestro/a': 'Grave',
+'Falta de respeto a personal administrativo o de apoyo': 'Grave',
+'Desafío a la autoridad': 'Grave',
+'Daño a mobiliario de la escuela': 'Grave',
+'Daño a pertenencia de compañero/a': 'Grave',
+'Uso inadecuado de redes sociales': 'Grave',
+'Fraude académico / copia en evaluaciones': 'Grave',
+'Conducta inapropiada en actos cívicos o actividades institucionales': 'Grave',
+// FALTAS MUY GRAVES
+'Agresión física': 'Muy Grave',
+'Cyberbullying': 'Muy Grave',
+'Salida del centro sin autorización': 'Muy Grave',
+'Consumo o portación de sustancias prohibidas': 'Muy Grave',
+'Portación de objetos peligrosos o prohibidos': 'Muy Grave',
+'Falsificación de firma o documentos': 'Muy Grave'
+};
+
+// Al elegir el Tipo de Conducta: autollena el Tipo de Falta según la categoría
+// y muestra/oculta el campo libre cuando se elige "Otros".
+function onCambioTipoConducta() {
+const selCond = document.getElementById('tipoConducta');
+const selFalta = document.getElementById('tipoFalta');
+const otro = document.getElementById('tipoConductaOtro');
+if (selCond && selFalta) {
+const falta = MAPA_CONDUCTA_FALTA[selCond.value];
+if (falta) selFalta.value = falta; // conducta categorizada: autollenar
+// Si es "Otros" (o vacío), el Tipo de Falta se deja para elección manual
+}
+if (otro) {
+if (selCond && selCond.value === 'Otros') {
+otro.style.display = 'block';
+otro.focus();
+} else {
+otro.style.display = 'none';
+otro.value = '';
+}
+}
+}
 
 // ==========================================
 // CARGA DE DOCENTES
@@ -582,13 +656,27 @@ btnSubmit.disabled = true;
 btnSubmit.innerHTML = '<span class="loading"></span> Guardando...';
 
 try {
+// Si el tipo de conducta es "Otros", usar el texto escrito en el campo libre
+let _tipoConducta = document.getElementById('tipoConducta').value;
+if (_tipoConducta === 'Otros') {
+const _otroEl = document.getElementById('tipoConductaOtro');
+const _otro = _otroEl ? _otroEl.value.trim() : '';
+if (!_otro) {
+alert('⚠️ Escriba el tipo de conducta (seleccionó "Otros").');
+btnSubmit.disabled = false;
+btnSubmit.innerHTML = 'Registrar Incidencia';
+return;
+}
+_tipoConducta = _otro;
+}
+
 const datos = {
 'Fecha y Hora': document.getElementById('fechaIncidencia').value,
 'Curso': document.getElementById('cursoIncidencia').value,
 'Nombre Estudiante': document.getElementById('nombreEstudiante').value,
 'Tipo de falta': document.getElementById('tipoFalta').value,
 'Docente': document.getElementById('docenteReporta').value,
-'Tipo de Conducta': document.getElementById('tipoConducta').value,
+'Tipo de Conducta': _tipoConducta,
 'Descripción': document.getElementById('descripcion').value,
 'Acciones Docente': document.getElementById('accionesDocente').value,
 'Año Escolar': ANIO_ACTIVO
