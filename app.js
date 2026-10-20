@@ -10584,7 +10584,7 @@ async function cargarTodosDatosAlInicio() {
     });
     
     // Actualizar alertas después de cargar datos
-    actualizarAlertas();
+    if (typeof actualizarAlertas === 'function') actualizarAlertas();
     
     // Ocultar pantalla de carga con animación
     if (loadingText) loadingText.textContent = '✅ ¡Sistema listo!';
