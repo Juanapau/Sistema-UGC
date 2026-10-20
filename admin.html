@@ -3141,22 +3141,38 @@ header img {
                 <label>⚠️ Tipo de Conducta:</label>
                 <select id="notaTipoConducta" onchange="onCambioNotaTipoConducta()">
                     <option value="">Seleccione el tipo</option>
-                    <option value="Agresión física">Agresión física</option>
-                    <option value="Agresión verbal">Agresión verbal</option>
-                    <option value="Bullying">Bullying</option>
-                    <option value="Cyber bullying">Cyber bullying</option>
-                    <option value="Indisciplina en el aula">Indisciplina en el aula</option>
-                    <option value="Llegada tarde al aula">Llegada tarde al aula</option>
-                    <option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
-                    <option value="Falta de respeto a compañeros">Falta de respeto a compañeros</option>
-                    <option value="Falta de respeto al maestro/a">Falta de respeto al maestro/a</option>
-                    <option value="Desafío de la autoridad">Desafío de la autoridad</option>
-                    <option value="Reincidencia por uniformidad">Reincidencia por uniformidad</option>
-                    <option value="Corte de pelo no permitido">Corte de pelo no permitido</option>
-                    <option value="Peinado no permitido">Peinado no permitido</option>
-                    <option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
-                    <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
-                    <option value="Otros">Otros</option>
+                    <optgroup label="FALTAS LEVES">
+                        <option value="Llegada tarde al aula">Llegada tarde al aula</option>
+                        <option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
+                        <option value="Indisciplina en el aula">Indisciplina en el aula</option>
+                        <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
+                        <option value="Uso de lenguaje obsceno o soez">Uso de lenguaje obsceno o soez</option>
+                        <option value="Faltas frecuentes por uniformidad">Faltas frecuentes por uniformidad</option>
+                        <option value="Presentación personal (corte de pelo, uso correcto del uniforme)">Presentación personal (corte de pelo, uso correcto del uniforme)</option>
+                        <option value="Presentación personal (uñas postizas, maquillaje, tintes o mechones)">Presentación personal (uñas postizas, maquillaje, tintes o mechones)</option>
+                    </optgroup>
+                    <optgroup label="FALTAS GRAVES">
+                        <option value="Agresión verbal">Agresión verbal</option>
+                        <option value="Bullying">Bullying</option>
+                        <option value="Falta de respeto a compañero/a">Falta de respeto a compañero/a</option>
+                        <option value="Falta de respeto a maestro/a">Falta de respeto a maestro/a</option>
+                        <option value="Falta de respeto a personal administrativo o de apoyo">Falta de respeto a personal administrativo o de apoyo</option>
+                        <option value="Desafío a la autoridad">Desafío a la autoridad</option>
+                        <option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
+                        <option value="Daño a pertenencia de compañero/a">Daño a pertenencia de compañero/a</option>
+                        <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
+                        <option value="Fraude académico / copia en evaluaciones">Fraude académico / copia en evaluaciones</option>
+                        <option value="Conducta inapropiada en actos cívicos o actividades institucionales">Conducta inapropiada en actos cívicos o actividades institucionales</option>
+                    </optgroup>
+                    <optgroup label="FALTAS MUY GRAVES">
+                        <option value="Agresión física">Agresión física</option>
+                        <option value="Cyberbullying">Cyberbullying</option>
+                        <option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
+                        <option value="Consumo o portación de sustancias prohibidas">Consumo o portación de sustancias prohibidas</option>
+                        <option value="Portación de objetos peligrosos o prohibidos">Portación de objetos peligrosos o prohibidos</option>
+                        <option value="Falsificación de firma o documentos">Falsificación de firma o documentos</option>
+                    </optgroup>
+                    <option value="Otros">Otros (especificar)</option>
                 </select>
             </div>
             <div class="form-group-nota">
