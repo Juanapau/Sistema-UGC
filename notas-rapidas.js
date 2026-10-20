@@ -1,3456 +1,1653 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <script src="./auth-guard.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema UGC - Unidad de Gestión de la Convivencia</title>
-    <meta name="description" content="Sistema de Control Escolar y Normas de Aula - Unidad de Gestión de la Convivencia">
-    
-    <!-- Favicon para navegadores de escritorio -->
-    <link rel="icon" type="image/png" sizes="64x64" href="./logo.png">
-    <link rel="icon" type="image/png" sizes="48x48" href="./logo.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="./logo.png">
-    <link rel="icon" type="image/png" sizes="24x24" href="./logo.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./logo.png">
-    <link rel="shortcut icon" href="./logo.png">
-    
-    <!-- Windows Metro Tiles -->
-    <meta name="msapplication-TileImage" content="./logo.png">
-    <meta name="msapplication-TileColor" content="#059669">
-    <meta name="msapplication-square70x70logo" content="./logo.png">
-    <meta name="msapplication-square150x150logo" content="./logo.png">
-    <meta name="msapplication-wide310x150logo" content="./logo.png">
-    <meta name="msapplication-square310x310logo" content="./logo.png">
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#059669">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sistema UGC">
-    <link rel="apple-touch-icon" href="./logo.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="./logo.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="./logo.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="./logo.png">
-    <link rel="manifest" href="/Sistema-UGC/manifest.json">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* MODO OSCURO - Variables y estilos base */
-        body.dark-mode {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        }
-
-        /* 🆕 LOGO DE FONDO EN MODO OSCURO */
-        body.dark-mode::before {
-            opacity: 0.08;
-            filter: brightness(0.8);
-        }
-
-        body.dark-mode header {
-            background: linear-gradient(135deg, #0f1b2a 0%, #1a2738 100%);
-            border-bottom: 2px solid #1fe06b;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 12px rgba(31, 224, 107, 0.45);
-        }
-
-        body.dark-mode .card {
-            background: #1e293b;
-            color: #f1f5f9;
-            border-color: #334155;
-        }
-
-        body.dark-mode .card h3 {
-            color: #f1f5f9;
-        }
-
-        /* DASHBOARD: tarjetas de módulos (Etapa 1) */
-        body.dark-mode .module-card {
-            background: #1e293b;
-            border-top-color: #334155;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            position: relative;
-        }
-        /* Solo la franja verde en el borde superior, sin glow alrededor */
-        body.dark-mode .module-card:hover {
-            border-top-color: #1fe06b;
-            box-shadow: 0 12px 48px rgba(0,0,0,0.6);
-        }
-        body.dark-mode .module-card h3 { color: #f1f5f9; }
-        body.dark-mode .module-card p  { color: #94a3b8; }
-        body.dark-mode .module-icon    { color: #4a9eff; }
-
-        body.dark-mode .modal-content {
-            background: #1e293b;
-            color: #f1f5f9;
-        }
-
-        body.dark-mode .modal-header {
-            border-bottom-color: #334155;
-            color: #f1f5f9;
-        }
-
-        body.dark-mode input,
-        body.dark-mode select,
-        body.dark-mode textarea {
-            background: #0f172a;
-            color: #f1f5f9;
-            border-color: #334155;
-        }
-
-        body.dark-mode select option {
-            background: #0f172a;
-            color: #f1f5f9;
-        }
-
-        body.dark-mode input:focus,
-        body.dark-mode select:focus,
-        body.dark-mode textarea:focus {
-            border-color: #10b981;
-        }
-
-        body.dark-mode table {
-            background: #1e293b;
-        }
-
-        body.dark-mode th {
-            background: #334155;
-            color: #f1f5f9;
-        }
-
-        body.dark-mode td {
-            border-color: #334155;
-            color: #f1f5f9;
-        }
-
-        body.dark-mode tr:hover {
-            background: #243246;
-        }
-        /* Filas clicables (onclick): hover/active sutil en oscuro, nunca claro */
-        body.dark-mode table tr[onclick]:hover {
-            background: #243246 !important;
-            box-shadow: none;
-        }
-        body.dark-mode table tr[onclick]:active {
-            background: #2b3a51 !important;
-        }
-
-        body.dark-mode .btn {
-            color: white;
-        }
-
-        /* ============================================================ */
-        /* ETAPA 2 — MODALES Y FORMULARIOS (modo oscuro)                */
-        /* ============================================================ */
-        /* Estructura */
-        body.dark-mode .modal-body { color: #e2e8f0; }
-        body.dark-mode .modal-body h3,
-        body.dark-mode .modal-body h4,
-        body.dark-mode .modal-body h5 { color: #f1f5f9; }
-        body.dark-mode .form-group label { color: #e2e8f0; }
-        body.dark-mode input::placeholder,
-        body.dark-mode textarea::placeholder { color: #64748b; }
-        body.dark-mode .config-section { background: #0f172a; }
-        body.dark-mode .config-section h3 { color: #f1f5f9; }
-        body.dark-mode .search-bar input,
-        body.dark-mode .search-bar select {
-            background: #0f172a; color: #f1f5f9; border-color: #334155;
-        }
-        body.dark-mode .alert-success { background: #064e3b; color: #d1fae5; }
-        body.dark-mode .alert-info    { background: #0c4a6e; color: #e0f2fe; }
-
-        /* Neutralizar estilos EN LÍNEA claros que genera app.js */
-        body.dark-mode [style*="background:#fff"],
-        body.dark-mode [style*="background: #fff"],
-        body.dark-mode [style*="background:#ffffff"],
-        body.dark-mode [style*="background: #ffffff"],
-        body.dark-mode [style*="background:white"],
-        body.dark-mode [style*="background: white"],
-        body.dark-mode [style*="background:#f8f9fa"],
-        body.dark-mode [style*="background: #f8f9fa"],
-        body.dark-mode [style*="background:#f9fafb"],
-        body.dark-mode [style*="background: #f9fafb"] {
-            background: #0f172a !important;
-        }
-        /* Filas/paneles de AVISO: matiz sutil que armoniza con el slate oscuro */
-        body.dark-mode [style*="#fff3cd"] {
-            background-color: #2d2a1d !important;
-            color: #e7e3d4 !important;
-        }
-        body.dark-mode [style*="#f8d7da"] {
-            background-color: #322029 !important;
-            color: #ecd9dd !important;
-        }
-        /* Resumen de tardanzas al registrar: el JS le cambia .style (hex->rgb),
-           así que se apunta por id para que la regla no falle */
-        body.dark-mode #contadorTardanzas {
-            background: #0f172a !important;
-            color: #e2e8f0 !important;
-        }
-        /* Alerta "Estudiantes sin contactos" (Contactos): azul oscuro, borde rojo de aviso */
-        body.dark-mode #alertaSinContactos { background: #0f172a !important; }
-        body.dark-mode #alertaSinContactos strong { color: #fca5a5 !important; }
-        body.dark-mode #alertaSinContactos p { color: #cbd5e1 !important; }
-        body.dark-mode [style*="color:#333"],
-        body.dark-mode [style*="color: #333"],
-        body.dark-mode [style*="color:#666"],
-        body.dark-mode [style*="color: #666"],
-        body.dark-mode [style*="color:#374151"],
-        body.dark-mode [style*="color: #374151"],
-        body.dark-mode [style*="color:#475569"],
-        body.dark-mode [style*="color: #475569"],
-        body.dark-mode [style*="color:#64748b"],
-        body.dark-mode [style*="color: #64748b"],
-        body.dark-mode [style*="color:#6b7280"],
-        body.dark-mode [style*="color: #6b7280"],
-        body.dark-mode [style*="color:#111827"],
-        body.dark-mode [style*="color: #111827"],
-        body.dark-mode [style*="color:#1e293b"],
-        body.dark-mode [style*="color: #1e293b"] {
-            color: #cbd5e1 !important;
-        }
-        body.dark-mode [style*="color:#1e3a5f"],
-        body.dark-mode [style*="color: #1e3a5f"] {
-            color: #93c5fd !important;
-        }
-        body.dark-mode [style*="solid #ccc"],
-        body.dark-mode [style*="solid #d1d5db"],
-        body.dark-mode [style*="solid #e5e7eb"],
-        body.dark-mode [style*="solid #eee"],
-        body.dark-mode [style*="solid #ddd"] {
-            border-color: #334155 !important;
-        }
-
-        /* Autocompletado: hover en oscuro igual que las tablas (el claro ya está definido) */
-        body.dark-mode .sugerencia-item:hover { background: #243246; }
-
-        /* Contenedores de listas de sugerencias (su display lo togglea el JS,
-           por eso se apuntan por prefijo de id en vez de por estilo en línea) */
-        body.dark-mode [id^="sugerencias"] {
-            background: #0f172a !important;
-            border-color: #334155 !important;
-        }
-
-        /* Cuadro "Importar desde Excel": hover oscuro (no claro) */
-        body.dark-mode .file-upload-area:hover {
-            background: #243246;
-            border-color: #4a9eff;
-        }
-
-        /* Consulta de Horarios (Maestros) en oscuro */
-        body.dark-mode [style*="background:#f0fdf4"] {   /* barra EN VIVO */
-            background: #0e2a1e !important;
-            border-color: #1f4a36 !important;
-        }
-        body.dark-mode [style*="background:#f3f4f6"] {   /* "Fuera del horario" */
-            background: #0f172a !important;
-            border-color: #334155 !important;
-        }
-        body.dark-mode [style*="background:#dcfce7"] {   /* insignia de período */
-            background: #14532d !important;
-            color: #bbf7d0 !important;
-        }
-        body.dark-mode [style*="color:#065f46"] { color: #6ee7b7 !important; }  /* reloj */
-        body.dark-mode [style*="color:#555"]    { color: #cbd5e1 !important; }  /* "Selecciona un curso:" */
-
-        /* Tarjetas .stat-card sin estilo (p. ej. salida de reportes) en oscuro */
-        body.dark-mode .stat-card {
-            background: #1e293b;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        }
-        body.dark-mode .stat-card h4 { color: #94a3b8; }
-        body.dark-mode .stat-card .number { color: #4a9eff; }
-
-        /* Resumen General del historial completo del estudiante: fondo oscuro uniforme,
-           se conserva el borde de color de cada tarjeta */
-        /* Resumen General del historial: fondo oscuro uniforme + efecto 3D elevado */
-        /* Resumen General del historial: mismo fondo que los cuadros de Información
-           de Contacto (#0f172a), sin efecto, solo con su borde de color a la izquierda */
-        body.dark-mode .resumen-card { background: #0f172a !important; }
-        body.dark-mode .resumen-card > div:first-child { color: #f1f5f9 !important; }
-
-        /* ============ PANELES LATERALES: Notificaciones, Régimen, Notas ============ */
-        body.dark-mode .notificaciones-panel,
-        body.dark-mode .regimen-panel,
-        body.dark-mode .notas-panel {
-            background: #1e293b;
-            color: #e2e8f0;
-        }
-        /* Notificaciones */
-        body.dark-mode .notif-tabs { background: #0f172a; border-bottom-color: #334155; }
-        body.dark-mode .notif-tab { color: #94a3b8; }
-        body.dark-mode .notif-tab.active { background: #1e293b; color: #34d399; }
-        body.dark-mode .notif-tab:hover:not(.active) { background: #243246; }
-        body.dark-mode .tab-count { background: #334155; color: #cbd5e1; }
-        body.dark-mode .notif-content { background: #1e293b; }
-        body.dark-mode .notif-item { background: #0f172a; border-color: #334155; }
-        body.dark-mode .notif-item.unread { background: #0e2a1e; }
-        body.dark-mode .notif-title { color: #f1f5f9; }
-        body.dark-mode .notif-actions { background: #0f172a; border-top-color: #334155; }
-        body.dark-mode .btn-limpiar { background: #334155; color: #cbd5e1; }
-        body.dark-mode .btn-limpiar:hover { background: #475569; }
-        /* Régimen */
-        body.dark-mode .regimen-controls { background: #0f172a; border-bottom-color: #334155; }
-        body.dark-mode .regimen-search input { background: #0f172a; color: #f1f5f9; border-color: #334155; }
-        body.dark-mode .filter-btn { background: #0f172a; color: #cbd5e1; border-color: #334155; }
-        body.dark-mode .filter-btn:hover { background: #243246; }
-        body.dark-mode .seccion-intro { background: #0f172a; color: #cbd5e1; }
-        body.dark-mode .falta-item { background: #0f172a; border-color: #334155; }
-        body.dark-mode .falta-nombre { color: #f1f5f9; }
-        body.dark-mode .falta-medida { color: #cbd5e1; }
-        body.dark-mode .sancion-lista { background: #0f172a; }
-        body.dark-mode .sancion-lista h4 { color: #f1f5f9; }
-        /* Notas */
-        body.dark-mode .notas-tabs { border-bottom-color: #334155; }
-        body.dark-mode .nota-item { background: #0f172a; border-color: #334155; }
-        body.dark-mode .nota-estudiante { color: #f1f5f9; }
-        body.dark-mode .nota-texto { color: #cbd5e1; }
-        body.dark-mode .form-nueva-nota { background: #0f172a; }
-        body.dark-mode .form-nueva-nota h3 { color: #f1f5f9; }
-        body.dark-mode .form-group-nota label { color: #e2e8f0; }
-        body.dark-mode .form-group-nota input,
-        body.dark-mode .form-group-nota select,
-        body.dark-mode .form-group-nota textarea {
-            background: #1e293b; color: #f1f5f9; border-color: #334155;
-        }
-        /* Toast de notificación emergente */
-        body.dark-mode .notificacion { background: #1e293b; color: #e2e8f0; }
-
-        /* Nota VENCIDA (panel Notas): mismo fondo que las demás, solo conserva su borde rojo */
-        body.dark-mode .nota-vencida {
-            background: #0f172a !important;
-        }
-        body.dark-mode .nota-vencida .nota-header-item { border-bottom-color: #334155; }
-        /* "Nota Importante" del Régimen Disciplinario en oscuro */
-        body.dark-mode .falta-nota {
-            background: #2e2a18;
-            border-left-color: #d97706;
-            color: #e7e3d4;
-        }
-        body.dark-mode .falta-nota strong { color: #fde68a; }
-
-        /* VISTA COMPACTA */
-        body.vista-compacta .card {
-            padding: 15px;
-        }
-
-        body.vista-compacta .form-group {
-            margin-bottom: 10px;
-        }
-
-        body.vista-compacta .modal-body {
-            padding: 15px;
-        }
-
-        body.vista-compacta header {
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        body.vista-compacta header h1 {
-            font-size: 2em;
-        }
-
-        body.vista-compacta .grid {
-            gap: 15px;
-        }
-
-        body.vista-compacta table {
-            font-size: 0.9em;
-        }
-
-        body.vista-compacta th,
-        body.vista-compacta td {
-            padding: 8px;
-        }
-
-        /* SIN ANIMACIONES */
-        body.sin-animaciones * {
-            animation: none !important;
-            transition: none !important;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* 🆕 LOGO DE FONDO COMO MARCA DE AGUA */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 900px;
-            height: 900px;
-            background-image: url('./logo.png');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.15;
-            z-index: 0;
-            pointer-events: none;
-            filter: brightness(1.2);
-        }
-
-        /* Asegurar que el contenido esté por encima del logo */
-        .container {
-            position: relative;
-            z-index: 1;
-        }
-
-        header,
-        .dashboard,
-        .module-card,
-        #modalContainer {
-            position: relative;
-            z-index: 2;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        header {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        .logo-header {
-            position: absolute;
-            top: 15px;
-            left: 30px;
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-        }
-
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            padding-left: 0;
-        }
-
-        header p {
-            padding-left: 0;
-        }
-
-        /* Responsive para tablets y móviles */
-        @media (max-width: 768px) {
-            .logo-header {
-                position: relative;
-                left: 0;
-                top: 0;
-                width: 80px;
-                height: 80px;
-                margin: 0 auto 15px auto;
-                display: block;
-            }
-
-            header {
-                text-align: center;
-                padding: 20px 15px;
-            }
-
-            header h1 {
-                font-size: 1.8em;
-                padding-left: 0;
-            }
-
-            header p {
-                font-size: 0.95em;
-                padding-left: 0;
-            }
-        }
-
-        /* Responsive para móviles pequeños */
-        @media (max-width: 480px) {
-            .logo-header {
-                width: 60px;
-                height: 60px;
-                margin-bottom: 10px;
-            }
-
-            header h1 {
-                font-size: 1.4em;
-            }
-
-            header p {
-                font-size: 0.85em;
-            }
-        }
-
-        header p {
-            font-size: 1.2em;
-            color: #4a9eff;
-        }
-
-        .config-icon {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            font-size: 2em;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .config-icon:hover {
-            background: rgba(74, 158, 255, 0.3);
-            transform: rotate(90deg);
-            color: #4a9eff;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-        }
-
-        .module-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-top: 5px solid #2a5298;
-        }
-
-        .module-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 12px 48px rgba(0,0,0,0.3);
-            border-top-color: #000000;
-        }
-
-        .module-card h3 {
-            color: #000000;
-            font-size: 1.3em;
-            margin-bottom: 10px;
-        }
-
-        .module-card p {
-            color: #666;
-            line-height: 1.4;
-            font-size: 0.9em;
-        }
-
-        .module-icon {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            color: #2a5298;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            overflow-y: auto;
-        }
-
-        .modal-content {
-            background: white;
-            margin: 170px auto 20px;
-            padding: 0;
-            border-radius: 15px;
-            max-width: 1360px;
-            width: 96%;
-            box-shadow: 0 12px 48px rgba(0,0,0,0.4);
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            color: white;
-            padding: 25px 30px;
-            border-radius: 15px 15px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 1.8em;
-        }
-
-        .close {
-            color: white;
-            font-size: 35px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .close:hover {
-            color: #4a9eff;
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            padding: 30px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #000000;
-            font-weight: 600;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #2a5298;
-            box-shadow: 0 0 0 3px rgba(42,82,152,0.1);
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-right: 10px;
-            margin-top: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(42,82,152,0.4);
-        }
-
-        .btn-secondary {
-            background: #000000;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40,167,69,0.4);
-        }
-
-        .search-bar {
-            margin-bottom: 25px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .search-bar input,
-        .search-bar select {
-            flex: 1;
-            min-width: 200px;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-        }
-
-        .table-container {
-            margin-top: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            width: 100%;
-            max-height: 65vh;
-            overflow: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: white;
-        }
-        
-        /* Solo permitir scroll horizontal en móviles y tablets */
-        @media (max-width: 1023px) {
-            .table-container {
-                overflow-x: auto;
-            }
-            table {
-                min-width: 1200px;
-            }
-        }
-        
-        /* En computadoras: la tabla mantiene su propia zona con scroll */
-        @media (min-width: 1024px) {
-            .table-container {
-                overflow: auto;
-            }
-        }
-        
-        /* Ajuste responsive para tablas en pantallas medianas */
-        @media (min-width: 1024px) and (max-width: 1440px) {
-            table {
-                font-size: 0.82em;
-            }
-            table th,
-            table td {
-                padding: 10px 5px;
-            }
-            .btn {
-                font-size: 0.75em !important;
-                padding: 3px 5px !important;
-            }
-        }
-        
-        /* Ajuste para pantallas grandes */
-        @media (min-width: 1441px) {
-            table {
-                font-size: 0.9em;
-            }
-            table th,
-            table td {
-                padding: 11px 8px;
-            }
-        }
-        
-        /* Ajuste para pantallas muy grandes */
-        @media (min-width: 1920px) {
-            table {
-                font-size: 1em;
-            }
-            table th,
-            table td {
-                padding: 12px 12px;
-            }
-        }
-
-        table th {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 5;
-        }
-
-        table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            vertical-align: top;
-        }
-
-        table tr:hover {
-            background: #f8f9fa;
-        }
-
-        table tr[onclick]:hover {
-            background: #e3f2fd;
-            box-shadow: 0 2px 8px rgba(42, 82, 152, 0.1);
-        }
-
-        table tr[onclick]:active {
-            background: #bbdefb;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
-        .badge-leve {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-grave {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-muy-grave {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-info {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .badge-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .alert {
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-            display: block;
-        }
-
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border-left: 4px solid #17a2b8;
-            display: block;
-        }
-
-        .file-upload-area {
-            border: 2px dashed #2a5298;
-            border-radius: 8px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-        }
-
-        .file-upload-area:hover {
-            background: #f0f7ff;
-            border-color: #1e3c72;
-        }
-
-        /* Variante compacta del cuadro de importar (Listado de Estudiantes) */
-        .file-upload-compact {
-            padding: 12px 16px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .stat-card h4 {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-
-        .stat-card .number {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #2a5298;
-        }
-
-        .config-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .config-section h3 {
-            color: #000000;
-            margin-bottom: 15px;
-        }
-
-        .config-section code {
-            background: #000000;
-            color: #4a9eff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-        }
-
-        /* Barra Superior - Búsqueda Global y Alertas */
-        .top-bar {
-            background: white;
-            padding: 15px 30px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .global-search {
-            flex: 1;
-            max-width: 600px;
-            position: relative;
-        }
-
-        .global-search input {
-            width: 100%;
-            padding: 12px 45px 12px 45px;
-            border: 2px solid #e5e7eb;
-            border-radius: 50px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .global-search input:focus {
-            outline: none;
-            border-color: #2a5298;
-            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
-        }
-
-        .global-search .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: #9ca3af;
-        }
-
-        .global-search .clear-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            color: #9ca3af;
-            cursor: pointer;
-            display: none;
-        }
-
-        .global-search .clear-icon:hover {
-            color: #dc2626;
-        }
-
-        .global-search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-top: 10px;
-            max-height: 500px;
-            overflow-y: auto;
-            display: none;
-            z-index: 1000;
-        }
-
-        .search-result-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f3f4f6;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .search-result-item:hover {
-            background: #f9fafb;
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-
-        .search-result-type {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-
-        .search-result-type.incidencia {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .search-result-type.tardanza {
-            background: #fef3c7;
-            color: #f59e0b;
-        }
-
-        .search-result-type.reunion {
-            background: #d1fae5;
-            color: #16a34a;
-        }
-
-        .search-result-type.contacto {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-
-        .search-result-title {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .search-result-meta {
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        /* SISTEMA DE NOTIFICACIONES */
-        .notificaciones-btn {
-            position: relative;
-            background: transparent;
-            color: #059669;
-            border: 2px solid #059669;
-            padding: 0;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.4em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .notificaciones-btn:hover {
-            background: #059669;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
-        }
-
-        .notificaciones-btn:active {
-            transform: translateY(0);
-        }
-
-        .notif-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #dc2626;
-            color: white;
-            border-radius: 50%;
-            min-width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7em;
-            font-weight: bold;
-            border: 2px solid white;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .notif-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 9999;
-        }
-
-        .notif-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .notificaciones-panel {
-            position: fixed;
-            top: 0;
-            right: -450px;
-            width: 450px;
-            height: 100vh;
-            background: white;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
-            transition: right 0.3s ease;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .notificaciones-panel.active {
-            right: 0;
-        }
-
-        .notif-panel-header {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .notif-panel-header h2 {
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .notif-close-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .notif-close-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: rotate(90deg);
-        }
-
-        .notif-tabs {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e5e7eb;
-            flex-shrink: 0;
-        }
-
-        .notif-tab {
-            flex: 1;
-            padding: 15px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            color: #6b7280;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .notif-tab.active {
-            color: #059669;
-            background: white;
-        }
-
-        .notif-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #059669;
-        }
-
-        .notif-tab:hover:not(.active) {
-            background: #f3f4f6;
-        }
-
-        .tab-count {
-            background: #e5e7eb;
-            color: #6b7280;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75em;
-            margin-left: 6px;
-        }
-
-        .notif-tab.active .tab-count {
-            background: #d1fae5;
-            color: #059669;
-        }
-
-        .notif-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .notif-item {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .notif-item:hover {
-            transform: translateX(-5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: #059669;
-        }
-
-        .notif-item.unread {
-            background: #f0fdf4;
-            border-left: 4px solid #059669;
-        }
-
-        .notif-item.unread::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 10px;
-            height: 10px;
-            background: #059669;
-            border-radius: 50%;
-        }
-
-        .notif-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .notif-icon {
-            font-size: 1.5em;
-            margin-right: 10px;
-        }
-
-        .notif-title {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .notif-message {
-            color: #6b7280;
-            font-size: 0.9em;
-            line-height: 1.5;
-            margin-bottom: 8px;
-        }
-
-        .notif-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8em;
-            color: #9ca3af;
-        }
-
-        .notif-time {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .notif-badge-type {
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.75em;
-            font-weight: 600;
-        }
-
-        .badge-urgente {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-importante {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .notif-actions {
-            display: flex;
-            gap: 8px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-top: 1px solid #e5e7eb;
-            flex-shrink: 0;
-        }
-
-        .notif-action-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-marcar-todas {
-            background: #059669;
-            color: white;
-        }
-
-        .btn-marcar-todas:hover {
-            background: #047857;
-        }
-
-        .btn-limpiar {
-            background: #e5e7eb;
-            color: #6b7280;
-        }
-
-        .btn-limpiar:hover {
-            background: #d1d5db;
-        }
-
-        .notif-empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: #9ca3af;
-        }
-
-        .notif-empty-icon {
-            font-size: 4em;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-
-        @media (max-width: 768px) {
-            .notificaciones-panel {
-                width: 100%;
-                right: -100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.8em;
-            }
-
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-
-            .modal-content {
-                margin: 10px;
-                width: calc(100% - 20px);
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .search-bar {
-                flex-direction: column;
-            }
-        }
-
-        /* Estilos para Panel Lateral del Régimen Disciplinario */
-        .btn-regimen {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95em;
-            margin-top: 10px;
-            transition: all 0.3s;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-regimen:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.4);
-        }
-
-        .regimen-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9998;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-
-        .regimen-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .regimen-panel {
-            position: fixed;
-            top: 0;
-            right: -600px;
-            width: 600px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
-            z-index: 9999;
-            transition: right 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .regimen-panel.active {
-            right: 0;
-        }
-
-        .regimen-header {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .regimen-header h2 {
-            margin: 0;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .regimen-close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 1.5em;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .regimen-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .regimen-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        /* Controles del panel */
-        .regimen-controls {
-            padding: 15px;
-            background: #f9fafb;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        .regimen-search {
-            margin-bottom: 12px;
-        }
-
-        .regimen-search input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 0.95em;
-            transition: border-color 0.2s;
-        }
-
-        .regimen-search input:focus {
-            outline: none;
-            border-color: #059669;
-        }
-
-        .regimen-filters {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            flex: 1;
-            min-width: 80px;
-            padding: 8px 12px;
-            border: 2px solid #d1d5db;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85em;
-            transition: all 0.2s;
-        }
-
-        .filter-btn:hover {
-            background: #f3f4f6;
-        }
-
-        .filter-btn.active {
-            background: #059669;
-            color: white;
-            border-color: #059669;
-        }
-
-        /* Secciones de faltas */
-        .falta-seccion {
-            margin-bottom: 30px;
-        }
-
-        .seccion-title {
-            font-size: 1.3em;
-            margin-bottom: 10px;
-            padding: 12px 15px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .seccion-title.leves {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: white;
-        }
-
-        .seccion-title.graves {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-        }
-
-        .seccion-title.muy-graves {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            color: white;
-        }
-
-        .seccion-intro {
-            font-size: 0.95em;
-            color: #6b7280;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f9fafb;
-            border-left: 4px solid #059669;
-            border-radius: 4px;
-        }
-
-        .falta-item {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
-            transition: all 0.2s;
-        }
-
-        .falta-item:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transform: translateX(2px);
-        }
-
-        .falta-nombre {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-            font-size: 1em;
-        }
-
-        .falta-medida {
-            color: #4b5563;
-            line-height: 1.6;
-            font-size: 0.95em;
-            position: relative;
-            padding-right: 50px;
-        }
-
-        .btn-copy {
-            position: absolute;
-            right: 0;
-            top: 0;
-            background: #059669;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: all 0.2s;
-        }
-
-        .btn-copy:hover {
-            background: #047857;
-            transform: scale(1.1);
-        }
-
-        .falta-nota {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 0.95em;
-        }
-
-        .sancion-lista {
-            background: #f3f4f6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .sancion-lista h4 {
-            margin: 0 0 10px 0;
-            color: #1f2937;
-        }
-
-        .sancion-lista ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .sancion-lista li {
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-
-        .oculto {
-            display: none !important;
-        }
-
-        /* ========================================
-           SISTEMA DE NOTAS RÁPIDAS
-           ======================================== */
-        
-        /* Sistema de Notificaciones */
-        .notificacion-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-
-        .notificacion {
-            background: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 300px;
-            max-width: 400px;
-            pointer-events: all;
-            transform: translateX(500px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            border-left: 5px solid #059669;
-        }
-
-        .notificacion.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .notificacion.exito {
-            border-left-color: #10b981;
-        }
-
-        .notificacion.info {
-            border-left-color: #3b82f6;
-        }
-
-        .notificacion.advertencia {
-            border-left-color: #f59e0b;
-        }
-
-        .notificacion.error {
-            border-left-color: #ef4444;
-        }
-
-        .notificacion-icono {
-            font-size: 1.5em;
-            flex-shrink: 0;
-        }
-
-        .notificacion-contenido {
-            flex: 1;
-        }
-
-        .notificacion-titulo {
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 3px;
-        }
-
-        .notificacion-mensaje {
-            font-size: 0.9em;
-            color: #6b7280;
-            line-height: 1.4;
-        }
-
-        .notificacion-cerrar {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            font-size: 1.2em;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s;
-        }
-
-        .notificacion-cerrar:hover {
-            background: #f3f4f6;
-            color: #4b5563;
-        }
-
-        /* Indicador de carga en botones */
-        .btn-cargando {
-            position: relative;
-            pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .btn-cargando::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            top: 50%;
-            left: 50%;
-            margin-left: -8px;
-            margin-top: -8px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Botón flotante */
-        .btn-notas-flotante {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.8em;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
-            transition: all 0.3s;
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-notas-flotante:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.6);
-        }
-
-        .btn-notas-flotante .badge-contador {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #dc2626;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.5em;
-            font-weight: bold;
-            border: 2px solid white;
-        }
-
-        /* ===== Menú flotante (Notas · Año · Configuración) ===== */
-        .fab-menu {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 12px;
-            pointer-events: none;
-        }
-        .fab-items {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 10px;
-            pointer-events: none;
-        }
-        .fab-menu.open .fab-items { pointer-events: auto; }
-        .fab-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            opacity: 0;
-            transform: translateY(10px) scale(0.96);
-            transition: opacity 0.22s ease, transform 0.22s ease;
-            transition-delay: 0s;
-        }
-        .fab-menu.open .fab-item {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        /* Entrada escalonada de abajo hacia arriba: Notas → Configuración → Año */
-        .fab-menu.open .fab-item:nth-last-child(1) { transition-delay: 0.00s; }
-        .fab-menu.open .fab-item:nth-last-child(2) { transition-delay: 0.07s; }
-        .fab-menu.open .fab-item:nth-last-child(3) { transition-delay: 0.14s; }
-        .fab-label {
-            background: rgba(0, 0, 0, 0.78);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.85em;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .fab-action {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            color: #fff;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            transition: transform 0.2s;
-        }
-        .fab-action:hover { transform: scale(1.08); }
-        .fab-notas  { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
-        .fab-config { background: linear-gradient(135deg, #000000 0%, #333333 100%); }
-        .fab-anio-wrap {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0, 0, 0, 0.78);
-            padding: 8px 14px;
-            border-radius: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-        }
-        .fab-anio-wrap span {
-            font-size: 0.85em;
-            font-weight: 700;
-            color: #fff;
-            white-space: nowrap;
-        }
-        .fab-anio-wrap select {
-            border: none;
-            background: transparent;
-            font-size: 0.9em;
-            font-weight: 600;
-            color: #fff;
-            cursor: pointer;
-            outline: none;
-        }
-        /* Lista desplegable legible: fondo oscuro + texto claro */
-        .fab-anio-wrap select option { background: #1e293b; color: #f1f5f9; }
-        .fab-main {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            pointer-events: auto;
-            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
-            color: #fff;
-            font-size: 1.5em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.45);
-            transition: transform 0.3s;
-            position: relative;
-        }
-        .fab-main:hover { transform: scale(1.08); }
-        .fab-main .badge-contador {
-            position: absolute;
-            top: -7px;
-            right: -7px;
-            display: flex;
-            align-items: stretch;
-            border-radius: 999px;
-            overflow: hidden;
-            border: 2px solid white;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-            font-size: 13px;
-            line-height: 1;
-            font-weight: bold;
-        }
-        .fab-main .badge-contador .cont-seg {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 22px;
-            height: 26px;
-            padding: 0 7px;
-            color: #fff;
-            box-sizing: border-box;
-        }
-        .fab-main .badge-contador .cont-rojo { background: #dc2626; }
-        .fab-main .badge-contador .cont-verde { background: #059669; }
-        /* En modo consulta (año pasado) se ocultan Notas y Configuración; el Año queda disponible */
-        .fab-menu.modo-consulta #fabNotas,
-        .fab-menu.modo-consulta #fabConfig { display: none; }
-        .fab-menu.modo-consulta .fab-main .badge-contador { display: none; }
-
-        /* Overlay del panel de notas */
-        .notas-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-
-        .notas-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Panel lateral de notas */
-        .notas-panel {
-            position: fixed;
-            top: 0;
-            right: -450px;
-            width: 450px;
-            height: 100vh;
-            background: white;
-            z-index: 1001;
-            transition: right 0.3s;
-            display: flex;
-            flex-direction: column;
-            box-shadow: -5px 0 25px rgba(0,0,0,0.3);
-        }
-
-        .notas-panel.active {
-            right: 0;
-        }
-
-        /* Wrapper scrolleable para todo el contenido */
-        .notas-body {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Pestañas de filtrado */
-        .notas-tabs {
-            display: flex;
-            gap: 8px;
-            margin: 0 15px 15px 15px;
-            padding: 0;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        /* Formulario nueva nota */
-        .form-nueva-nota {
-            margin: 0 15px 15px 15px;
-        }
-
-        /* Header del panel */
-        .notas-header {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .notas-header h2 {
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .notas-close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .notas-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        /* Botón nueva nota */
-        .btn-nueva-nota {
-            margin: 15px;
-            padding: 12px;
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-nueva-nota:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-        }
-
-        /* Contenedor de notas */
-        .notas-content {
-            padding: 15px;
-            min-height: 200px;
-        }
-
-        .notas-vacio {
-            text-align: center;
-            color: #9ca3af;
-            padding: 40px 20px;
-        }
-
-        .notas-vacio p {
-            font-size: 1.1em;
-            margin-top: 10px;
-        }
-
-        /* Tarjeta de nota individual */
-        .nota-item {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: all 0.2s;
-        }
-
-        .nota-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateX(-3px);
-        }
-
-        .nota-item.prioridad-alta {
-            border-left: 5px solid #dc2626;
-        }
-
-        .nota-item.prioridad-media {
-            border-left: 5px solid #f59e0b;
-        }
-
-        .nota-item.prioridad-baja {
-            border-left: 5px solid #10b981;
-        }
-
-        .nota-header-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .nota-tipo {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
-        .nota-tipo.tardanza {
-            background: #fef3c7;
-            color: #d97706;
-        }
-
-        .nota-tipo.incidencia {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .nota-tipo.llamada {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-
-        .nota-tipo.recordatorio {
-            background: #e0e7ff;
-            color: #6366f1;
-        }
-
-        .nota-tipo.salida {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .nota-prioridad {
-            font-size: 0.85em;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .nota-prioridad.alta {
-            background: #fecaca;
-            color: #991b1b;
-        }
-
-        .nota-prioridad.media {
-            background: #fed7aa;
-            color: #9a3412;
-        }
-
-        .nota-prioridad.baja {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .nota-estudiante {
-            font-weight: 600;
-            color: #1f2937;
-            font-size: 1.05em;
-            margin-bottom: 8px;
-        }
-
-        .nota-texto {
-            color: #4b5563;
-            line-height: 1.5;
-            margin-bottom: 10px;
-            white-space: pre-wrap;
-        }
-
-        .nota-fecha {
-            font-size: 0.85em;
-            color: #9ca3af;
-            margin-bottom: 12px;
-        }
-
-        .nota-acciones {
-            display: flex;
-            gap: 8px;
-        }
-
-        .nota-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .nota-btn-registrar {
-            background: #059669;
-            color: white;
-        }
-
-        .nota-btn-registrar:hover {
-            background: #047857;
-        }
-
-        .nota-btn-editar {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .nota-btn-editar:hover {
-            background: #2563eb;
-        }
-
-        .nota-btn-borrar {
-            background: #dc2626;
-            color: white;
-        }
-
-        .nota-btn-borrar:hover {
-            background: #b91c1c;
-        }
-
-        /* Formulario de nueva nota */
-        .form-nueva-nota {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 15px;
-        }
-
-        .form-nueva-nota h3 {
-            color: #1f2937;
-            margin-bottom: 15px;
-        }
-
-        .form-group-nota {
-            margin-bottom: 15px;
-        }
-
-        .form-group-nota label {
-            display: block;
-            color: #374151;
-            font-weight: 600;
-            margin-bottom: 6px;
-            font-size: 0.95em;
-        }
-
-        .form-group-nota input,
-        .form-group-nota select,
-        .form-group-nota textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.95em;
-            transition: border-color 0.2s;
-        }
-
-        .form-group-nota input:focus,
-        .form-group-nota select:focus,
-        .form-group-nota textarea:focus {
-            outline: none;
-            border-color: #059669;
-        }
-
-        .form-group-nota textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-btns-nota {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .form-btns-nota button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-guardar-nota {
-            background: #059669;
-            color: white;
-        }
-
-        .btn-guardar-nota:hover {
-            background: #047857;
-        }
-
-        .btn-cancelar-nota {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-cancelar-nota:hover {
-            background: #4b5563;
-        }
-
-        /* Pestañas de filtrado */
-        .nota-tab {
-            flex: 1;
-            padding: 10px 15px;
-            border: none;
-            background: transparent;
-            color: #6b7280;
-            font-weight: 600;
-            font-size: 0.9em;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .nota-tab:hover {
-            color: #059669;
-            background: #f0fdf4;
-        }
-
-        .nota-tab.active {
-            color: #059669;
-            border-bottom-color: #059669;
-        }
-
-        .tab-count {
-            display: inline-block;
-            background: #e5e7eb;
-            color: #374151;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            margin-left: 5px;
-            min-width: 24px;
-            text-align: center;
-        }
-
-        .nota-tab.active .tab-count {
-            background: #059669;
-            color: white;
-        }
-
-        /* Botones de fecha rápida */
-        .btn-fecha-rapida {
-            padding: 6px 12px;
-            border: 1px solid #d1d5db;
-            background: white;
-            color: #374151;
-            border-radius: 6px;
-            font-size: 0.85em;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .btn-fecha-rapida:hover {
-            background: #f3f4f6;
-            border-color: #9ca3af;
-        }
-
-        .btn-fecha-rapida:active {
-            background: #e5e7eb;
-        }
-
-        /* Notas vencidas */
-        .nota-vencida {
-            border-left: 4px solid #dc2626 !important;
-            background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%) !important;
-        }
-
-        .nota-vencida .nota-header-item {
-            border-bottom: 2px solid #fecaca;
-        }
-
-        /* Sugerencias de autocompletado */
-        .sugerencia-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .sugerencia-item:last-child {
-            border-bottom: none;
-        }
-
-        .sugerencia-item:hover {
-            background: #f0fdf4;
-        }
-
-        /* Responsive para tablets y móviles */
-        @media (max-width: 768px) {
-            .regimen-panel {
-                width: 100%;
-                right: -100%;
-            }
-            
-            .btn-regimen {
-                font-size: 0.9em;
-                padding: 8px 16px;
-            }
-
-            .regimen-filters {
-                flex-direction: column;
-            }
-            
-            .filter-btn {
-                min-width: 100%;
-            }
-            
-            .falta-medida {
-                padding-right: 0;
-                padding-bottom: 50px;
-            }
-            
-            .btn-copy {
-                bottom: 5px;
-                top: auto;
-            }
-
-            .notas-panel {
-                width: 100%;
-                right: -100%;
-            }
-
-            .btn-notas-flotante {
-                bottom: 20px;
-                right: 20px;
-                width: 55px;
-                height: 55px;
-            }
-
-            .form-nueva-nota {
-                margin: 10px;
-                padding: 15px;
-            }
-        }
-
-/* ========================================== */
-/* BARRA DE USUARIO COMPACTA                 */
-/* ========================================== */
-
-/* Quitar círculo del logo */
-.logo-header {
-    border-radius: 0 !important;
-    border: none !important;
-}
-
-header img {
-    border-radius: 0 !important;
-    border: none !important;
-}
-
-/* Barra superior compacta */
-.top-bar {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 25px;
-    align-items: center;
-    background: white;
-    padding: 10px 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.user-info-bar-admin {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-}
-
-.user-avatar-admin {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1em;
-}
-
-.user-details-admin h3 {
-    color: #000000;
-    font-size: 0.9em;
-    margin-bottom: 2px;
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-.user-details-admin p {
-    color: #2a5298;
-    font-size: 0.7em;
-    font-weight: 600;
-    line-height: 1.2;
-}
-
-/* Botón Salir */
-.btn-logout-admin {
-    background: linear-gradient(135deg, #000000 0%, #333333 100%);
-    color: white;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.85em;
-    font-weight: 600;
-    transition: all 0.3s;
-    white-space: nowrap;
-}
-
-.btn-logout-admin:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-/* Ocultar búsqueda global */
-.global-search {
-    display: none !important;
-}
-
-/* Responsive barra usuario */
-@media (max-width: 768px) {
-    .top-bar {
-        padding: 8px 15px;
-        gap: 10px;
+// ========================================
+// SISTEMA DE NOTAS RÁPIDAS - CENSA
+// Con Google Sheets (como los demás módulos)
+// ========================================
+
+// 👉 CONFIGURACIÓN DE URL - Cambia aquí la URL de Google Sheets si es necesario
+let urlNotasRapidas = 'https://script.google.com/macros/s/AKfycbxzxH-mSiQnYZAADC7JLwnfbYvKYwNyOje1Tje77PP8u9Gv_ksx_CEk0J8R1e1fHiTM/exec?hoja=Notas';
+let datosNotas = [];
+
+// ========================================
+// SISTEMA DE NOTIFICACIONES
+// ========================================
+
+class SistemaNotificaciones {
+    constructor() {
+        this.container = document.getElementById('notificacionContainer');
     }
-    
-    .user-info-bar-admin {
-        padding: 0;
-    }
-    
-    .user-avatar-admin {
-        width: 32px;
-        height: 32px;
-        font-size: 1em;
-    }
-    
-    .user-details-admin h3 {
-        font-size: 0.85em;
-    }
-    
-    .user-details-admin p {
-        font-size: 0.65em;
-    }
-    
-    .btn-logout-admin {
-        padding: 6px 14px;
-        font-size: 0.8em;
-    }
-}
 
-        /* Evitar que el fondo se desplace al hacer scroll dentro de un modal (móvil/táctil) */
-        @media (pointer: coarse) {
-            html.modal-abierto,
-            body.modal-abierto {
-                overflow: hidden !important;
-                overscroll-behavior: none;
-            }
-        }
-        .modal-body,
-        .table-container {
-            overscroll-behavior: contain;
-        }
-
-        /* Ocultar botones flotantes mientras hay un modal abierto:
-           en la esquina inferior derecha interceptaban el toque y no dejaban
-           desplazar dentro del modal en celulares. */
-        body.modal-abierto .btn-notas-flotante,
-        body.modal-abierto .fab-menu {
-            display: none !important;
-        }
-
-        /* ===== Uniformidad de ventanas: cabeceras en negro y posición debajo del encabezado ===== */
-        .modal-header {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
-        }
-        @media (max-width: 768px) {
-            .modal-content { margin: 90px auto 20px; }
-        }
-
-        /* ===== Módulo Citaciones: ancho, posición (debajo del encabezado) y botones ===== */
-        #modalEditCit .modal-content,
-        #modalNuevaCitacion .modal-content {
-            max-width: 820px !important;
-            width: 92%;
-            margin: 170px auto 20px;
-        }
-        #modalCitaciones .btn,
-        #modalEditCit .btn,
-        #modalNuevaCitacion .btn {
-            padding: 8px 20px !important;
-            margin-top: 6px;
-        }
-        @media (max-width: 768px) {
-            #modalCitaciones .modal-content,
-            #modalEditCit .modal-content,
-            #modalNuevaCitacion .modal-content {
-                margin: 90px auto 20px;
-                width: 95%;
-            }
-        }
+    mostrar(tipo, titulo, mensaje, duracion = 3000) {
+        const notif = document.createElement('div');
+        notif.className = `notificacion ${tipo}`;
         
-    </style>
-    <script>
-      // Anti-parpadeo: aplicar de inmediato (antes del primer render) el modo consulta
-      // y el TEMA OSCURO guardado, para que al actualizar no aparezca primero el tema claro.
-      (function(){
-        if (new URLSearchParams(location.search).get('anio')) {
-          document.documentElement.classList.add('pre-modo-consulta');
-        }
-        try {
-          if (localStorage.getItem('censaTema') === 'oscuro') {
-            document.documentElement.classList.add('tema-oscuro-pre');
-          }
-        } catch(e){}
-      })();
-    </script>
-    <style>
-      html.pre-modo-consulta #cardMaestros,
-      html.pre-modo-consulta #cardContactos,
-      html.pre-modo-consulta .notificaciones-btn { display: none !important; }
-      /* Anti-parpadeo del tema oscuro: fondo oscuro inmediato */
-      html.tema-oscuro-pre,
-      html.tema-oscuro-pre body { background: #0f172a !important; }
-    </style>
-</head>
-<body>
-    <script>
-      // Anti-parpadeo: poner la clase dark-mode en el body ANTES de renderizar el contenido
-      try { if (localStorage.getItem('censaTema') === 'oscuro') document.body.classList.add('dark-mode'); } catch(e){}
-    </script>
-    <div class="container">
-        <header>
-            <img src="./logo.png" alt="Logo PNSA" class="logo-header" id="logoHeader">
-            <h1>Sistema de Gestión de Convivencia</h1>
-            <p>Politécnico Nuestra Señora de la Altagracia (PNSA)</p>
-        </header>
+        const iconos = {
+            exito: '✅',
+            info: 'ℹ️',
+            advertencia: '⚠️',
+            error: '❌'
+        };
 
-<!-- Barra Superior: Usuario y Notificaciones -->
-<div class="top-bar">
-    <div class="user-info-bar-admin">
-        <div class="user-avatar-admin">👑</div>
-        <div class="user-details-admin">
-            <h3 id="userNameAdmin">Juana Paulino</h3>
-            <p id="userCargoAdmin">Administrador del Sistema</p>
-        </div>
-    </div>
-
-    <div id="bannerConsulta" style="display:none; margin-left:auto; color:#1976D2; font-weight:700; font-size:1.1em;">
-        🔒 Consultando el año <span id="bannerConsultaAnio"></span> — solo lectura
-    </div>
-    
-    <button class="btn-logout-admin" onclick="mostrarConfirmacionSalirAdmin()">
-        🚪 Salir
-    </button>
-    
-    <button class="notificaciones-btn" onclick="toggleNotificacionesSheets()" title="Notificaciones">
-        🔔
-        <span class="notif-badge" id="notifCounter" style="display:none;">0</span>
-    </button>
-</div>
-
-        <!-- Overlay de Notificaciones -->
-        <div class="notif-overlay" id="notifOverlay"></div>
-
-        <!-- Panel de Notificaciones (lateral derecho) -->
-        <div class="notificaciones-panel" id="notifPanel">
-            <div class="notif-panel-header">
-                <h2>🔔 Notificaciones</h2>
-                <button class="notif-close-btn" onclick="toggleNotificacionesSheets()">✕</button>
+        notif.innerHTML = `
+            <div class="notificacion-icono">${iconos[tipo] || 'ℹ️'}</div>
+            <div class="notificacion-contenido">
+                <div class="notificacion-titulo">${titulo}</div>
+                ${mensaje ? `<div class="notificacion-mensaje">${mensaje}</div>` : ''}
             </div>
-            
-            <div class="notif-tabs">
-                <button class="notif-tab active" data-tab="todas" onclick="cambiarTabNotifSheets('todas')">
-                    Todas <span class="tab-count" id="countTodas">0</span>
-                </button>
-                <button class="notif-tab" data-tab="sin-leer" onclick="cambiarTabNotifSheets('sin-leer')">
-                    Sin Leer <span class="tab-count" id="countSinLeer">0</span>
-                </button>
-                <button class="notif-tab" data-tab="leidas" onclick="cambiarTabNotifSheets('leidas')">
-                    Leídas <span class="tab-count" id="countLeidas">0</span>
-                </button>
-            </div>
-            
-            <div class="notif-content" id="notifContent">
-                <div class="notif-empty">
-                    <div class="notif-empty-icon">📭</div>
-                    <p style="font-size:1.1em;font-weight:600;margin-bottom:5px;">No hay notificaciones</p>
-                    <p style="font-size:0.9em;">Todas tus notificaciones aparecerán aquí</p>
-                </div>
-            </div>
-            
-            <div class="notif-actions">
-                <button class="notif-action-btn btn-marcar-todas" onclick="marcarTodasNotifLeidas()">
-                    ✓ Marcar todas como leídas
-                </button>
-                <button class="notif-action-btn btn-limpiar" onclick="limpiarNotifLeidas()">
-                    🗑️ Limpiar
-                </button>
-            </div>
-        </div>
+            <button class="notificacion-cerrar" onclick="this.parentElement.remove()">✕</button>
+        `;
 
-        <div class="dashboard">
-            <div class="module-card" onclick="openModule('incidencias')">
-                <div class="module-icon">📋</div>
-                <h3>Registro de Incidencias</h3>
-                <p>Registrar y consultar incidencias de conducta estudiantil.</p>
-            </div>
+        this.container.appendChild(notif);
+        setTimeout(() => notif.classList.add('show'), 10);
 
-            <div class="module-card" onclick="openModule('tardanzas')">
-                <div class="module-icon">⏰</div>
-                <h3>Registro de Tardanzas</h3>
-                <p>Control de llegadas tardías con generación automática de circulares.</p>
-            </div>
-
-            <div class="module-card" onclick="openModule('reuniones')">
-                <div class="module-icon">🤝</div>
-                <h3>Reuniones y Acuerdos</h3>
-                <p>Control de reuniones con padres y seguimiento de acuerdos.</p>
-            </div>
-
-            <div class="module-card" onclick="openModule('estudiantes')">
-                <div class="module-icon">👥</div>
-                <h3>Listado de Estudiantes</h3>
-                <p>Importar y gestionar el listado completo de estudiantes.</p>
-            </div>
-
-            <div class="module-card" id="cardContactos" onclick="openModule('contactos')">
-                <div class="module-icon">📞</div>
-                <h3>Contactos de Padres</h3>
-                <p>Gestión de contactos telefónicos de padres y tutores.</p>
-            </div>
-
-             <div class="module-card" id="cardMaestros" onclick="openModule('maestros')">
-                <div class="module-icon">👨‍🏫</div>
-                <h3>Gestión de Maestros</h3>
-                <p>Registro de docentes y envío de mensajes oficiales por WhatsApp.</p>
-            </div>
-
-            <div class="module-card" onclick="openModule('reportes')">
-                <div class="module-icon">📊</div>
-                <h3>Reportes y Estadísticas</h3>
-                <p>Visualizar estadísticas y exportar datos del sistema.</p>
-            </div>
-
-            <div class="module-card" onclick="openModule('citaciones')">
-                <div class="module-icon">📨</div>
-                <h3>Citaciones a Padres</h3>
-                <p>Seguimiento de citaciones: asistencia, acuerdos y cumplimiento.</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalContainer"></div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    
-    <script>
-        // Script para diagnosticar y corregir el logo
-        window.addEventListener('load', function() {
-            const logo = document.getElementById('logoHeader');
-            if (logo) {
-                // Intentar múltiples rutas posibles
-                const rutas = [
-                    './logo.png',
-                    'logo.png',
-                    '/logo.png',
-                    '../logo.png'
-                ];
-                
-                let intentoActual = 0;
-                
-                logo.onerror = function() {
-                    console.log('❌ No se pudo cargar:', rutas[intentoActual]);
-                    intentoActual++;
-                    if (intentoActual < rutas.length) {
-                        console.log('🔄 Intentando con:', rutas[intentoActual]);
-                        logo.src = rutas[intentoActual];
-                    } else {
-                        console.log('⚠️ Logo no encontrado en ninguna ruta');
-                        logo.style.display = 'none';
-                    }
-                };
-                
-                logo.onload = function() {
-                    console.log('✅ Logo cargado exitosamente desde:', logo.src);
-                    logo.style.display = 'block';
-                };
-            }
-        });
-    </script>
-    
-    <script src="app.js"></script>
-
-    <!-- Panel Lateral del Régimen Disciplinario -->
-    <div class="regimen-overlay" id="regimenOverlay" onclick="closeRegimenPanel()"></div>
-    <div class="regimen-panel" id="regimenPanel">
-        <div class="regimen-header">
-            <h2>📚 Régimen Disciplinario PNSA</h2>
-            <button class="regimen-close" onclick="closeRegimenPanel()">✕</button>
-        </div>
-        
-        <!-- Controles de Filtro y Búsqueda -->
-        <div class="regimen-controls">
-            <div class="regimen-search">
-                <input type="text" id="regimenSearch" placeholder="🔍 Buscar en el régimen..." onkeyup="filtrarRegimen()">
-            </div>
-            <div class="regimen-filters">
-                <button class="filter-btn active" data-filter="todas" onclick="cambiarFiltro(this, 'todas')">
-                    Todas
-                </button>
-                <button class="filter-btn" data-filter="leves" onclick="cambiarFiltro(this, 'leves')">
-                    Leves
-                </button>
-                <button class="filter-btn" data-filter="graves" onclick="cambiarFiltro(this, 'graves')">
-                    Graves
-                </button>
-                <button class="filter-btn" data-filter="muy-graves" onclick="cambiarFiltro(this, 'muy-graves')">
-                    Muy Graves
-                </button>
-            </div>
-        </div>
-        
-        <div class="regimen-content" id="regimenContent">
-            <!-- El contenido se carga dinámicamente desde regimen-content.js -->
-            <div style="text-align: center; padding: 40px; color: #6b7280;">
-                <p>⏳ Cargando régimen disciplinario...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts para el panel del régimen -->
-    <script src="regimen-content.js"></script>
-    <script>
-        // Normaliza texto para comparar sin acentos ni mayúsculas
-        function _normReg(s) {
-            return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-        }
-
-        // Filtrar régimen por tipo
-        function cambiarFiltro(btn, tipo) {
-            // Actualizar botones activos
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // Limpiar búsqueda y restaurar todos los bloques internos que la búsqueda hubiera ocultado
-            document.getElementById('regimenSearch').value = '';
-            document.querySelectorAll('#regimenContent .oculto').forEach(el => el.classList.remove('oculto'));
-
-            // Mostrar/ocultar secciones por tipo
-            document.querySelectorAll('.falta-seccion').forEach(seccion => {
-                if (tipo === 'todas' || seccion.dataset.tipo === tipo) {
-                    seccion.classList.remove('oculto');
-                } else {
-                    seccion.classList.add('oculto');
-                }
-            });
-        }
-
-        // Buscar en el régimen (ítems, introducciones, notas y listas de sanciones)
-        function filtrarRegimen() {
-            const q = _normReg(document.getElementById('regimenSearch').value.trim());
-            const secciones = document.querySelectorAll('.falta-seccion');
-
-            // Categoría activa (para restaurar cuando se borre la búsqueda)
-            const btnActivo = document.querySelector('.filter-btn.active');
-            const tipoActivo = btnActivo ? btnActivo.dataset.filter : 'todas';
-
-            // Sin texto: restaurar todo según la categoría activa
-            if (!q) {
-                document.querySelectorAll('#regimenContent .oculto').forEach(el => el.classList.remove('oculto'));
-                secciones.forEach(seccion => {
-                    if (tipoActivo === 'todas' || seccion.dataset.tipo === tipoActivo) {
-                        seccion.classList.remove('oculto');
-                    } else {
-                        seccion.classList.add('oculto');
-                    }
-                });
-                return;
-            }
-
-            // Con texto: mostrar solo los bloques que coinciden; ocultar la sección si no tiene ninguno
-            secciones.forEach(seccion => {
-                let algunMatch = false;
-                seccion.querySelectorAll('.falta-item, .seccion-intro, .falta-nota, .sancion-lista').forEach(bloque => {
-                    if (_normReg(bloque.textContent).includes(q)) {
-                        bloque.classList.remove('oculto');
-                        algunMatch = true;
-                    } else {
-                        bloque.classList.add('oculto');
-                    }
-                });
-                if (algunMatch) {
-                    seccion.classList.remove('oculto');
-                } else {
-                    seccion.classList.add('oculto');
-                }
-            });
-        }
-
-        // Copiar texto de la sanción
-        function copiarTexto(btn) {
-            const medidaDiv = btn.closest('.falta-medida');
-            const texto = medidaDiv.textContent.replace('📋', '').trim();
-            
-            // Crear elemento temporal para copiar
-            const temp = document.createElement('textarea');
-            temp.value = texto;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-            
-            // Feedback visual
-            const originalText = btn.textContent;
-            btn.textContent = '✅';
-            btn.style.background = '#10b981';
+        if (duracion > 0) {
             setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.background = '#059669';
-            }, 1500);
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 300);
+            }, duracion);
         }
-    </script>
 
-    <!-- Contenedor de Notificaciones -->
-    <div class="notificacion-container" id="notificacionContainer"></div>
+        return notif;
+    }
 
-    <!-- Menú Flotante: Notas · Año · Configuración -->
-    <div class="fab-menu" id="fabMenu">
-        <div class="fab-items">
-            <div class="fab-item" id="fabAnio">
-                <div class="fab-anio-wrap">
-                    <span>📅 Año:</span>
-                    <select id="selectorAnio" onchange="cambiarAnioVista(this.value)"></select>
-                </div>
-            </div>
-            <div class="fab-item" id="fabConfig">
-                <span class="fab-label">Configuración</span>
-                <button class="fab-action fab-config" onclick="openModule('configuracion'); cerrarFabMenu();" title="Configuración">⚙️</button>
-            </div>
-            <div class="fab-item" id="fabNotas">
-                <span class="fab-label">Notas</span>
-                <button class="fab-action fab-notas" onclick="toggleNotasPanel(); cerrarFabMenu();" title="Notas Rápidas">📝</button>
-            </div>
-        </div>
-        <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" title="Menú" aria-label="Menú">
-            <span id="fabMainIcon">☰</span>
-            <span class="badge-contador" id="contadorNotas"><span class="cont-seg cont-rojo" id="contPendientes" title="Hoy + vencidas">0</span><span class="cont-seg cont-verde" id="contProximas" title="Próximas">0</span></span>
-        </button>
-    </div>
+    exito(titulo, mensaje, duracion) {
+        return this.mostrar('exito', titulo, mensaje, duracion);
+    }
 
-    <script>
-        function toggleFabMenu() {
-            const m = document.getElementById('fabMenu');
-            if (!m) return;
-            m.classList.toggle('open');
-            const ic = document.getElementById('fabMainIcon');
-            if (ic) ic.textContent = m.classList.contains('open') ? '✕' : '☰';
-        }
-        function cerrarFabMenu() {
-            const m = document.getElementById('fabMenu');
-            if (!m) return;
-            m.classList.remove('open');
-            const ic = document.getElementById('fabMainIcon');
-            if (ic) ic.textContent = '☰';
-        }
-        // Cerrar el menú al tocar fuera de él
-        document.addEventListener('click', function(e) {
-            const m = document.getElementById('fabMenu');
-            if (m && m.classList.contains('open') && !m.contains(e.target)) cerrarFabMenu();
-        });
-    </script>
+    info(titulo, mensaje, duracion) {
+        return this.mostrar('info', titulo, mensaje, duracion);
+    }
 
-    <!-- Panel Lateral de Notas -->
-    <div class="notas-overlay" id="notasOverlay"></div>
-    <div class="notas-panel" id="notasPanel">
-        <div class="notas-header">
-            <h2>📝 Notas Rápidas</h2>
-            <button class="notas-close" onclick="closeNotasPanel()">✕</button>
-        </div>
+    advertencia(titulo, mensaje, duracion) {
+        return this.mostrar('advertencia', titulo, mensaje, duracion);
+    }
 
-        <!-- Wrapper scrolleable -->
-        <div class="notas-body">
-            <button class="btn-nueva-nota" onclick="mostrarFormNuevaNota()">
-                ➕ Nueva Nota
-            </button>
+    error(titulo, mensaje, duracion = 5000) {
+        return this.mostrar('error', titulo, mensaje, duracion);
+    }
+}
 
-            <!-- Pestañas de filtrado -->
-            <div class="notas-tabs" id="notasTabs">
-                <button class="nota-tab active" onclick="cambiarTabNotas('hoy')" data-tab="hoy">
-                    🔥 Hoy <span class="tab-count" id="countHoy">0</span>
-                </button>
-                <button class="nota-tab" onclick="cambiarTabNotas('proximas')" data-tab="proximas">
-                    📅 Próximas <span class="tab-count" id="countProximas">0</span>
-                </button>
-                <button class="nota-tab" onclick="cambiarTabNotas('todas')" data-tab="todas">
-                    📋 Todas <span class="tab-count" id="countTodasNotas">0</span>
-                </button>
-            </div>
+const notificaciones = new SistemaNotificaciones();
 
-            <!-- Formulario Nueva Nota (inicialmente oculto) -->
-        <div class="form-nueva-nota oculto" id="formNuevaNota">
-            <h3>✨ Nueva Nota Rápida</h3>
-            <div class="form-group-nota" style="position:relative;">
-                <label>👤 Estudiante:</label>
-                <input type="text" 
-                       id="notaEstudiante" 
-                       placeholder="Nombre del estudiante"
-                       autocomplete="off">
-                <div id="sugerenciasNotaRapida" style="display:none;position:absolute;z-index:100000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:calc(100% - 30px);box-shadow:0 2px 8px rgba(0,0,0,0.1);border-radius:6px;margin-top:2px;"></div>
-                <div id="cursoNotaRapida" style="font-size:0.85em;color:#059669;margin-top:4px;font-weight:600;display:none;"></div>
-            </div>
-            <div class="form-group-nota">
-                <label>📂 Tipo:</label>
-                <select id="notaTipo" onchange="toggleNotaTipoConducta()">
-                    <option value="tardanza">📚 Tardanza</option>
-                    <option value="incidencia">⚠️ Incidencia</option>
-                    <option value="llamada">📞 Llamada Pendiente</option>
-                    <option value="reunion">👥 Reunión</option>
-                    <option value="recordatorio">🔔 Recordatorio</option>
-                    <option value="salida">🚪 Salida</option>
-                    <option value="otros">📝 Otros</option>
-                </select>
-            </div>
-            <div class="form-group-nota" id="notaTipoConductaGroup" style="display:none;">
-                <label>⚠️ Tipo de Conducta:</label>
-                <select id="notaTipoConducta" onchange="onCambioNotaTipoConducta()">
-                    <option value="">Seleccione el tipo</option>
-                    <optgroup label="FALTAS LEVES">
-                        <option value="Llegada tarde al aula">Llegada tarde al aula</option>
-                        <option value="Salir sin permiso del aula">Salir sin permiso del aula</option>
-                        <option value="Indisciplina en el aula">Indisciplina en el aula</option>
-                        <option value="Uso de dispositivos tecnológicos sin autorización">Uso de dispositivos tecnológicos sin autorización</option>
-                        <option value="Uso de lenguaje obsceno o soez">Uso de lenguaje obsceno o soez</option>
-                        <option value="Faltas frecuentes por uniformidad">Faltas frecuentes por uniformidad</option>
-                        <option value="Presentación personal (corte de pelo, uso correcto del uniforme)">Presentación personal (corte de pelo, uso correcto del uniforme)</option>
-                        <option value="Presentación personal (uñas postizas, maquillaje, tintes o mechones)">Presentación personal (uñas postizas, maquillaje, tintes o mechones)</option>
-                    </optgroup>
-                    <optgroup label="FALTAS GRAVES">
-                        <option value="Agresión verbal">Agresión verbal</option>
-                        <option value="Bullying">Bullying</option>
-                        <option value="Falta de respeto a compañero/a">Falta de respeto a compañero/a</option>
-                        <option value="Falta de respeto a maestro/a">Falta de respeto a maestro/a</option>
-                        <option value="Falta de respeto a personal administrativo o de apoyo">Falta de respeto a personal administrativo o de apoyo</option>
-                        <option value="Desafío a la autoridad">Desafío a la autoridad</option>
-                        <option value="Daño a mobiliario de la escuela">Daño a mobiliario de la escuela</option>
-                        <option value="Daño a pertenencia de compañero/a">Daño a pertenencia de compañero/a</option>
-                        <option value="Uso inadecuado de redes sociales">Uso inadecuado de redes sociales</option>
-                        <option value="Fraude académico / copia en evaluaciones">Fraude académico / copia en evaluaciones</option>
-                        <option value="Conducta inapropiada en actos cívicos o actividades institucionales">Conducta inapropiada en actos cívicos o actividades institucionales</option>
-                    </optgroup>
-                    <optgroup label="FALTAS MUY GRAVES">
-                        <option value="Agresión física">Agresión física</option>
-                        <option value="Cyberbullying">Cyberbullying</option>
-                        <option value="Salida del centro sin autorización">Salida del centro sin autorización</option>
-                        <option value="Consumo o portación de sustancias prohibidas">Consumo o portación de sustancias prohibidas</option>
-                        <option value="Portación de objetos peligrosos o prohibidos">Portación de objetos peligrosos o prohibidos</option>
-                        <option value="Falsificación de firma o documentos">Falsificación de firma o documentos</option>
-                    </optgroup>
-                    <option value="Otros">Otros (especificar)</option>
-                </select>
-            </div>
-            <div class="form-group-nota">
-                <label>🎯 Prioridad:</label>
-                <select id="notaPrioridad">
-                    <option value="media">🟡 Media</option>
-                    <option value="alta">🔴 Alta</option>
-                    <option value="baja">🟢 Baja</option>
-                </select>
-            </div>
-            <div class="form-group-nota">
-                <label>📅 Fecha de Acción (Opcional):</label>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('hoy')">Hoy</button>
-                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('manana')">Mañana</button>
-                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('3dias')">En 3 días</button>
-                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('semana')">Prox. semana</button>
-                    <button type="button" class="btn-fecha-rapida" onclick="setFechaRapida('limpiar')" style="background:#dc3545;">✕ Sin fecha</button>
-                </div>
-                <input type="datetime-local" id="notaFecha" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;">
-                <small style="color:#666;font-size:0.85em;display:block;margin-top:4px;">
-                    Deja vacío si no tiene fecha específica
-                </small>
-            </div>
-            <div class="form-group-nota">
-                <label>📝 Nota:</label>
-                <textarea id="notaTexto" placeholder="Escribe los detalles aquí..."></textarea>
-            </div>
-            <div class="form-btns-nota">
-                <button class="btn-guardar-nota" onclick="guardarNota()">💾 Guardar</button>
-                <button class="btn-cancelar-nota" onclick="cancelarNuevaNota()">✖ Cancelar</button>
-            </div>
-        </div>
+// ========================================
+// FUNCIONES DE GOOGLE SHEETS
+// ========================================
 
-        <!-- Contenedor de Notas -->
-        <div class="notas-content" id="notasContent">
-            <div class="notas-vacio" id="notasVacio">
-                <div style="font-size: 3em;">📭</div>
-                <p>No hay notas pendientes</p>
-                <p style="font-size: 0.9em; margin-top: 5px;">Crea una nota para empezar</p>
-            </div>
-        </div>
-        </div><!-- Cierre de notas-body -->
-    </div><!-- Cierre de notas-panel -->
-
-    <!-- Script del Sistema de Notas -->
-    <script src="notas-rapidas.js"></script>
-    <script src="notificaciones-sheets.js"></script>
+async function cargarNotasDesdeGoogleSheets() {
+    if (!urlNotasRapidas) {
+        console.log('⚠️ No hay URL de notas configurada');
+        notificaciones.advertencia(
+            'Configuración pendiente',
+            'Ve a Configuración y agrega la URL de Google Sheets para Notas'
+        );
+        return [];
+    }
     
-    <!-- PWA Service Worker Registration -->
-    <script>
-        // Registrar Service Worker para PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/Sistema-UGC/service-worker.js')
-                    .then((registration) => {
-                        console.log('✅ Service Worker registrado correctamente:', registration.scope);
-                        
-                        // Verificar actualizaciones cada 30 segundos
-                        setInterval(() => {
-                            registration.update();
-                        }, 30000);
-                        
-                        // Detectar cuando hay una nueva versión esperando
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Hay una nueva versión disponible
-                                    console.log('🔄 Nueva versión disponible');
-                                    
-                                    // Mostrar notificación de actualización
-                                    if (confirm('🔄 Nueva versión de Sistema UGC disponible. ¿Actualizar ahora?')) {
-                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch((error) => {
-                        console.log('❌ Error al registrar Service Worker:', error);
-                    });
-                
-                // Recargar cuando el nuevo service worker tome control
-                let refreshing;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (refreshing) return;
-                    refreshing = true;
-                    window.location.reload();
-                });
-            });
-        }
-        
-        // Detectar cuando se instala como app
-        window.addEventListener('appinstalled', () => {
-            console.log('📱 Sistema UGC instalado como aplicación');
+    console.log('📥 Cargando notas desde:', urlNotasRapidas);
+    
+    // Usar la función global que ya funciona con los otros módulos
+    try {
+        const data = await cargarDatosDesdeGoogleSheets(urlNotasRapidas);
+        console.log('✅ Notas cargadas desde Google Sheets:', data.length, 'registros');
+        console.log('📋 Datos recibidos:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Error al cargar notas:', error);
+        notificaciones.error('Error de conexión', 'No se pudieron cargar las notas. Verifica tu configuración.');
+        return [];
+    }
+}
+
+async function guardarNotaEnGoogleSheets(nota) {
+    if (!urlNotasRapidas) {
+        notificaciones.error('Error de configuración', 'No hay URL de Google Sheets configurada');
+        return false;
+    }
+
+    try {
+        const response = await fetch(urlNotasRapidas, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({...nota, hoja: (urlNotasRapidas.match(/[?&]hoja=([^&]+)/) || [])[1] || 'Notas'})
         });
-        
-        // Prompt de instalación personalizado
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevenir el prompt automático
-            e.preventDefault();
-            deferredPrompt = e;
+
+        console.log('✅ Nota guardada en Google Sheets');
+        return true;
+    } catch (error) {
+        console.error('Error al guardar nota:', error);
+        notificaciones.error('Error al guardar', 'No se pudo guardar la nota');
+        return false;
+    }
+}
+
+async function actualizarNotaEnGoogleSheets(nota) {
+    if (!urlNotasRapidas) {
+        notificaciones.error('Error de configuración', 'No hay URL de Google Sheets configurada');
+        return false;
+    }
+
+    try {
+        const response = await fetch(urlNotasRapidas, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({...nota, accion: 'actualizar', hoja: (urlNotasRapidas.match(/[?&]hoja=([^&]+)/) || [])[1] || 'Notas'})
+        });
+
+        console.log('✅ Nota actualizada en Google Sheets');
+        return true;
+    } catch (error) {
+        console.error('Error al actualizar nota:', error);
+        notificaciones.error('Error al actualizar', 'No se pudo actualizar la nota');
+        return false;
+    }
+}
+
+async function eliminarNotaDeGoogleSheets(id) {
+    if (!urlNotasRapidas) {
+        notificaciones.error('Error de configuración', 'No hay URL de Google Sheets configurada');
+        return false;
+    }
+
+    try {
+        const response = await fetch(urlNotasRapidas, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id: id, accion: 'eliminar', hoja: (urlNotasRapidas.match(/[?&]hoja=([^&]+)/) || [])[1] || 'Notas'})
+        });
+
+        console.log('✅ Nota eliminada de Google Sheets');
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar nota:', error);
+        notificaciones.error('Error al eliminar', 'No se pudo eliminar la nota');
+        return false;
+    }
+}
+
+// ========================================
+// CLASE PARA MANEJAR LAS NOTAS
+// ========================================
+
+class NotasRapidas {
+    constructor() {
+        this.notas = [];
+        this.notaEditando = null;
+        this.cargando = false;
+        this.tabActiva = 'hoy'; // Pestaña por defecto
+        this.notificacionMostrada = false; // Para mostrar notificación solo una vez
+    }
+
+    async inicializar() {
+        this.mostrarCargando();
+        await this.cargarNotas();
+        this.ocultarCargando();
+        this.actualizarVista();
+        this.actualizarContador();
+    }
+
+    mostrarCargando() {
+        this.cargando = true;
+        const content = document.getElementById('notasContent');
+        if (content) {
+            content.innerHTML = `
+                <div class="notas-vacio">
+                    <div style="font-size: 3em;">⏳</div>
+                    <p>Cargando notas...</p>
+                </div>
+            `;
+        }
+    }
+
+    ocultarCargando() {
+        this.cargando = false;
+    }
+
+    async cargarNotas() {
+        try {
+            const notasCargadas = await cargarNotasDesdeGoogleSheets();
             
-            // Mostrar botón de instalación personalizado (opcional)
-            console.log('💡 Sistema UGC puede instalarse como app');
-        });
-    </script>
+            if (notasCargadas && notasCargadas.length >= 0) {
+                this.notas = notasCargadas;
+                datosNotas = this.notas;
+                console.log(`✅ ${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`);
+            } else {
+                this.notas = [];
+                datosNotas = [];
+            }
+        } catch (error) {
+            console.error('Error cargando notas:', error);
+            this.notas = [];
+            datosNotas = [];
+        }
+    }
 
-<script>
-// Cargar datos del usuario autenticado
-window.addEventListener('load', function() {
-    const usuarioData = localStorage.getItem('usuarioUGC');
+    async agregarNota(estudiante, tipo, prioridad, texto, fechaAccion = null) {
+        // Obtener el curso del estudiante seleccionado
+        const curso = estudianteSeleccionadoNotaRapida ? estudianteSeleccionadoNotaRapida.curso : '';
+        
+        const nuevaNota = {
+            id: Date.now().toString(),
+            estudiante: estudiante,
+            curso: curso, // ✨ NUEVO: Guardar el curso
+            tipo: tipo,
+            prioridad: prioridad,
+            texto: texto,
+            fechaAccion: fechaAccion || '', // Nueva fecha de acción
+            fecha: new Date().toISOString(), // Fecha de creación
+            dispositivo: this.obtenerDispositivo(),
+            timestamp: new Date().toLocaleString('es-DO'),
+            editado: ''
+        };
+
+        // Guardar en Google Sheets
+        const guardado = await guardarNotaEnGoogleSheets(nuevaNota);
+        
+        if (guardado) {
+            // Agregar localmente
+            this.notas.unshift(nuevaNota);
+            datosNotas = this.notas;
+            this.actualizarVista();
+            this.actualizarContador();
+            
+            notificaciones.exito(
+                'Nota guardada',
+                'Disponible automáticamente en todos tus dispositivos'
+            );
+            
+            return nuevaNota;
+        } else {
+            return null;
+        }
+    }
+
+    async editarNota(id, estudiante, tipo, prioridad, texto, fechaAccion = null) {
+        const index = this.notas.findIndex(n => n.id === id);
+        if (index !== -1) {
+            // Obtener el curso del estudiante seleccionado o mantener el existente
+            const curso = estudianteSeleccionadoNotaRapida ? estudianteSeleccionadoNotaRapida.curso : this.notas[index].curso;
+            
+            const notaActualizada = {
+                ...this.notas[index],
+                estudiante: estudiante,
+                curso: curso, // ✨ Mantener o actualizar el curso
+                tipo: tipo,
+                prioridad: prioridad,
+                texto: texto,
+                fechaAccion: fechaAccion || '',
+                editado: new Date().toISOString()
+            };
+
+            // Actualizar en Google Sheets
+            const actualizado = await actualizarNotaEnGoogleSheets(notaActualizada);
+            
+            if (actualizado) {
+                this.notas[index] = notaActualizada;
+                datosNotas = this.notas;
+                this.actualizarVista();
+                
+                notificaciones.exito(
+                    'Nota actualizada',
+                    'Cambios sincronizados en todos tus dispositivos'
+                );
+            }
+        }
+    }
+
+    async eliminarNota(id) {
+        // Eliminar de Google Sheets
+        const eliminado = await eliminarNotaDeGoogleSheets(id);
+        
+        if (eliminado) {
+            // Eliminar localmente
+            this.notas = this.notas.filter(n => n.id !== id);
+            datosNotas = this.notas;
+            this.actualizarVista();
+            this.actualizarContador();
+            
+            notificaciones.exito(
+                'Nota eliminada',
+                'Eliminada de todos tus dispositivos'
+            );
+        }
+    }
+
+    obtenerNota(id) {
+        return this.notas.find(n => n.id === id);
+    }
+
+    async recargarNotas() {
+        console.log('🔄 Recargando notas...');
+        this.mostrarCargando();
+        await this.cargarNotas();
+        this.ocultarCargando();
+        this.actualizarVista();
+        this.actualizarContador();
+        
+        console.log(`📊 Total de notas cargadas: ${this.notas.length}`);
+        
+        // Mostrar notificación según el resultado
+        if (this.notas.length > 0) {
+            notificaciones.exito(
+                'Sincronizado',
+                `${this.notas.length} nota${this.notas.length !== 1 ? 's' : ''} cargada${this.notas.length !== 1 ? 's' : ''}`
+            );
+        } else {
+            // No mostrar nada si no hay notas (es normal)
+            console.log('ℹ️ No hay notas pendientes');
+        }
+    }
+
+    obtenerDispositivo() {
+        const width = window.innerWidth;
+        if (width < 768) return 'Móvil';
+        if (width < 1024) return 'Tablet';
+        return 'PC';
+    }
     
-    if (usuarioData) {
-        const usuario = JSON.parse(usuarioData);
+    formatearFecha(fecha) {
+        const ahora = new Date();
+        const diff = ahora - fecha;
+        const minutos = Math.floor(diff / 60000);
+        const horas = Math.floor(diff / 3600000);
+        const dias = Math.floor(diff / 86400000);
+
+        if (minutos < 1) return 'Hace un momento';
+        if (minutos < 60) return `Hace ${minutos} min`;
+        if (horas < 24) return `Hace ${horas}h`;
+        if (dias < 7) return `Hace ${dias}d`;
         
-        // Actualizar nombre y cargo
-        const userName = document.getElementById('userNameAdmin');
-        const userCargo = document.getElementById('userCargoAdmin');
+        return fecha.toLocaleDateString('es-DO', { 
+            day: '2-digit', 
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    actualizarContador() {
+        const contador = document.getElementById('contadorNotas');
+        if (!contador) return;
+
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0);
+        const finHoy = new Date(ahora);
+        finHoy.setHours(23, 59, 59, 999);
+
+        // Dos cifras: pendientes (hoy + vencidas + sin fecha) y próximas (futuras)
+        let pendientes = 0;
+        let proximas = 0;
+        this.notas.forEach(nota => {
+            if (!nota.fechaAccion) { pendientes++; return; }
+            const fechaNota = new Date(nota.fechaAccion);
+            if (fechaNota > finHoy) proximas++;   // futura
+            else pendientes++;                      // hoy o vencida
+        });
+        const total = this.notas.length;
+
+        const segP = document.getElementById('contPendientes');
+        const segX = document.getElementById('contProximas');
+        if (segP) {
+            segP.textContent = pendientes;
+            segP.style.display = pendientes > 0 ? 'flex' : 'none';
+        }
+        if (segX) {
+            segX.textContent = proximas;
+            segX.style.display = proximas > 0 ? 'flex' : 'none';
+        }
+
+        contador.style.display = total > 0 ? 'flex' : 'none';
+
+        // Mostrar notificación al abrir el sistema (solo una vez) si hay pendientes
+        if (!this.notificacionMostrada && pendientes > 0) {
+            setTimeout(() => {
+                mostrarNotificacionNotasHoy();
+            }, 1000);
+            this.notificacionMostrada = true;
+        }
+    }
+
+    actualizarVista() {
+        if (this.cargando) return;
+
+        const container = document.getElementById('notasContent');
+        const vacio = document.getElementById('notasVacio');
         
-        if (userName) {
-            userName.textContent = usuario.nombre;
+        // Actualizar contadores de pestañas
+        actualizarContadoresPestanas();
+        
+        // Filtrar notas según pestaña activa
+        let notasFiltradas = this.filtrarNotasPorTab();
+        
+        if (notasFiltradas.length === 0) {
+            const mensajesVacio = {
+                'hoy': {
+                    icono: '✨',
+                    titulo: 'No hay tareas para hoy',
+                    subtitulo: 'Disfruta tu día libre de pendientes'
+                },
+                'proximas': {
+                    icono: '📅',
+                    titulo: 'No hay tareas programadas',
+                    subtitulo: 'Agrega notas con fecha para planificar'
+                },
+                'todas': {
+                    icono: '📭',
+                    titulo: 'No hay notas pendientes',
+                    subtitulo: 'Crea una nota para empezar'
+                }
+            };
+            
+            const mensaje = mensajesVacio[this.tabActiva] || mensajesVacio.todas;
+            
+            container.innerHTML = `
+                <div class="notas-vacio">
+                    <div style="font-size: 3em;">${mensaje.icono}</div>
+                    <p>${mensaje.titulo}</p>
+                    <p style="font-size: 0.9em; margin-top: 5px;">${mensaje.subtitulo}</p>
+                </div>
+            `;
+            return;
+        }
+
+        if (vacio) vacio.style.display = 'none';
+        container.innerHTML = '';
+
+        // Ordenar notas según la pestaña
+        const notasOrdenadas = this.ordenarNotas(notasFiltradas);
+
+        notasOrdenadas.forEach(nota => {
+            const notaElement = this.crearElementoNota(nota);
+            container.appendChild(notaElement);
+        });
+    }
+    
+    filtrarNotasPorTab() {
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0); // Inicio del día
+        const finHoy = new Date(ahora);
+        finHoy.setHours(23, 59, 59, 999); // Fin del día
+        
+        switch(this.tabActiva) {
+            case 'hoy':
+                // SOLO las notas cuya fecha es HOY. Las vencidas y las que no
+                // tienen fecha aparecen únicamente en la pestaña "Todas".
+                return this.notas.filter(nota => {
+                    if (!nota.fechaAccion) return false;
+                    const fechaNota = new Date(nota.fechaAccion);
+                    return fechaNota >= ahora && fechaNota <= finHoy;
+                });
+                
+            case 'proximas':
+                // Solo notas futuras (después de hoy)
+                return this.notas.filter(nota => {
+                    if (!nota.fechaAccion) return false;
+                    const fechaNota = new Date(nota.fechaAccion);
+                    return fechaNota > finHoy;
+                });
+                
+            case 'todas':
+            default:
+                return this.notas;
+        }
+    }
+    
+    ordenarNotas(notas) {
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0);
+        const finHoy = new Date(ahora);
+        finHoy.setHours(23, 59, 59, 999);
+        
+        return [...notas].sort((a, b) => {
+            const prioridadOrden = { alta: 1, media: 2, baja: 3 };
+            
+            // Si ambas tienen fecha de acción
+            if (a.fechaAccion && b.fechaAccion) {
+                const fechaA = new Date(a.fechaAccion);
+                const fechaB = new Date(b.fechaAccion);
+                
+                // Vencidas primero (en rojo)
+                const aVencida = fechaA < ahora;
+                const bVencida = fechaB < ahora;
+                if (aVencida && !bVencida) return -1;
+                if (!aVencida && bVencida) return 1;
+                
+                // Luego por fecha
+                if (fechaA.getTime() !== fechaB.getTime()) {
+                    return fechaA - fechaB;
+                }
+            }
+            
+            // Si solo una tiene fecha, esa va primero
+            if (a.fechaAccion && !b.fechaAccion) return -1;
+            if (!a.fechaAccion && b.fechaAccion) return 1;
+            
+            // Si ninguna tiene fecha o empate, ordenar por prioridad
+            if (prioridadOrden[a.prioridad] !== prioridadOrden[b.prioridad]) {
+                return prioridadOrden[a.prioridad] - prioridadOrden[b.prioridad];
+            }
+            
+            // Por último, por fecha de creación (más recientes primero)
+            return new Date(b.fecha) - new Date(a.fecha);
+        });
+    }
+
+    crearElementoNota(nota) {
+        const div = document.createElement('div');
+        
+        // Determinar si está vencida
+        const ahora = new Date();
+        ahora.setHours(0, 0, 0, 0);
+        const esVencida = nota.fechaAccion && new Date(nota.fechaAccion) < ahora;
+        
+        div.className = `nota-item prioridad-${nota.prioridad}${esVencida ? ' nota-vencida' : ''}`;
+        
+        const dispositivo = nota.dispositivo ? `<span style="font-size: 0.85em; color: #9ca3af;">📱 ${nota.dispositivo}</span>` : '';
+        
+        // Formatear fecha de acción si existe
+        let fechaAccionHTML = '';
+        if (nota.fechaAccion) {
+            const fechaAccion = new Date(nota.fechaAccion);
+            const esHoy = this.esFechaHoy(fechaAccion);
+            const esMañana = this.esFechaMañana(fechaAccion);
+            
+            let textoFecha = '';
+            if (esVencida) {
+                textoFecha = `⚠️ VENCIDA - ${this.formatearFechaAccion(fechaAccion)}`;
+            } else if (esHoy) {
+                const hora = fechaAccion.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+                textoFecha = `🔥 HOY ${hora}`;
+            } else if (esMañana) {
+                const hora = fechaAccion.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+                textoFecha = `📅 MAÑANA ${hora}`;
+            } else {
+                textoFecha = `📅 ${this.formatearFechaAccion(fechaAccion)}`;
+            }
+            
+            const colorFecha = esVencida ? '#dc2626' : esHoy ? '#ea580c' : '#059669';
+            fechaAccionHTML = `<div style="font-weight:600;color:${colorFecha};margin-top:6px;font-size:0.9em;">${textoFecha}</div>`;
         }
         
-        if (userCargo && usuario.cargo) {
-            userCargo.textContent = usuario.cargo;
+        // Mostrar curso si existe
+        const cursoHTML = nota.curso ? ` <span style="color:#059669;font-weight:600;">📚 ${nota.curso}</span>` : '';
+        
+        div.innerHTML = `
+            <div class="nota-header-item">
+                <span class="nota-tipo ${nota.tipo}">${this.obtenerIconoTipo(nota.tipo)} ${this.obtenerNombreTipo(nota.tipo)}</span>
+                <span class="nota-prioridad ${nota.prioridad}">${this.obtenerIconoPrioridad(nota.prioridad)} ${nota.prioridad.toUpperCase()}</span>
+            </div>
+            <div class="nota-estudiante">👤 ${nota.estudiante}${cursoHTML}</div>
+            <div class="nota-texto">${limpiarEtiquetaConducta(nota.texto)}</div>
+            ${fechaAccionHTML}
+            <div class="nota-fecha">🕐 Creada ${this.formatearFecha(new Date(nota.fecha))} ${dispositivo}</div>
+            <div class="nota-acciones">
+                ${(nota.tipo === 'salida' && nota.fechaAccion) ? `<button class="nota-btn nota-btn-calendario" data-nota-id="${nota.id}" data-accion="calendario" style="background:#0ea5e9;color:#fff;">⏰ Agregar al calendario</button>` : ''}
+                <button class="nota-btn nota-btn-registrar" data-nota-id="${nota.id}" data-accion="registrar">
+                    📋 Registrar
+                </button>
+                <button class="nota-btn nota-btn-editar" data-nota-id="${nota.id}" data-accion="editar">
+                    ✏️ Editar
+                </button>
+                <button class="nota-btn nota-btn-borrar" data-nota-id="${nota.id}" data-accion="borrar">
+                    🗑️ Borrar
+                </button>
+            </div>
+        `;
+
+        // Agregar event listeners a los botones
+        const btnRegistrar = div.querySelector('[data-accion="registrar"]');
+        const btnEditar = div.querySelector('[data-accion="editar"]');
+        const btnBorrar = div.querySelector('[data-accion="borrar"]');
+        const btnCalendario = div.querySelector('[data-accion="calendario"]');
+
+        if (btnCalendario) {
+            btnCalendario.addEventListener('click', () => agregarSalidaAlCalendario(nota.id));
+        }
+        if (btnRegistrar) {
+            btnRegistrar.addEventListener('click', () => this.registrarIncidencia(nota.id));
+        }
+        if (btnEditar) {
+            btnEditar.addEventListener('click', () => this.iniciarEdicion(nota.id));
+        }
+        if (btnBorrar) {
+            btnBorrar.addEventListener('click', () => this.confirmarEliminar(nota.id));
         }
         
-        console.log('✅ Usuario cargado:', usuario);
+        return div;
+    }
+    
+    esFechaHoy(fecha) {
+        const hoy = new Date();
+        return fecha.getDate() === hoy.getDate() &&
+               fecha.getMonth() === hoy.getMonth() &&
+               fecha.getFullYear() === hoy.getFullYear();
+    }
+    
+    esFechaMañana(fecha) {
+        const mañana = new Date();
+        mañana.setDate(mañana.getDate() + 1);
+        return fecha.getDate() === mañana.getDate() &&
+               fecha.getMonth() === mañana.getMonth() &&
+               fecha.getFullYear() === mañana.getFullYear();
+    }
+    
+    formatearFechaAccion(fecha) {
+        const opciones = { 
+            weekday: 'short', 
+            day: '2-digit', 
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        return fecha.toLocaleDateString('es-DO', opciones);
+    }
+
+    obtenerIconoTipo(tipo) {
+        const iconos = {
+            tardanza: '📚',
+            incidencia: '⚠️',
+            llamada: '📞',
+            reunion: '👥',
+            recordatorio: '🔔',
+            salida: '🚪',
+            otros: '📝'
+        };
+        return iconos[tipo] || '📝';
+    }
+
+    obtenerNombreTipo(tipo) {
+        const nombres = {
+            tardanza: 'Tardanza',
+            incidencia: 'Incidencia',
+            llamada: 'Llamada Pendiente',
+            reunion: 'Reunión',
+            recordatorio: 'Recordatorio',
+            salida: 'Salida',
+            otros: 'Otros'
+        };
+        return nombres[tipo] || tipo;
+    }
+
+    obtenerIconoPrioridad(prioridad) {
+        const iconos = {
+            alta: '🔴',
+            media: '🟡',
+            baja: '🟢'
+        };
+        return iconos[prioridad] || '⚪';
+    }
+
+    registrarIncidencia(id) {
+        const nota = this.obtenerNota(id);
+        if (!nota) return;
+
+        // Determinar a qué módulo redirigir según el tipo
+        let moduloDestino = null;
+        let nombreModulo = '';
+        
+        switch(nota.tipo) {
+            case 'tardanza':
+                moduloDestino = 'tardanzas';
+                nombreModulo = 'Tardanzas';
+                break;
+            case 'incidencia':
+                moduloDestino = 'incidencias';
+                nombreModulo = 'Incidencias';
+                break;
+            case 'reunion':
+                moduloDestino = 'reuniones';
+                nombreModulo = 'Reuniones';
+                break;
+            default:
+                // Si es otro tipo (llamada, recordatorio, otros), no hacer nada
+                notificaciones.info(
+                    'Tipo de nota',
+                    'Este tipo de nota no se puede registrar directamente en un módulo'
+                );
+                return;
+        }
+
+        closeNotasPanel();
+
+        setTimeout(() => {
+            openModule(moduloDestino);
+
+            setTimeout(() => {
+                // Pre-llenar según el módulo
+                if (moduloDestino === 'tardanzas') {
+                    // Formulario de tardanzas
+                    const estudianteInput = document.querySelector('#tardanzas input[placeholder*="estudiante"]');
+                    const fechaInput = document.querySelector('#tardanzas input[type="date"]');
+                    const horaInput = document.querySelector('#tardanzas input[type="time"]');
+                    const motivoTextarea = document.querySelector('#tardanzas textarea');
+
+                    if (estudianteInput) estudianteInput.value = nota.estudiante;
+                    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+                    if (horaInput) horaInput.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    if (motivoTextarea) motivoTextarea.value = limpiarEtiquetaConducta(nota.texto);
+
+                } else if (moduloDestino === 'incidencias') {
+                    // Formulario de incidencias
+                    const estudianteInput = document.querySelector('#incidencias input[placeholder*="estudiante"]');
+                    const tipoSelect = document.querySelector('#incidencias select');
+                    const detallesTextarea = document.querySelector('#incidencias textarea');
+
+                    if (estudianteInput) estudianteInput.value = nota.estudiante;
+                    if (tipoSelect) {
+                        // Mapear prioridad a tipo de incidencia
+                        const mapeoTipos = {
+                            'alta': 'Grave',
+                            'media': 'Leve',
+                            'baja': 'Leve'
+                        };
+                        tipoSelect.value = mapeoTipos[nota.prioridad] || 'Leve';
+                    }
+                    if (detallesTextarea) detallesTextarea.value = limpiarEtiquetaConducta(nota.texto);
+
+                } else if (moduloDestino === 'reuniones') {
+                    // Formulario de reuniones
+                    const estudianteInput = document.querySelector('#reuniones input[placeholder*="estudiante"]');
+                    const fechaInput = document.querySelector('#reuniones input[type="date"]');
+                    const horaInput = document.querySelector('#reuniones input[type="time"]');
+                    const motivoTextarea = document.querySelector('#reuniones textarea[placeholder*="motivo"]');
+
+                    if (estudianteInput) estudianteInput.value = nota.estudiante;
+                    if (fechaInput) fechaInput.value = new Date().toISOString().split('T')[0];
+                    if (horaInput) horaInput.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    if (motivoTextarea) motivoTextarea.value = limpiarEtiquetaConducta(nota.texto);
+                }
+
+                // Scroll al formulario
+                const formulario = document.querySelector(`#${moduloDestino} form`);
+                if (formulario) {
+                    formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+
+                notificaciones.info(
+                    'Datos cargados',
+                    `Completa los campos restantes en ${nombreModulo}, guarda el registro y luego borra esta nota`,
+                    6000
+                );
+            }, 300);
+        }, 300);
+    }
+
+    iniciarEdicion(id) {
+        const nota = this.obtenerNota(id);
+        if (!nota) return;
+
+        this.notaEditando = id;
+        
+        document.getElementById('notaEstudiante').value = nota.estudiante;
+        document.getElementById('notaTipo').value = nota.tipo;
+        document.getElementById('notaPrioridad').value = nota.prioridad;
+        // Extraer el Tipo de Conducta embebido en el texto (si lo hay)
+        let _txtEd = nota.texto || '';
+        const _mtc = _txtEd.match(/^\[Tipo de conducta:\s*([^\]]+)\]\s*/i);
+        const _tcEd = document.getElementById('notaTipoConducta');
+        if (_tcEd) _tcEd.value = (_mtc ? _mtc[1].trim() : '');
+        if (_mtc) _txtEd = _txtEd.replace(/^\[Tipo de conducta:\s*[^\]]*\]\s*/i, '');
+        document.getElementById('notaTexto').value = _txtEd;
+        if (typeof toggleNotaTipoConducta === 'function') toggleNotaTipoConducta(); // Mostrar/ocultar según el tipo
+
+        // Intentar obtener estudiantes de múltiples fuentes
+        let estudiantes = [];
+        if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
+            estudiantes = window.datosEstudiantes;
+        } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
+            estudiantes = datosEstudiantes;
+        } else if (typeof globalThis !== 'undefined' && globalThis.datosEstudiantes) {
+            estudiantes = globalThis.datosEstudiantes;
+        }
+        
+        if (estudiantes.length > 0) {
+            const estudiante = estudiantes.find(est => {
+                const nombreCompleto = `${est['Nombre'] || ''} ${est['Apellidos'] || ''}`;
+                return nombreCompleto.toLowerCase() === nota.estudiante.toLowerCase();
+            });
+            
+            if (estudiante && estudiante['Curso']) {
+                const cursoDiv = document.getElementById('cursoNotaRapida');
+                if (cursoDiv) {
+                    cursoDiv.textContent = `📚 ${estudiante['Curso']}`;
+                    cursoDiv.style.display = 'block';
+                    estudianteSeleccionadoNotaRapida = { 
+                        nombre: nota.estudiante, 
+                        curso: estudiante['Curso'] 
+                    };
+                }
+            }
+        }
+        
+        // Cargar fecha de acción si existe
+        if (nota.fechaAccion) {
+            // Convertir a formato datetime-local (YYYY-MM-DDTHH:MM)
+            const fecha = new Date(nota.fechaAccion);
+            const year = fecha.getFullYear();
+            const month = String(fecha.getMonth() + 1).padStart(2, '0');
+            const day = String(fecha.getDate()).padStart(2, '0');
+            const hours = String(fecha.getHours()).padStart(2, '0');
+            const minutes = String(fecha.getMinutes()).padStart(2, '0');
+            document.getElementById('notaFecha').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        } else {
+            document.getElementById('notaFecha').value = '';
+        }
+
+        mostrarFormNuevaNota();
+
+        const btnGuardar = document.querySelector('.btn-guardar-nota');
+        btnGuardar.textContent = '💾 Actualizar';
+    }
+
+    confirmarEliminar(id) {
+        const nota = this.obtenerNota(id);
+        if (!nota) return;
+
+        const notifConfirm = notificaciones.advertencia(
+            '¿Eliminar nota?',
+            `${nota.estudiante} - ${limpiarEtiquetaConducta(nota.texto).substring(0, 40)}...`,
+            0
+        );
+
+        const botonesDiv = document.createElement('div');
+        botonesDiv.style.cssText = 'display: flex; gap: 8px; margin-top: 10px;';
+        
+        const btnEliminar = document.createElement('button');
+        btnEliminar.textContent = 'Sí, eliminar';
+        btnEliminar.style.cssText = 'flex: 1; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;';
+        
+        const btnCancelar = document.createElement('button');
+        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.style.cssText = 'flex: 1; padding: 8px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;';
+        
+        // Event listener para eliminar
+        btnEliminar.addEventListener('click', async () => {
+            await this.eliminarNotaConfirmada(id);
+            notifConfirm.remove();
+        });
+        
+        // Event listener para cancelar
+        btnCancelar.addEventListener('click', () => {
+            notifConfirm.remove();
+        });
+        
+        botonesDiv.appendChild(btnEliminar);
+        botonesDiv.appendChild(btnCancelar);
+        notifConfirm.querySelector('.notificacion-contenido').appendChild(botonesDiv);
+    }
+
+    async eliminarNotaConfirmada(id) {
+        await this.eliminarNota(id);
+    }
+}
+
+// ========================================
+// FUNCIONES GLOBALES DE INTERFAZ
+// ========================================
+
+let sistemaNotas = null;
+
+// Inicializar cuando se configure la URL
+// ========================================
+// SALIDAS: agregar al calendario + alarma dentro de la app
+// ========================================
+
+// Convierte "YYYY-MM-DDTHH:MM" (hora local) a "YYYYMMDDTHHMMSSZ" (UTC) para Google Calendar
+function _fechaCalendario(dateObj) {
+    const p = (n) => String(n).padStart(2, '0');
+    return dateObj.getUTCFullYear() + p(dateObj.getUTCMonth() + 1) + p(dateObj.getUTCDate()) + 'T' +
+           p(dateObj.getUTCHours()) + p(dateObj.getUTCMinutes()) + '00Z';
+}
+
+function agregarSalidaAlCalendario(id) {
+    const nota = sistemaNotas ? sistemaNotas.obtenerNota(id) : null;
+    if (!nota) return;
+    if (!nota.fechaAccion) {
+        if (typeof mostrarNotificacionToast === 'function') mostrarNotificacionToast('⚠️ La salida no tiene fecha/hora');
+        return;
+    }
+    const inicio = new Date(nota.fechaAccion);
+    if (isNaN(inicio.getTime())) {
+        if (typeof mostrarNotificacionToast === 'function') mostrarNotificacionToast('⚠️ Fecha no válida');
+        return;
+    }
+    const fin = new Date(inicio.getTime() + 30 * 60000); // +30 min
+
+    const titulo = ('Salida: ' + (nota.estudiante || '')).trim();
+    const detalle = (nota.texto || '') + (nota.curso ? ('\nCurso: ' + nota.curso) : '');
+    const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+        + '&text=' + encodeURIComponent(titulo)
+        + '&dates=' + _fechaCalendario(inicio) + '/' + _fechaCalendario(fin)
+        + '&details=' + encodeURIComponent(detalle);
+    window.open(url, '_blank');
+}
+
+// ---- Alarma dentro de la app (cuando el sistema está abierto) ----
+let _intervaloAlarmasSalida = null;
+let _audioCtxAlarma = null;
+
+// Desbloquea el audio con el primer gesto del usuario (requisito en móviles)
+function _desbloquearAudioAlarma() {
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!_audioCtxAlarma) _audioCtxAlarma = new Ctx();
+        if (_audioCtxAlarma.state === 'suspended' && _audioCtxAlarma.resume) _audioCtxAlarma.resume();
+    } catch (e) {}
+}
+try {
+    ['click', 'touchstart', 'keydown'].forEach(function (ev) {
+        document.addEventListener(ev, _desbloquearAudioAlarma, { passive: true });
+    });
+} catch (e) {}
+
+function _salidasAlarmadas() {
+    try { return JSON.parse(localStorage.getItem('salidasAlarmadas') || '[]'); } catch (e) { return []; }
+}
+function _marcarSalidaAlarmada(clave) {
+    try {
+        const arr = _salidasAlarmadas();
+        if (arr.indexOf(clave) === -1) { arr.push(clave); localStorage.setItem('salidasAlarmadas', JSON.stringify(arr.slice(-300))); }
+    } catch (e) {}
+}
+
+function verificarAlarmasSalida() {
+    try {
+        const notas = (sistemaNotas && Array.isArray(sistemaNotas.notas)) ? sistemaNotas.notas
+                    : (Array.isArray(datosNotas) ? datosNotas : []);
+        const ahora = Date.now();
+        const yaAlarmadas = _salidasAlarmadas();
+        notas.forEach(nota => {
+            if (nota.tipo !== 'salida' || !nota.fechaAccion) return;
+            const t = new Date(nota.fechaAccion).getTime();
+            if (isNaN(t)) return;
+            const clave = (nota.id || '') + '|' + nota.fechaAccion;
+            // Disparar si la hora ya llegó (hasta 30 min después, para "alcanzar"
+            // una salida que pasó mientras el teléfono estaba bloqueado) y aún no
+            // se ha alarmado.
+            if (ahora >= t && ahora < t + 30 * 60000 && yaAlarmadas.indexOf(clave) === -1) {
+                _marcarSalidaAlarmada(clave);
+                dispararAlarmaSalida(nota);
+            }
+        });
+    } catch (e) { console.log('Error verificando alarmas de salida:', e); }
+}
+
+function dispararAlarmaSalida(nota) {
+    const titulo = '🚪 Salida: ' + (nota.estudiante || '');
+    const cuerpo = (nota.texto || 'Es la hora de la salida programada.');
+    // Vibración (Android/Chrome)
+    try { if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]); } catch (e) {}
+    // Notificación del sistema (usa el sonido/vibración configurado en el teléfono)
+    try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(titulo, { body: cuerpo });
+        }
+    } catch (e) {}
+    // Sonido de respaldo dentro de la app
+    _beepAlarma();
+    // Aviso visual
+    if (typeof mostrarNotificacionToast === 'function') mostrarNotificacionToast(titulo);
+}
+
+function _beepAlarma() {
+    try {
+        _desbloquearAudioAlarma();
+        const ctx = _audioCtxAlarma;
+        if (!ctx) return;
+        let t = ctx.currentTime;
+        for (let i = 0; i < 4; i++) {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.value = 880;
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(t); o.stop(t + 0.37);
+            t += 0.5;
+        }
+    } catch (e) {}
+}
+
+// Pedir permiso de notificaciones (para la alarma de salida)
+function solicitarPermisoNotificacionesSalida() {
+    try {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().catch(function () {});
+        }
+    } catch (e) {}
+}
+
+function inicializarSistemaNotas() {
+    if (!sistemaNotas) {
+        sistemaNotas = new NotasRapidas();
+    }
+    sistemaNotas.inicializar();
+    _arrancarAlarmasSalida();
+}
+
+// Carga las notas en segundo plano (si no están) para que las alarmas de salida
+// funcionen aunque no se haya abierto el panel de notas.
+async function _asegurarNotasParaAlarmas() {
+    try {
+        if (sistemaNotas && Array.isArray(sistemaNotas.notas) && sistemaNotas._notasCargadasAlarma) return;
+        if (typeof cargarNotasDesdeGoogleSheets === 'function' && urlNotasRapidas) {
+            const notas = await cargarNotasDesdeGoogleSheets();
+            if (Array.isArray(notas)) {
+                datosNotas = notas;
+                if (!sistemaNotas) sistemaNotas = new NotasRapidas();
+                sistemaNotas.notas = notas;
+                sistemaNotas._notasCargadasAlarma = true;
+            }
+        }
+    } catch (e) {}
+}
+
+// Arranca el verificador de alarmas de salida de forma independiente del panel.
+// Incluye: intervalo periódico + verificación al volver la app a primer plano
+// (clave en el celular, al desbloquear o volver a la app).
+let _alarmasArrancadas = false;
+function _arrancarAlarmasSalida() {
+    if (_alarmasArrancadas) { _asegurarNotasParaAlarmas().then(verificarAlarmasSalida); return; }
+    _alarmasArrancadas = true;
+    if (!_intervaloAlarmasSalida) {
+        _intervaloAlarmasSalida = setInterval(verificarAlarmasSalida, 30000);
+    }
+    try {
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                _asegurarNotasParaAlarmas().then(verificarAlarmasSalida);
+            }
+        });
+    } catch (e) {}
+    _asegurarNotasParaAlarmas().then(verificarAlarmasSalida);
+}
+
+// Arranque automático al cargar la página (no depende de abrir el panel de notas)
+try {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _arrancarAlarmasSalida);
+    } else {
+        _arrancarAlarmasSalida();
+    }
+} catch (e) {}
+
+function toggleNotasPanel() {
+    const overlay = document.getElementById('notasOverlay');
+    const panel = document.getElementById('notasPanel');
+    
+    overlay.classList.toggle('active');
+    panel.classList.toggle('active');
+
+    if (!panel.classList.contains('active')) {
+        cancelarNuevaNota();
+    }
+
+    // Recargar al abrir
+    if (panel.classList.contains('active')) {
+        if (!sistemaNotas) {
+            sistemaNotas = new NotasRapidas();
+        }
+        
+        // Verificar que la URL esté configurada
+        if (!urlNotasRapidas) {
+            notificaciones.advertencia(
+                'Configuración pendiente',
+                'Ve a Configuración y agrega la URL de Google Sheets para Notas'
+            );
+            return;
+        }
+        
+        sistemaNotas.recargarNotas();
+    }
+}
+
+function closeNotasPanel() {
+    const overlay = document.getElementById('notasOverlay');
+    const panel = document.getElementById('notasPanel');
+    
+    overlay.classList.remove('active');
+    panel.classList.remove('active');
+    cancelarNuevaNota();
+}
+
+function mostrarFormNuevaNota() {
+    const form = document.getElementById('formNuevaNota');
+    form.classList.remove('oculto');
+    if (typeof toggleNotaTipoConducta === 'function') toggleNotaTipoConducta(); // Estado correcto del campo Tipo de Conducta
+
+    // Inicializar autocompletado si no está inicializado
+    setTimeout(() => {
+        inicializarAutocompletadoNotaRapida();
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+}
+
+function cancelarNuevaNota() {
+    const form = document.getElementById('formNuevaNota');
+    form.classList.add('oculto');
+    
+    document.getElementById('notaEstudiante').value = '';
+    document.getElementById('notaTipo').value = 'tardanza';
+    document.getElementById('notaPrioridad').value = 'media';
+    document.getElementById('notaTexto').value = '';
+    document.getElementById('notaFecha').value = ''; // Limpiar fecha
+    if (typeof toggleNotaTipoConducta === 'function') toggleNotaTipoConducta(); // Ocultar Tipo de Conducta
+
+    // Limpiar curso y sugerencias
+    document.getElementById('cursoNotaRapida').style.display = 'none';
+    document.getElementById('sugerenciasNotaRapida').style.display = 'none';
+    estudianteSeleccionadoNotaRapida = null;
+    
+    if (sistemaNotas) {
+        sistemaNotas.notaEditando = null;
+    }
+    
+    const btnGuardar = document.querySelector('.btn-guardar-nota');
+    if (btnGuardar) {
+        btnGuardar.textContent = '💾 Guardar';
+    }
+}
+
+// Muestra/oculta el campo "Tipo de Conducta" según el Tipo de nota.
+// Solo aparece cuando el tipo es "Incidencia" (misma lista que el módulo Incidencias).
+// Quita la etiqueta antigua "[Tipo de conducta: ...]" del inicio del texto.
+// Se usa al mostrar/usar notas que se guardaron con esa etiqueta.
+function limpiarEtiquetaConducta(texto) {
+    return String(texto || '').replace(/^\[Tipo de conducta:\s*[^\]]*\]\s*/i, '');
+}
+
+function toggleNotaTipoConducta() {
+    const sel = document.getElementById('notaTipo');
+    const grupo = document.getElementById('notaTipoConductaGroup');
+    const tc = document.getElementById('notaTipoConducta');
+    if (!sel || !grupo) return;
+    if (sel.value === 'incidencia') {
+        grupo.style.display = 'block';
+    } else {
+        grupo.style.display = 'none';
+        if (tc) tc.value = '';
+    }
+}
+
+// Al elegir un Tipo de Conducta, autocompleta el campo Nota con una plantilla:
+// "Hacer el reporte por <Tipo de conducta> al estudiante <Estudiante>."
+// Solo sobrescribe si la nota está vacía o es una plantilla autogenerada, para
+// no borrar un texto escrito manualmente.
+function onCambioNotaTipoConducta() {
+    const tc = document.getElementById('notaTipoConducta');
+    const est = document.getElementById('notaEstudiante');
+    const ta = document.getElementById('notaTexto');
+    if (!tc || !ta) return;
+    const conducta = (tc.value || '').trim();
+    const estudiante = est ? (est.value || '').trim() : '';
+    const actual = (ta.value || '').trim();
+    const esAuto = (actual === '' || /^Hacer el reporte por /i.test(actual));
+    if (!esAuto) return; // respetar nota escrita manualmente
+    if (!conducta) {
+        if (/^Hacer el reporte por /i.test(actual)) ta.value = '';
+        return;
+    }
+    ta.value = estudiante
+        ? `Hacer el reporte por ${conducta} al estudiante ${estudiante}.`
+        : `Hacer el reporte por ${conducta}.`;
+}
+
+async function guardarNota() {
+    const estudiante = document.getElementById('notaEstudiante').value.trim();
+    const tipo = document.getElementById('notaTipo').value;
+    const prioridad = document.getElementById('notaPrioridad').value;
+    let texto = document.getElementById('notaTexto').value.trim();
+    const fechaAccion = document.getElementById('notaFecha').value; // NUEVO
+
+    // Si es una "Salida", pedir permiso de notificaciones para la alarma
+    if (tipo === 'salida' && typeof solicitarPermisoNotificacionesSalida === 'function') {
+        solicitarPermisoNotificacionesSalida();
+    }
+
+    // La nota se guarda tal cual la escribe la usuaria. El Tipo de Conducta ya
+    // queda reflejado en el texto autogenerado, así que NO se añade ninguna
+    // etiqueta. Se limpia cualquier etiqueta antigua por si quedó de antes.
+    texto = limpiarEtiquetaConducta(texto).trim();
+
+    if (!estudiante) {
+        notificaciones.advertencia('Campo requerido', 'Por favor ingresa el nombre del estudiante');
+        document.getElementById('notaEstudiante').focus();
+        return;
+    }
+
+    if (!texto) {
+        notificaciones.advertencia('Campo requerido', 'Por favor escribe una nota');
+        document.getElementById('notaTexto').focus();
+        return;
+    }
+
+    // Una "Salida" necesita fecha y hora para poder avisar y agregarse al calendario
+    if (tipo === 'salida' && !fechaAccion) {
+        notificaciones.advertencia('Fecha requerida', 'La "Salida" necesita fecha y hora para poder avisarte.');
+        document.getElementById('notaFecha').focus();
+        return;
+    }
+
+    if (!urlNotasRapidas) {
+        notificaciones.error(
+            'Configuración pendiente',
+            'Ve al módulo de Configuración y agrega la URL de Google Sheets para Notas'
+        );
+        return;
+    }
+
+    const btnGuardar = document.querySelector('.btn-guardar-nota');
+    const textoOriginal = btnGuardar.textContent;
+    btnGuardar.classList.add('btn-cargando');
+    btnGuardar.textContent = 'Guardando...';
+
+    try {
+        if (sistemaNotas.notaEditando) {
+            await sistemaNotas.editarNota(sistemaNotas.notaEditando, estudiante, tipo, prioridad, texto, fechaAccion);
+        } else {
+            await sistemaNotas.agregarNota(estudiante, tipo, prioridad, texto, fechaAccion);
+        }
+
+        cancelarNuevaNota();
+
+        const content = document.getElementById('notasContent');
+        if (content) content.scrollTop = 0;
+    } finally {
+        btnGuardar.classList.remove('btn-cargando');
+        btnGuardar.textContent = textoOriginal;
+    }
+}
+
+// ========================================
+// FUNCIONES PARA FECHAS RÁPIDAS (FASE 1)
+// ========================================
+
+function setFechaRapida(tipo) {
+    const inputFecha = document.getElementById('notaFecha');
+    if (!inputFecha) return;
+    
+    const ahora = new Date();
+    let fechaTarget = new Date();
+    
+    switch(tipo) {
+        case 'hoy':
+            // Hoy a las 5:00 PM
+            fechaTarget.setHours(17, 0, 0, 0);
+            break;
+        case 'manana':
+            // Mañana a las 9:00 AM
+            fechaTarget.setDate(fechaTarget.getDate() + 1);
+            fechaTarget.setHours(9, 0, 0, 0);
+            break;
+        case '3dias':
+            // En 3 días a las 9:00 AM
+            fechaTarget.setDate(fechaTarget.getDate() + 3);
+            fechaTarget.setHours(9, 0, 0, 0);
+            break;
+        case 'semana':
+            // Próxima semana (lunes) a las 9:00 AM
+            const diasHastaLunes = (8 - fechaTarget.getDay()) % 7 || 7;
+            fechaTarget.setDate(fechaTarget.getDate() + diasHastaLunes);
+            fechaTarget.setHours(9, 0, 0, 0);
+            break;
+        case 'limpiar':
+            inputFecha.value = '';
+            return;
+    }
+    
+    // Formatear para datetime-local (YYYY-MM-DDTHH:MM)
+    const year = fechaTarget.getFullYear();
+    const month = String(fechaTarget.getMonth() + 1).padStart(2, '0');
+    const day = String(fechaTarget.getDate()).padStart(2, '0');
+    const hours = String(fechaTarget.getHours()).padStart(2, '0');
+    const minutes = String(fechaTarget.getMinutes()).padStart(2, '0');
+    
+    inputFecha.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// ========================================
+// FUNCIONES PARA PESTAÑAS (FASE 2)
+// ========================================
+
+let tabActivaNotas = 'hoy';
+
+function cambiarTabNotas(tab) {
+    tabActivaNotas = tab;
+    
+    // Actualizar clases de pestañas
+    document.querySelectorAll('.nota-tab').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-tab') === tab) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Actualizar vista de notas
+    if (sistemaNotas) {
+        sistemaNotas.tabActiva = tab;
+        sistemaNotas.actualizarVista();
+    }
+}
+
+function actualizarContadoresPestanas() {
+    if (!sistemaNotas || !sistemaNotas.notas) return;
+    
+    const ahora = new Date();
+    ahora.setHours(0, 0, 0, 0); // Inicio del día
+    const finHoy = new Date(ahora);
+    finHoy.setHours(23, 59, 59, 999); // Fin del día
+    
+    // Contar notas por categoría
+    let countHoy = 0;
+    let countProximas = 0;
+    let countTodas = sistemaNotas.notas.length;
+    
+    sistemaNotas.notas.forEach(nota => {
+        if (nota.fechaAccion) {
+            const fechaNota = new Date(nota.fechaAccion);
+            if (fechaNota >= ahora && fechaNota <= finHoy) {
+                countHoy++;
+            } else if (fechaNota > finHoy) {
+                countProximas++;
+            }
+        }
+    });
+    
+    // Actualizar badges
+    const badgeHoy = document.getElementById('countHoy');
+    const badgeProximas = document.getElementById('countProximas');
+    // El badge de "Todas" de Notas es countTodasNotas (countTodas pertenece al
+    // panel de Notificaciones; usarlo aquí dejaba el de Notas siempre en 0).
+    const badgeTodas = document.getElementById('countTodasNotas');
+
+    if (badgeHoy) badgeHoy.textContent = countHoy;
+    if (badgeProximas) badgeProximas.textContent = countProximas;
+    if (badgeTodas) badgeTodas.textContent = countTodas;
+}
+
+// ========================================
+// FUNCIONES PARA NOTIFICACIÓN INICIAL (FASE 3)
+// ========================================
+
+function mostrarNotificacionNotasHoy() {
+    if (!sistemaNotas || !sistemaNotas.notas) return;
+    
+    const ahora = new Date();
+    ahora.setHours(0, 0, 0, 0);
+    const finHoy = new Date(ahora);
+    finHoy.setHours(23, 59, 59, 999);
+    
+    const notasHoy = sistemaNotas.notas.filter(nota => {
+        if (!nota.fechaAccion) return false;
+        const fechaNota = new Date(nota.fechaAccion);
+        return fechaNota >= ahora && fechaNota <= finHoy;
+    });
+    
+    if (notasHoy.length > 0) {
+        const lista = notasHoy.slice(0, 3).map(n => 
+            `• ${obtenerIconoTipo(n.tipo)} ${n.estudiante}: ${n.texto.substring(0, 40)}${n.texto.length > 40 ? '...' : ''}`
+        ).join('<br>');
+        
+        const mensaje = notasHoy.length <= 3 ? lista : 
+            `${lista}<br><em>...y ${notasHoy.length - 3} más</em>`;
+        
+        notificaciones.info(
+            `Tienes ${notasHoy.length} tarea${notasHoy.length > 1 ? 's' : ''} para hoy`,
+            mensaje,
+            6000
+        );
+    }
+}
+
+function obtenerIconoTipo(tipo) {
+    const iconos = {
+        'tardanza': '📚',
+        'incidencia': '⚠️',
+        'llamada': '📞',
+        'reunion': '👥',
+        'recordatorio': '🔔',
+        'otros': '📝'
+    };
+    return iconos[tipo] || '📝';
+}
+
+// Atajos de teclado
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        const panel = document.getElementById('notasPanel');
+        if (panel && panel.classList.contains('active')) {
+            e.preventDefault();
+            mostrarFormNuevaNota();
+        }
+    }
+
+    if (e.key === 'Escape') {
+        const form = document.getElementById('formNuevaNota');
+        if (form && !form.classList.contains('oculto')) {
+            cancelarNuevaNota();
+        } else {
+            closeNotasPanel();
+        }
     }
 });
-</script>
 
-<!-- MODAL DE CONFIRMACIÓN SALIR -->
-<div class="modal-confirm-admin" id="modalConfirmAdmin">
-    <div class="modal-confirm-content-admin">
-        <div class="modal-confirm-header-admin">
-            <h3>⚠️ Confirmar Cierre de Sesión</h3>
-        </div>
-        <div class="modal-confirm-body-admin">
-            <p>¿Estás seguro de que deseas cerrar sesión?</p>
-            <div class="modal-confirm-buttons-admin">
-                <button class="btn-confirm-admin btn-confirm-yes-admin" onclick="cerrarSesionConfirmado()">
-                    Sí, Cerrar Sesión
-                </button>
-                <button class="btn-confirm-admin btn-confirm-no-admin" onclick="cerrarModalAdmin()">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+// ========================================
+// AUTOCOMPLETADO DE ESTUDIANTES - NOTAS RÁPIDAS
+// (COPIADO DEL MÓDULO DE ESTUDIANTES QUE FUNCIONA)
+// ========================================
 
-<style>
-/* Modal de confirmación para admin */
-.modal-confirm-admin {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7);
-    align-items: center;
-    justify-content: center;
-}
+let estudianteSeleccionadoNotaRapida = null;
 
-.modal-confirm-content-admin {
-    background: white;
-    border-radius: 15px;
-    max-width: 450px;
-    width: 90%;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
-    animation: slideIn 0.3s ease;
-    overflow: hidden;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.modal-confirm-header-admin {
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-    color: white;
-    padding: 20px 25px;
-    text-align: center;
-}
-
-.modal-confirm-header-admin h3 {
-    font-size: 1.3em;
-    margin: 0;
-}
-
-.modal-confirm-body-admin {
-    padding: 30px 25px;
-    text-align: center;
-}
-
-.modal-confirm-body-admin p {
-    color: #666;
-    font-size: 1.05em;
-    line-height: 1.6;
-    margin-bottom: 25px;
-}
-
-.modal-confirm-buttons-admin {
-    display: flex;
-    gap: 15px;
-}
-
-.btn-confirm-admin {
-    flex: 1;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.btn-confirm-yes-admin {
-    background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-    color: white;
-}
-
-.btn-confirm-yes-admin:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(42,82,152,0.4);
-}
-
-.btn-confirm-no-admin {
-    background: linear-gradient(135deg, #000000 0%, #333333 100%);
-    color: white;
-}
-
-.btn-confirm-no-admin:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-}
-</style>
-
-<script>
-// Funciones para modal de confirmación de salir
-function mostrarConfirmacionSalirAdmin() {
-    document.getElementById('modalConfirmAdmin').style.display = 'flex';
-}
-
-function cerrarModalAdmin() {
-    document.getElementById('modalConfirmAdmin').style.display = 'none';
-}
-
-function cerrarSesionConfirmado() {
-    localStorage.removeItem('usuarioUGC');
-    console.log('👋 Sesión cerrada');
-    window.location.href = 'index.html';
-}
-
-// Cerrar modal al hacer clic fuera
-window.onclick = function(event) {
-    const modal = document.getElementById('modalConfirmAdmin');
-    if (event.target == modal) {
-        cerrarModalAdmin();
-    }
-}
-</script>
+function inicializarAutocompletadoNotaRapida() {
+    const input = document.getElementById('notaEstudiante');
+    const contenedorSugerencias = document.getElementById('sugerenciasNotaRapida');
+    const cursoDiv = document.getElementById('cursoNotaRapida');
     
-</body>
-</html>
+    if (!input || !contenedorSugerencias) {
+        console.warn('⚠️ No se encontraron elementos para autocompletado');
+        return;
+    }
+    
+    console.log('✅ Inicializando autocompletado de notas rápidas');
+    
+    input.addEventListener('input', function() {
+        const texto = this.value.toLowerCase().trim();
+        
+        // Limpiar curso si está escribiendo
+        if (cursoDiv) cursoDiv.style.display = 'none';
+        estudianteSeleccionadoNotaRapida = null;
+        
+        if (texto.length === 0) {
+            contenedorSugerencias.style.display = 'none';
+            return;
+        }
+        
+        // Obtener estudiantes de forma robusta
+        let estudiantes = [];
+        if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
+            estudiantes = window.datosEstudiantes;
+        } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
+            estudiantes = datosEstudiantes;
+        }
+        
+        console.log(`🔍 Buscando "${texto}" en ${estudiantes.length} estudiantes`);
+        
+        if (estudiantes.length < 10) {
+            contenedorSugerencias.innerHTML = `
+                <div style="padding:15px;text-align:center;color:#059669;">
+                    <div style="font-size:1.2em;margin-bottom:5px;">⏳</div>
+                    <div>Cargando estudiantes...</div>
+                    <div style="font-size:0.85em;margin-top:5px;color:#666;">
+                        ${estudiantes.length} de ~400 cargados
+                    </div>
+                </div>
+            `;
+            contenedorSugerencias.style.display = 'block';
+            
+            // Reintentar después de 500ms
+            setTimeout(() => {
+                if (this.value.toLowerCase().trim() === texto) {
+                    this.dispatchEvent(new Event('input'));
+                }
+            }, 500);
+            return;
+        }
+        
+        const coincidencias = estudiantes.filter(e => {
+            const nombre = (e['Nombre Completo'] || e['Nombre'] || '').toLowerCase();
+            const apellidos = (e['Apellidos'] || '').toLowerCase();
+            const nombreCompleto = `${nombre} ${apellidos}`.trim();
+            const curso = (e['Curso'] || '').toLowerCase();
+            return nombreCompleto.includes(texto) || curso.includes(texto);
+        }).slice(0, 10);
+        
+        console.log(`✅ Encontradas ${coincidencias.length} coincidencias`);
+        
+        if (coincidencias.length === 0) {
+            contenedorSugerencias.innerHTML = '<div style="padding:15px;text-align:center;color:#999;">No se encontraron estudiantes</div>';
+            contenedorSugerencias.style.display = 'block';
+            return;
+        }
+        
+        contenedorSugerencias.innerHTML = coincidencias.map(e => {
+            const nombre = e['Nombre Completo'] || `${e['Nombre'] || ''} ${e['Apellidos'] || ''}`.trim();
+            const curso = e['Curso'] || '';
+            const nombreEscapado = nombre.replace(/'/g, "\\'");
+            const cursoEscapado = curso.replace(/'/g, "\\'");
+            
+            return `
+                <div onmousedown="event.preventDefault(); seleccionarEstudianteNotaRapida('${nombreEscapado}', '${cursoEscapado}')" class="sugerencia-item" style="pointer-events:auto;">
+                    <div style="font-weight:600;pointer-events:none;">${nombre}</div>
+                    <div style="font-size:0.85em;color:#9ca3af;pointer-events:none;">${curso}</div>
+                </div>
+            `;
+        }).join('');
+        
+        contenedorSugerencias.style.display = 'block';
+    });
+    
+    input.addEventListener('focus', function() {
+        if (this.value.trim().length > 0) {
+            this.dispatchEvent(new Event('input'));
+        }
+    });
+}
+
+function seleccionarEstudianteNotaRapida(nombre, curso) {
+    const input = document.getElementById('notaEstudiante');
+    const sugerencias = document.getElementById('sugerenciasNotaRapida');
+    const cursoDiv = document.getElementById('cursoNotaRapida');
+    
+    console.log(`✅ Seleccionado: ${nombre} - ${curso}`);
+    
+    input.value = nombre;
+    estudianteSeleccionadoNotaRapida = { nombre, curso };
+    
+    // Mostrar el curso debajo del input
+    if (curso && cursoDiv) {
+        cursoDiv.textContent = `📚 ${curso}`;
+        cursoDiv.style.display = 'block';
+    }
+
+    sugerencias.style.display = 'none';
+
+    // Si ya hay un Tipo de Conducta elegido y la nota es autogenerada, actualizarla
+    // con el nombre del estudiante recién seleccionado.
+    if (typeof onCambioNotaTipoConducta === 'function') {
+        const _tc = document.getElementById('notaTipoConducta');
+        if (_tc && _tc.value) onCambioNotaTipoConducta();
+    }
+}
+
+// Cerrar sugerencias al hacer click fuera
+document.addEventListener('click', function(e) {
+    const sugerencias = document.getElementById('sugerenciasNotaRapida');
+    const input = document.getElementById('notaEstudiante');
+    
+    if (sugerencias && input && e.target !== input && !sugerencias.contains(e.target)) {
+        sugerencias.style.display = 'none';
+    }
+});
+
+// Diagnóstico de autocompletado
+setTimeout(() => {
+    const input = document.getElementById('notaEstudiante');
+    const sugerencias = document.getElementById('sugerenciasNotaRapida');
+    const curso = document.getElementById('cursoNotaRapida');
+    
+    // Intentar obtener estudiantes de múltiples fuentes
+    let estudiantes = [];
+    let fuente = 'ninguna';
+    
+    if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes) && window.datosEstudiantes.length > 0) {
+        estudiantes = window.datosEstudiantes;
+        fuente = 'window.datosEstudiantes';
+    } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes) && datosEstudiantes.length > 0) {
+        estudiantes = datosEstudiantes;
+        fuente = 'datosEstudiantes (global)';
+    } else if (typeof globalThis !== 'undefined' && globalThis.datosEstudiantes) {
+        estudiantes = globalThis.datosEstudiantes;
+        fuente = 'globalThis.datosEstudiantes';
+    }
+    
+    console.log('🔍 Diagnóstico Autocompletado Notas Rápidas:');
+    console.log('  Input estudiante:', input ? '✅ OK' : '❌ NO ENCONTRADO');
+    console.log('  Div sugerencias:', sugerencias ? '✅ OK' : '❌ NO ENCONTRADO');
+    console.log('  Div curso:', curso ? '✅ OK' : '❌ NO ENCONTRADO');
+    console.log('  Fuente de datos:', fuente);
+    
+    const total = estudiantes.length;
+    if (total === 0) {
+        console.log('  datosEstudiantes: ❌ NO DISPONIBLE (0 estudiantes)');
+    } else if (total < 10) {
+        console.log(`  datosEstudiantes: ⚠️ Solo ${total} estudiantes (esperando más...)`);
+    } else if (total < 100) {
+        console.log(`  datosEstudiantes: ⏳ ${total} estudiantes cargados (cargando más...)`);
+    } else {
+        console.log(`  datosEstudiantes: ✅ ${total} estudiantes cargados - LISTO PARA USAR`);
+    }
+    
+    // Verificar de nuevo después de 3 segundos
+    if (total < 100) {
+        setTimeout(() => {
+            let estudiantesFinal = [];
+            if (window.datosEstudiantes && Array.isArray(window.datosEstudiantes)) {
+                estudiantesFinal = window.datosEstudiantes;
+            } else if (typeof datosEstudiantes !== 'undefined' && Array.isArray(datosEstudiantes)) {
+                estudiantesFinal = datosEstudiantes;
+            }
+            
+            const totalFinal = estudiantesFinal.length;
+            console.log(`📊 Actualización: ${totalFinal} estudiantes ahora disponibles`);
+            if (totalFinal >= 100) {
+                console.log('✅ Autocompletado LISTO para usarse');
+            }
+        }, 3000);
+    }
+}, 2000);
+
+console.log('✅ Sistema de Notas Rápidas (Google Sheets) cargado correctamente');
+
+// Test de funciones de autocompletado
+setTimeout(() => {
+    console.log('🧪 Test de funciones de autocompletado:');
+    console.log('  typeof filtrarEstudiantesNotaRapida:', typeof filtrarEstudiantesNotaRapida);
+    console.log('  typeof mostrarSugerenciasNotaRapida:', typeof mostrarSugerenciasNotaRapida);
+    console.log('  typeof seleccionarEstudianteNotaRapida:', typeof seleccionarEstudianteNotaRapida);
+    
+    if (typeof filtrarEstudiantesNotaRapida === 'function') {
+        console.log('  ✅ Funciones de autocompletado disponibles globalmente');
+    } else {
+        console.error('  ❌ ERROR: Funciones de autocompletado NO disponibles');
+    }
+}, 100);
