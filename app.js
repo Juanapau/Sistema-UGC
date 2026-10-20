@@ -591,10 +591,6 @@ function crearModalIncidencias() {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Docente que Reporta *</label>
-                        <input type="text" id="docenteReporta" required>
-                    </div>
-                    <div class="form-group">
                         <label>Tipo de Falta *</label>
                         <select id="tipoFalta" required>
                             <option value="">Seleccione</option>
@@ -602,6 +598,10 @@ function crearModalIncidencias() {
                             <option value="Grave">Grave</option>
                             <option value="Muy Grave">Muy Grave</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Docente que Reporta *</label>
+                        <input type="text" id="docenteReporta" required>
                     </div>
                 </div>
                 <div class="form-group">
