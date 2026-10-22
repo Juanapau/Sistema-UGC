@@ -9620,10 +9620,20 @@ function cargarTablaReuniones() {
 function toggleAsistencia(indice, asistio) {
     const reunion = datosReuniones[indice];
     if (!reunion) return;
-    
+
     // Actualizar valor
     const nuevoValor = asistio ? 'Sí' : 'No';
-    reunion['Asistió'] = nuevoValor;
+    // La columna de asistencia en la hoja puede llamarse "Asistió", "¿Asistió?", etc.
+    // Debemos escribir el nuevo valor en la MISMA clave que ya tiene el registro;
+    // si no, al guardar la fila completa quedaría una clave vieja con el valor
+    // anterior y el Apps Script tomaría esa (la asistencia "revertiría" a No).
+    const esClaveAsistencia = (k) => String(k).trim().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '') === 'asistio';
+    let encontrada = false;
+    Object.keys(reunion).forEach(k => {
+        if (esClaveAsistencia(k)) { reunion[k] = nuevoValor; encontrada = true; }
+    });
+    if (!encontrada) reunion['Asistió'] = nuevoValor;
     datosReuniones[indice] = reunion;
     
     // Guardar en Google Sheets
