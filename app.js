@@ -1723,14 +1723,14 @@ function cargarTablaTardanzas() {
             icono = '⚠️';
             botonCircular = `
                 <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">📄 Circular</button>
-                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" data-fechas="${(g.fechas || []).join('|')}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
             `;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
             botonCircular = `
                 <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">⚠️ Circular</button>
-                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" data-fechas="${(g.fechas || []).join('|')}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
             `;
         } else {
             botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
@@ -1769,7 +1769,8 @@ function cargarTablaTardanzas() {
                 const estudiante = this.dataset.estudiante;
                 const total = this.dataset.total;
                 const mes = this.dataset.mes;
-                enviarWhatsAppTardanzas(estudiante, total, mes);
+                const fechas = (this.dataset.fechas || '').split('|').filter(Boolean);
+                enviarWhatsAppTardanzas(estudiante, total, mes, fechas);
             });
         });
     }, 100);
@@ -1894,14 +1895,14 @@ function buscarTardanzas() {
             icono = '⚠️';
             botonCircular = `
                 <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#f59e0b;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">📄 Circular</button>
-                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" data-fechas="${(g.fechas || []).join('|')}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
             `;
         } else if (g.total > 3) {
             colorFondo = 'style="background-color:#f8d7da;"'; // Rojo claro
             icono = '🚨';
             botonCircular = `
                 <button class="btn btn-generar-circular" data-estudiante="${g.estudiante}" data-curso="${g.curso}" data-total="${g.total}" data-mes="${g.mes}" data-año="${g.año}" style="background:#dc2626;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;margin-right:5px;">⚠️ Circular</button>
-                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
+                <button class="btn btn-whatsapp-tardanza" data-estudiante="${g.estudiante}" data-total="${g.total}" data-mes="${g.mes}" data-fechas="${(g.fechas || []).join('|')}" style="background:#25D366;color:white;padding:5px 10px;font-size:0.85em;border-radius:6px;">💬 WhatsApp</button>
             `;
         } else {
             botonCircular = '<span style="color:#999;font-size:0.85em;">-</span>';
@@ -1958,7 +1959,8 @@ function buscarTardanzas() {
                 const estudiante = this.dataset.estudiante;
                 const total = this.dataset.total;
                 const mes = this.dataset.mes;
-                enviarWhatsAppTardanzas(estudiante, total, mes);
+                const fechas = (this.dataset.fechas || '').split('|').filter(Boolean);
+                enviarWhatsAppTardanzas(estudiante, total, mes, fechas);
             });
         });
     }, 100);
@@ -2169,7 +2171,7 @@ Nota: Todo este proceso deberá ser escrito y firmado por ambas partes para tene
 // ==========================================
 // ENVIAR WHATSAPP POR TARDANZAS
 // ==========================================
-function enviarWhatsAppTardanzas(estudiante, total, mes) {
+function enviarWhatsAppTardanzas(estudiante, total, mes, fechas) {
     // Buscar el contacto del estudiante en datosContactos
     const contactoEstudiante = datosContactos.find(c => {
         return normalizarNombreCmp(c['Nombre Estudiante'] || c.estudiante || '') === normalizarNombreCmp(estudiante);
@@ -2191,9 +2193,28 @@ function enviarWhatsAppTardanzas(estudiante, total, mes) {
         return;
     }
     
+    // Armar el listado de días en que el estudiante llegó tarde (si se recibieron)
+    let bloqueFechas = '';
+    if (Array.isArray(fechas) && fechas.length > 0) {
+        // Clave de orden y formato dd/mm/aaaa tolerantes al formato (sin desfase de zona horaria)
+        const keyOf = (f) => { const m = String(f).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? (m[1] + m[2] + m[3]) : String(f); };
+        const fmt = (f) => {
+            const m = String(f).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+            const d = new Date(f);
+            return isNaN(d) ? String(f) : (String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear());
+        };
+        const orden = fechas.filter(Boolean).slice().sort((a, b) => { const ka = keyOf(a), kb = keyOf(b); return ka < kb ? -1 : ka > kb ? 1 : 0; });
+        if (orden.length > 0) {
+            const listado = orden.map((f, i) => `${i + 1}. ${fmt(f)}`).join('\n');
+            bloqueFechas = 'Los días en que llegó tarde fueron:\n' + listado + '\n\n';
+        }
+    }
+
     // Crear mensaje personalizado
     const mensajeTardanzas = 'Saludos cordiales estimado padre/madre de familia:\n\n' +
         'Le informamos que su hijo/a *' + estudiante + '* ha acumulado *' + total + ' tardanzas* durante el mes de *' + mes + '*, lo cual excede el límite permitido.\n\n' +
+        bloqueFechas +
         'Según el reglamento del centro, cuando un estudiante acumula 3 o más tardanzas en un mes, los padres o tutores deben ser citados para firmar acuerdos y compromisos.\n\n' +
         'Por este motivo le solicitamos su presencia en el centro el día __________ de ___________ a las __________, para dialogar sobre esta situación.\n\n' +
         'Favor confirmar su asistencia por esta misma vía.\n\n' +
