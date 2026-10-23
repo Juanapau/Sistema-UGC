@@ -2089,7 +2089,7 @@
             margin: 0 15px 15px 15px;
             padding: 0;
             border-bottom: 2px solid #e5e7eb;
-            overflow-x: auto;
+            overflow: hidden;
         }
 
         /* Formulario nueva nota */
@@ -2411,7 +2411,8 @@
 
         /* Pestañas de filtrado */
         .nota-tab {
-            flex: 1;
+            flex: 1 1 0;
+            min-width: 0;
             padding: 10px 10px;
             border: none;
             background: transparent;
@@ -2423,6 +2424,8 @@
             transition: all 0.2s;
             position: relative;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .nota-tab:hover {
