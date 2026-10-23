@@ -2409,6 +2409,13 @@ function cerrarModalWhatsAppContacto() {
 // Abre WhatsApp con el mensaje listo para cada padre, uno por uno.
 // ============================================================
 let _envioMasivo = { lista: [], i: 0, mensaje: '', pref: 'auto' };
+// Selección de estudiantes específicos (acumulable entre varios cursos).
+// Clave: "curso|estudiante" → { estudiante, curso, c (contacto) }
+let _envioSeleccion = {};
+let _envioRefs = {};
+function _escAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 // Devuelve el curso de un contacto (campo propio o, si falta, buscándolo
 // por nombre en la lista de estudiantes).
@@ -2465,6 +2472,8 @@ function abrirEnvioMasivoContactos() {
     // Quitar modal previo si existe
     const prev = document.getElementById('modalEnvioMasivo');
     if (prev) prev.closest('div').remove();
+    _envioSeleccion = {};
+    _envioRefs = {};
 
     const opcionesCurso = ['<option value="Todos">Todos los cursos</option>']
         .concat((typeof CURSOS !== 'undefined' ? CURSOS : []).map(c => `<option value="${c}">${c}</option>`))
@@ -2493,7 +2502,7 @@ CENSA`;
                 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
                     <div style="flex:1;min-width:180px;">
                         <label style="font-weight:600;display:block;margin-bottom:5px;">Curso</label>
-                        <select id="envioCurso" onchange="_actualizarConteoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
+                        <select id="envioCurso" onchange="_onCambioCursoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
                             ${opcionesCurso}
                         </select>
                     </div>
@@ -2506,6 +2515,10 @@ CENSA`;
                         </select>
                     </div>
                 </div>
+                <!-- Checklist de estudiantes del curso elegido (para seleccionar algunos) -->
+                <div id="envioChecklistWrap" style="display:none;margin-bottom:12px;"></div>
+                <!-- Estudiantes seleccionados acumulados (de uno o varios cursos) -->
+                <div id="envioSeleccionados" style="display:none;margin-bottom:14px;"></div>
                 <div style="margin-bottom:14px;">
                     <label style="font-weight:600;display:block;margin-bottom:5px;">Mensaje (editable)</label>
                     <textarea id="envioMensaje" rows="8" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit;resize:vertical;">${mensajeInicial}</textarea>
@@ -2536,15 +2549,146 @@ function _actualizarConteoEnvio() {
     const prefEl = document.getElementById('envioPref');
     const cont = document.getElementById('envioConteo');
     if (!cursoEl || !prefEl || !cont) return;
-    const lista = _construirListaEnvio(cursoEl.value, prefEl.value);
-    const etiqueta = cursoEl.value === 'Todos' ? 'todos los cursos' : ('curso ' + cursoEl.value);
-    if (lista.length === 0) {
+    let n, etiqueta;
+    if (cursoEl.value === 'Todos') {
+        n = _construirListaEnvio('Todos', prefEl.value).length;
+        etiqueta = 'todos los cursos';
+    } else {
+        n = Object.keys(_envioSeleccion).length;
+        etiqueta = 'los estudiantes seleccionados';
+    }
+    if (n === 0) {
         cont.style.background = '#fef2f2'; cont.style.borderColor = '#fca5a5'; cont.style.color = '#991b1b';
-        cont.innerHTML = `⚠️ No hay contactos con número para ${etiqueta}.`;
+        cont.innerHTML = cursoEl.value === 'Todos'
+            ? '⚠️ No hay contactos con número.'
+            : '⚠️ Marca al menos un estudiante (o elige "Todos los cursos").';
     } else {
         cont.style.background = '#f0fdf4'; cont.style.borderColor = '#86efac'; cont.style.color = '#166534';
-        cont.innerHTML = `✅ Se enviará a <strong>${lista.length}</strong> contacto(s) de ${etiqueta}.`;
+        cont.innerHTML = `✅ Se enviará a <strong>${n}</strong> contacto(s) de ${etiqueta}.`;
     }
+}
+
+// Devuelve los estudiantes de un curso que tienen al menos un número.
+function _estudiantesDeCurso(curso) {
+    const arr = [];
+    (typeof datosContactos !== 'undefined' ? datosContactos : []).forEach(c => {
+        const est = (c['Nombre Estudiante'] || c.estudiante || '').toString().trim();
+        if (!est) return;
+        if (_cursoDeContacto(c) !== curso) return;
+        if (!_numeroDeContacto(c, 'auto')) return; // debe tener algún número
+        arr.push({ estudiante: est, curso, c, key: curso + '|' + est });
+    });
+    arr.sort((a, b) => a.estudiante.localeCompare(b.estudiante));
+    return arr;
+}
+
+// Al cambiar el curso: si es "Todos" oculta el checklist; si es un curso,
+// muestra sus estudiantes con checkbox (acumulables entre cursos).
+function _onCambioCursoEnvio() {
+    const curso = document.getElementById('envioCurso').value;
+    const wrap = document.getElementById('envioChecklistWrap');
+    if (!wrap) return;
+    if (curso === 'Todos') {
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+        _actualizarConteoEnvio();
+        return;
+    }
+    const lista = _estudiantesDeCurso(curso);
+    lista.forEach(it => { _envioRefs[it.key] = it; });
+
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <strong style="font-size:0.9em;">👥 Estudiantes de ${curso} (${lista.length})</strong>
+            <span>
+                <button type="button" class="btn" onclick="_seleccionarTodosCurso(true)" style="padding:3px 9px;font-size:0.78em;background:#128C7E;color:#fff;">Marcar todos</button>
+                <button type="button" class="btn" onclick="_seleccionarTodosCurso(false)" style="padding:3px 9px;font-size:0.78em;background:#6b7280;color:#fff;">Ninguno</button>
+            </span>
+        </div>`;
+    if (lista.length === 0) {
+        html += '<div style="color:#991b1b;font-size:0.85em;">No hay estudiantes con número en este curso.</div>';
+    } else {
+        html += '<div style="max-height:170px;overflow-y:auto;border:1px solid #d1d5db;border-radius:8px;padding:8px;">';
+        lista.forEach(it => {
+            const checked = _envioSeleccion[it.key] ? 'checked' : '';
+            html += `<label style="display:flex;align-items:center;gap:8px;padding:4px 2px;cursor:pointer;">
+                <input type="checkbox" ${checked} data-key="${_escAttr(it.key)}" style="width:16px;height:16px;cursor:pointer;">
+                <span>${it.estudiante}</span>
+            </label>`;
+        });
+        html += '</div>';
+    }
+    wrap.style.display = 'block';
+    wrap.innerHTML = html;
+    // Enlazar los checkbox (evita problemas con comillas en los nombres)
+    wrap.querySelectorAll('input[type="checkbox"][data-key]').forEach(cb => {
+        cb.addEventListener('change', () => _toggleEstudianteEnvio(cb.getAttribute('data-key')));
+    });
+    _actualizarConteoEnvio();
+}
+
+function _toggleEstudianteEnvio(key) {
+    if (_envioSeleccion[key]) delete _envioSeleccion[key];
+    else if (_envioRefs[key]) _envioSeleccion[key] = _envioRefs[key];
+    _renderSeleccionChips();
+    _actualizarConteoEnvio();
+}
+
+function _seleccionarTodosCurso(sel) {
+    const wrap = document.getElementById('envioChecklistWrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('input[type="checkbox"][data-key]').forEach(cb => {
+        const key = cb.getAttribute('data-key');
+        cb.checked = sel;
+        if (sel) { if (_envioRefs[key]) _envioSeleccion[key] = _envioRefs[key]; }
+        else { delete _envioSeleccion[key]; }
+    });
+    _renderSeleccionChips();
+    _actualizarConteoEnvio();
+}
+
+function _renderSeleccionChips() {
+    const wrap = document.getElementById('envioSeleccionados');
+    if (!wrap) return;
+    const keys = Object.keys(_envioSeleccion);
+    if (keys.length === 0) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    let html = `<div style="font-weight:600;font-size:0.85em;margin-bottom:6px;">
+            Seleccionados (${keys.length})
+            <button type="button" class="btn" onclick="_vaciarSeleccionEnvio()" style="padding:2px 9px;font-size:0.75em;background:#6b7280;color:#fff;margin-left:8px;">Vaciar</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;max-height:110px;overflow-y:auto;">`;
+    keys.forEach(k => {
+        const it = _envioSeleccion[k];
+        html += `<span style="background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:999px;padding:3px 10px;font-size:0.82em;display:inline-flex;align-items:center;gap:6px;">
+                ${it.estudiante} <small style="color:#64748b;">${it.curso}</small>
+                <span data-remove="${_escAttr(k)}" style="cursor:pointer;font-weight:bold;color:#dc2626;">×</span>
+            </span>`;
+    });
+    html += '</div>';
+    wrap.style.display = 'block';
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('span[data-remove]').forEach(x => {
+        x.addEventListener('click', () => _quitarSeleccionEnvio(x.getAttribute('data-remove')));
+    });
+}
+
+function _quitarSeleccionEnvio(key) {
+    delete _envioSeleccion[key];
+    // desmarcar el checkbox si está visible
+    const wrap = document.getElementById('envioChecklistWrap');
+    if (wrap) {
+        const cb = wrap.querySelector('input[type="checkbox"][data-key="' + _escAttr(key) + '"]');
+        if (cb) cb.checked = false;
+    }
+    _renderSeleccionChips();
+    _actualizarConteoEnvio();
+}
+
+function _vaciarSeleccionEnvio() {
+    _envioSeleccion = {};
+    const wrap = document.getElementById('envioChecklistWrap');
+    if (wrap) wrap.querySelectorAll('input[type="checkbox"][data-key]').forEach(cb => cb.checked = false);
+    _renderSeleccionChips();
+    _actualizarConteoEnvio();
 }
 
 // Inicia el envío: valida y pasa a la vista de envío secuencial
@@ -2553,8 +2697,20 @@ function iniciarEnvioMasivo() {
     const pref = document.getElementById('envioPref').value;
     const mensaje = (document.getElementById('envioMensaje').value || '').trim();
     if (!mensaje) { alert('⚠️ Escriba el mensaje antes de comenzar.'); return; }
-    const lista = _construirListaEnvio(curso, pref);
-    if (lista.length === 0) { alert('⚠️ No hay contactos con número para el curso seleccionado.'); return; }
+    let lista;
+    if (curso === 'Todos') {
+        lista = _construirListaEnvio('Todos', pref);
+    } else {
+        lista = Object.values(_envioSeleccion).map(it => {
+            const n = _numeroDeContacto(it.c, pref);
+            return n ? { estudiante: it.estudiante, curso: it.curso, numero: n.num, quien: n.quien } : null;
+        }).filter(Boolean);
+        lista.sort((a, b) => (a.curso + '|' + a.estudiante).localeCompare(b.curso + '|' + b.estudiante));
+    }
+    if (lista.length === 0) {
+        alert(curso === 'Todos' ? '⚠️ No hay contactos con número.' : '⚠️ Marca al menos un estudiante o elige "Todos los cursos".');
+        return;
+    }
     _envioMasivo = { lista, i: 0, mensaje, pref };
     _mostrarPasoEnvio();
 }
@@ -2631,6 +2787,8 @@ function cerrarEnvioMasivo() {
     const modal = document.getElementById('modalEnvioMasivo');
     if (modal) modal.closest('div').remove();
     _envioMasivo = { lista: [], i: 0, mensaje: '', pref: 'auto' };
+    _envioSeleccion = {};
+    _envioRefs = {};
 }
 
 // ==================
