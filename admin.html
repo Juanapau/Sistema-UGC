@@ -2058,8 +2058,8 @@
         .notas-panel {
             position: fixed;
             top: 0;
-            right: -560px;
-            width: 560px;
+            right: -600px;
+            width: 600px;
             height: 100vh;
             background: white;
             z-index: 1001;
@@ -2411,9 +2411,8 @@
 
         /* Pestañas de filtrado */
         .nota-tab {
-            flex: 1 1 0;
-            min-width: 0;
-            padding: 10px 10px;
+            flex: 1 1 auto;
+            padding: 10px 8px;
             border: none;
             background: transparent;
             color: #6b7280;
@@ -2424,8 +2423,6 @@
             transition: all 0.2s;
             position: relative;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .nota-tab:hover {
