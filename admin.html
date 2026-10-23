@@ -3096,28 +3096,29 @@ header img {
             <button class="notas-close" onclick="closeNotasPanel()">✕</button>
         </div>
 
-        <!-- Wrapper scrolleable -->
-        <div class="notas-body">
-            <button class="btn-nueva-nota" onclick="mostrarFormNuevaNota()">
-                ➕ Nueva Nota
+        <!-- Zona superior FIJA: botón Nueva Nota + pestañas (no se desplazan) -->
+        <button class="btn-nueva-nota" onclick="mostrarFormNuevaNota()">
+            ➕ Nueva Nota
+        </button>
+
+        <!-- Pestañas de filtrado -->
+        <div class="notas-tabs" id="notasTabs">
+            <button class="nota-tab active" onclick="cambiarTabNotas('hoy')" data-tab="hoy">
+                🔥 Hoy <span class="tab-count" id="countHoy">0</span>
             </button>
+            <button class="nota-tab" onclick="cambiarTabNotas('proximas')" data-tab="proximas">
+                📅 Próximas <span class="tab-count" id="countProximas">0</span>
+            </button>
+            <button class="nota-tab" onclick="cambiarTabNotas('todas')" data-tab="todas">
+                📋 Todas <span class="tab-count" id="countTodasNotas">0</span>
+            </button>
+            <button class="nota-tab" onclick="cambiarTabNotas('salidas')" data-tab="salidas">
+                🚪 Salidas <span class="tab-count" id="countSalidas">0</span>
+            </button>
+        </div>
 
-            <!-- Pestañas de filtrado -->
-            <div class="notas-tabs" id="notasTabs">
-                <button class="nota-tab active" onclick="cambiarTabNotas('hoy')" data-tab="hoy">
-                    🔥 Hoy <span class="tab-count" id="countHoy">0</span>
-                </button>
-                <button class="nota-tab" onclick="cambiarTabNotas('proximas')" data-tab="proximas">
-                    📅 Próximas <span class="tab-count" id="countProximas">0</span>
-                </button>
-                <button class="nota-tab" onclick="cambiarTabNotas('todas')" data-tab="todas">
-                    📋 Todas <span class="tab-count" id="countTodasNotas">0</span>
-                </button>
-                <button class="nota-tab" onclick="cambiarTabNotas('salidas')" data-tab="salidas">
-                    🚪 Salidas <span class="tab-count" id="countSalidas">0</span>
-                </button>
-            </div>
-
+        <!-- Wrapper scrolleable (solo formulario + lista de notas) -->
+        <div class="notas-body">
             <!-- Formulario Nueva Nota (inicialmente oculto) -->
         <div class="form-nueva-nota oculto" id="formNuevaNota">
             <h3>✨ Nueva Nota Rápida</h3>
