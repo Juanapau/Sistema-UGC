@@ -2085,10 +2085,11 @@
         /* Pestañas de filtrado */
         .notas-tabs {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin: 0 15px 15px 15px;
             padding: 0;
             border-bottom: 2px solid #e5e7eb;
+            overflow-x: auto;
         }
 
         /* Formulario nueva nota */
@@ -2411,16 +2412,17 @@
         /* Pestañas de filtrado */
         .nota-tab {
             flex: 1;
-            padding: 10px 15px;
+            padding: 10px 8px;
             border: none;
             background: transparent;
             color: #6b7280;
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 0.85em;
             cursor: pointer;
             border-bottom: 3px solid transparent;
             transition: all 0.2s;
             position: relative;
+            white-space: nowrap;
         }
 
         .nota-tab:hover {
@@ -2437,11 +2439,11 @@
             display: inline-block;
             background: #e5e7eb;
             color: #374151;
-            padding: 2px 8px;
+            padding: 2px 6px;
             border-radius: 12px;
-            font-size: 0.85em;
-            margin-left: 5px;
-            min-width: 24px;
+            font-size: 0.8em;
+            margin-left: 4px;
+            min-width: 20px;
             text-align: center;
         }
 
@@ -3110,6 +3112,9 @@ header img {
                 </button>
                 <button class="nota-tab" onclick="cambiarTabNotas('todas')" data-tab="todas">
                     📋 Todas <span class="tab-count" id="countTodasNotas">0</span>
+                </button>
+                <button class="nota-tab" onclick="cambiarTabNotas('salidas')" data-tab="salidas">
+                    🚪 Salidas <span class="tab-count" id="countSalidas">0</span>
                 </button>
             </div>
 
