@@ -2535,6 +2535,18 @@
                 right: -100%;
             }
 
+            /* En móvil las 4 pestañas no caben: permitir deslizar la fila
+               horizontalmente (swipe) para llegar a "Salidas". overflow-y
+               se fija en hidden para que NO reaparezca el scroll vertical. */
+            .notas-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nota-tab {
+                flex: 0 0 auto;
+            }
+
             .btn-notas-flotante {
                 bottom: 20px;
                 right: 20px;
