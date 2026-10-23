@@ -442,6 +442,11 @@ class NotasRapidas {
                     icono: '📭',
                     titulo: 'No hay notas pendientes',
                     subtitulo: 'Crea una nota para empezar'
+                },
+                'salidas': {
+                    icono: '🚪',
+                    titulo: 'No hay salidas registradas',
+                    subtitulo: 'Crea una nota de tipo Salida para verla aquí'
                 }
             };
             
@@ -479,23 +484,31 @@ class NotasRapidas {
             case 'hoy':
                 // SOLO las notas cuya fecha es HOY. Las vencidas y las que no
                 // tienen fecha aparecen únicamente en la pestaña "Todas".
+                // Las notas de tipo "Salida" se muestran solo en la pestaña "Salidas".
                 return this.notas.filter(nota => {
+                    if (nota.tipo === 'salida') return false;
                     if (!nota.fechaAccion) return false;
                     const fechaNota = new Date(nota.fechaAccion);
                     return fechaNota >= ahora && fechaNota <= finHoy;
                 });
-                
+
             case 'proximas':
-                // Solo notas futuras (después de hoy)
+                // Solo notas futuras (después de hoy). Las salidas van en su propia pestaña.
                 return this.notas.filter(nota => {
+                    if (nota.tipo === 'salida') return false;
                     if (!nota.fechaAccion) return false;
                     const fechaNota = new Date(nota.fechaAccion);
                     return fechaNota > finHoy;
                 });
-                
+
+            case 'salidas':
+                // Solo las notas de tipo "Salida"
+                return this.notas.filter(nota => nota.tipo === 'salida');
+
             case 'todas':
             default:
-                return this.notas;
+                // Todas EXCEPTO las salidas (esas viven solo en la pestaña "Salidas")
+                return this.notas.filter(nota => nota.tipo !== 'salida');
         }
     }
     
@@ -1347,12 +1360,19 @@ function actualizarContadoresPestanas() {
     const finHoy = new Date(ahora);
     finHoy.setHours(23, 59, 59, 999); // Fin del día
     
-    // Contar notas por categoría
+    // Contar notas por categoría. Las notas de tipo "Salida" se cuentan
+    // SOLO en la pestaña "Salidas" (no en Hoy, Próximas ni Todas).
     let countHoy = 0;
     let countProximas = 0;
-    let countTodas = sistemaNotas.notas.length;
-    
+    let countTodas = 0;
+    let countSalidas = 0;
+
     sistemaNotas.notas.forEach(nota => {
+        if (nota.tipo === 'salida') {
+            countSalidas++;
+            return;
+        }
+        countTodas++;
         if (nota.fechaAccion) {
             const fechaNota = new Date(nota.fechaAccion);
             if (fechaNota >= ahora && fechaNota <= finHoy) {
@@ -1362,17 +1382,19 @@ function actualizarContadoresPestanas() {
             }
         }
     });
-    
+
     // Actualizar badges
     const badgeHoy = document.getElementById('countHoy');
     const badgeProximas = document.getElementById('countProximas');
     // El badge de "Todas" de Notas es countTodasNotas (countTodas pertenece al
     // panel de Notificaciones; usarlo aquí dejaba el de Notas siempre en 0).
     const badgeTodas = document.getElementById('countTodasNotas');
+    const badgeSalidas = document.getElementById('countSalidas');
 
     if (badgeHoy) badgeHoy.textContent = countHoy;
     if (badgeProximas) badgeProximas.textContent = countProximas;
     if (badgeTodas) badgeTodas.textContent = countTodas;
+    if (badgeSalidas) badgeSalidas.textContent = countSalidas;
 }
 
 // ========================================
