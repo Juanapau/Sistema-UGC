@@ -2489,7 +2489,7 @@ CENSA`;
 
     const html = `
     <div id="modalEnvioMasivo" class="modal" style="display:block;">
-        <div class="modal-content" style="max-width:600px;">
+        <div class="modal-content" style="max-width:900px;">
             <div class="modal-header">
                 <h2>📣 Envío asistido por WhatsApp</h2>
                 <span class="close" onclick="cerrarEnvioMasivo()" style="cursor:pointer;">&times;</span>
@@ -2499,39 +2499,46 @@ CENSA`;
                     Se abrirá WhatsApp con el mensaje ya escrito para cada padre, <strong>uno por uno</strong>.
                     Solo tienes que pulsar <strong>Enviar</strong> en WhatsApp y volver aquí para pasar al siguiente.
                 </p>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-                    <div style="flex:1;min-width:180px;">
-                        <label style="font-weight:600;display:block;margin-bottom:5px;">Curso</label>
-                        <select id="envioCurso" onchange="_onCambioCursoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
-                            ${opcionesCurso}
-                        </select>
+                <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;">
+                    <!-- COLUMNA IZQUIERDA: controles + mensaje -->
+                    <div style="flex:1 1 320px;min-width:280px;">
+                        <div style="margin-bottom:12px;">
+                            <label style="font-weight:600;display:block;margin-bottom:5px;">Curso</label>
+                            <select id="envioCurso" onchange="_onCambioCursoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
+                                ${opcionesCurso}
+                            </select>
+                        </div>
+                        <div style="margin-bottom:12px;">
+                            <label style="font-weight:600;display:block;margin-bottom:5px;">Enviar al número de</label>
+                            <select id="envioPref" onchange="_actualizarConteoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
+                                <option value="auto">Primer número disponible</option>
+                                <option value="madre">Madre</option>
+                                <option value="padre">Padre</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="font-weight:600;display:block;margin-bottom:5px;">Mensaje (editable)</label>
+                            <textarea id="envioMensaje" rows="8" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit;resize:vertical;">${mensajeInicial}</textarea>
+                            <small style="color:#666;font-size:0.82em;display:block;margin-top:4px;">
+                                Opcional: usa <code>{estudiante}</code> y <code>{curso}</code> y se reemplazarán automáticamente por los datos de cada estudiante.
+                            </small>
+                        </div>
+                        <div id="envioConteo" style="background:#f0fdf4;border:1px solid #86efac;color:#166534;padding:10px 14px;border-radius:8px;font-size:0.9em;margin-bottom:16px;">
+                            Calculando destinatarios...
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn" onclick="iniciarEnvioMasivo()" style="flex:1;background:#128C7E;color:white;font-weight:600;padding:12px;">▶ Comenzar envío</button>
+                            <button class="btn" onclick="cerrarEnvioMasivo()" style="background:#6b7280;color:white;padding:12px 18px;">Cancelar</button>
+                        </div>
                     </div>
-                    <div style="flex:1;min-width:180px;">
-                        <label style="font-weight:600;display:block;margin-bottom:5px;">Enviar al número de</label>
-                        <select id="envioPref" onchange="_actualizarConteoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
-                            <option value="auto">Primer número disponible</option>
-                            <option value="madre">Madre</option>
-                            <option value="padre">Padre</option>
-                        </select>
+                    <!-- COLUMNA DERECHA: estudiantes del curso + seleccionados -->
+                    <div style="flex:1 1 320px;min-width:280px;">
+                        <div id="envioChecklistWrap" style="display:none;margin-bottom:12px;"></div>
+                        <div id="envioSeleccionados" style="display:none;margin-bottom:14px;"></div>
+                        <div id="envioLadoDerechoNota" style="color:#64748b;font-size:0.88em;padding:16px;border:1px dashed #cbd5e1;border-radius:8px;background:rgba(148,163,184,0.06);">
+                            Elige un <strong>curso</strong> a la izquierda para ver y marcar sus estudiantes aquí. Puedes combinar estudiantes de varios cursos. Con <strong>"Todos los cursos"</strong> se envía a todos.
+                        </div>
                     </div>
-                </div>
-                <!-- Checklist de estudiantes del curso elegido (para seleccionar algunos) -->
-                <div id="envioChecklistWrap" style="display:none;margin-bottom:12px;"></div>
-                <!-- Estudiantes seleccionados acumulados (de uno o varios cursos) -->
-                <div id="envioSeleccionados" style="display:none;margin-bottom:14px;"></div>
-                <div style="margin-bottom:14px;">
-                    <label style="font-weight:600;display:block;margin-bottom:5px;">Mensaje (editable)</label>
-                    <textarea id="envioMensaje" rows="8" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit;resize:vertical;">${mensajeInicial}</textarea>
-                    <small style="color:#666;font-size:0.82em;display:block;margin-top:4px;">
-                        Opcional: usa <code>{estudiante}</code> y <code>{curso}</code> y se reemplazarán automáticamente por los datos de cada estudiante.
-                    </small>
-                </div>
-                <div id="envioConteo" style="background:#f0fdf4;border:1px solid #86efac;color:#166534;padding:10px 14px;border-radius:8px;font-size:0.9em;margin-bottom:16px;">
-                    Calculando destinatarios...
-                </div>
-                <div style="display:flex;gap:10px;">
-                    <button class="btn" onclick="iniciarEnvioMasivo()" style="flex:1;background:#128C7E;color:white;font-weight:600;padding:12px;">▶ Comenzar envío</button>
-                    <button class="btn" onclick="cerrarEnvioMasivo()" style="background:#6b7280;color:white;padding:12px 18px;">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -2587,13 +2594,16 @@ function _estudiantesDeCurso(curso) {
 function _onCambioCursoEnvio() {
     const curso = document.getElementById('envioCurso').value;
     const wrap = document.getElementById('envioChecklistWrap');
+    const nota = document.getElementById('envioLadoDerechoNota');
     if (!wrap) return;
     if (curso === 'Todos') {
         wrap.style.display = 'none';
         wrap.innerHTML = '';
+        if (nota) nota.style.display = 'block';
         _actualizarConteoEnvio();
         return;
     }
+    if (nota) nota.style.display = 'none';
     const lista = _estudiantesDeCurso(curso);
     lista.forEach(it => { _envioRefs[it.key] = it; });
 
