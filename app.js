@@ -2404,6 +2404,235 @@ function cerrarModalWhatsAppContacto() {
     }
 }
 
+// ============================================================
+// ENVÍO ASISTIDO MASIVO POR WHATSAPP (Módulo Contactos)
+// Abre WhatsApp con el mensaje listo para cada padre, uno por uno.
+// ============================================================
+let _envioMasivo = { lista: [], i: 0, mensaje: '', pref: 'auto' };
+
+// Devuelve el curso de un contacto (campo propio o, si falta, buscándolo
+// por nombre en la lista de estudiantes).
+function _cursoDeContacto(c) {
+    let curso = (c['Curso'] || c.curso || '').toString().trim();
+    if (curso) return curso;
+    const nom = normalizarNombreCmp(c['Nombre Estudiante'] || c.estudiante || '');
+    const est = (typeof datosEstudiantes !== 'undefined' ? datosEstudiantes : []).find(e =>
+        normalizarNombreCmp(e['Nombre Completo'] || e['Nombre Estudiante'] || e['Nombre'] || e.nombre || e.estudiante || '') === nom
+    );
+    return est ? (est['Curso'] || est.curso || '').toString().trim() : '';
+}
+
+// Elige el número del contacto según la preferencia (auto / madre / padre).
+function _numeroDeContacto(c, pref) {
+    const limpio = (v) => { v = (v || '').toString().trim(); return (v && v !== '-') ? v : ''; };
+    const madre = limpio(c['Contacto Madre'] || c.telMadre);
+    const padre = limpio(c['Contacto Padre'] || c.telPadre);
+    const emer  = limpio(c['Contacto Emergencia'] || c.telEmergencia);
+    if (pref === 'madre') {
+        if (madre) return { num: madre, quien: 'Madre' };
+        if (padre) return { num: padre, quien: 'Padre' };
+        if (emer)  return { num: emer,  quien: 'Emergencia' };
+    } else if (pref === 'padre') {
+        if (padre) return { num: padre, quien: 'Padre' };
+        if (madre) return { num: madre, quien: 'Madre' };
+        if (emer)  return { num: emer,  quien: 'Emergencia' };
+    } else { // auto: primer número disponible
+        if (madre) return { num: madre, quien: 'Madre' };
+        if (padre) return { num: padre, quien: 'Padre' };
+        if (emer)  return { num: emer,  quien: 'Emergencia' };
+    }
+    return null;
+}
+
+// Arma la lista de destinatarios según curso ('Todos' o uno específico) y preferencia.
+function _construirListaEnvio(curso, pref) {
+    const lista = [];
+    (typeof datosContactos !== 'undefined' ? datosContactos : []).forEach(c => {
+        const est = (c['Nombre Estudiante'] || c.estudiante || '').toString().trim();
+        if (!est) return;
+        const cursoC = _cursoDeContacto(c);
+        if (curso !== 'Todos' && cursoC !== curso) return;
+        const n = _numeroDeContacto(c, pref);
+        if (!n) return; // sin número válido: se omite
+        lista.push({ estudiante: est, curso: cursoC, numero: n.num, quien: n.quien });
+    });
+    lista.sort((a, b) => (a.curso + '|' + a.estudiante).localeCompare(b.curso + '|' + b.estudiante));
+    return lista;
+}
+
+// Modal de configuración del envío
+function abrirEnvioMasivoContactos() {
+    // Quitar modal previo si existe
+    const prev = document.getElementById('modalEnvioMasivo');
+    if (prev) prev.closest('div').remove();
+
+    const opcionesCurso = ['<option value="Todos">Todos los cursos</option>']
+        .concat((typeof CURSOS !== 'undefined' ? CURSOS : []).map(c => `<option value="${c}">${c}</option>`))
+        .join('');
+
+    const mensajeInicial =
+`Saludos cordiales estimado padre/madre de familia:
+
+[Escriba aquí el mensaje]
+
+Tania Paulino - Unidad de Gestión de Convivencia
+CENSA`;
+
+    const html = `
+    <div id="modalEnvioMasivo" class="modal" style="display:block;">
+        <div class="modal-content" style="max-width:600px;">
+            <div class="modal-header">
+                <h2>📣 Envío asistido por WhatsApp</h2>
+                <span class="close" onclick="cerrarEnvioMasivo()" style="cursor:pointer;">&times;</span>
+            </div>
+            <div class="modal-body" style="padding:20px;">
+                <p style="margin:0 0 16px 0;color:#555;font-size:0.92em;">
+                    Se abrirá WhatsApp con el mensaje ya escrito para cada padre, <strong>uno por uno</strong>.
+                    Solo tienes que pulsar <strong>Enviar</strong> en WhatsApp y volver aquí para pasar al siguiente.
+                </p>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                    <div style="flex:1;min-width:180px;">
+                        <label style="font-weight:600;display:block;margin-bottom:5px;">Curso</label>
+                        <select id="envioCurso" onchange="_actualizarConteoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
+                            ${opcionesCurso}
+                        </select>
+                    </div>
+                    <div style="flex:1;min-width:180px;">
+                        <label style="font-weight:600;display:block;margin-bottom:5px;">Enviar al número de</label>
+                        <select id="envioPref" onchange="_actualizarConteoEnvio()" style="width:100%;padding:9px;border:1px solid #d1d5db;border-radius:6px;">
+                            <option value="auto">Primer número disponible</option>
+                            <option value="madre">Madre</option>
+                            <option value="padre">Padre</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <label style="font-weight:600;display:block;margin-bottom:5px;">Mensaje (editable)</label>
+                    <textarea id="envioMensaje" rows="8" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit;resize:vertical;">${mensajeInicial}</textarea>
+                    <small style="color:#666;font-size:0.82em;display:block;margin-top:4px;">
+                        Opcional: usa <code>{estudiante}</code> y <code>{curso}</code> y se reemplazarán automáticamente por los datos de cada estudiante.
+                    </small>
+                </div>
+                <div id="envioConteo" style="background:#f0fdf4;border:1px solid #86efac;color:#166534;padding:10px 14px;border-radius:8px;font-size:0.9em;margin-bottom:16px;">
+                    Calculando destinatarios...
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="btn" onclick="iniciarEnvioMasivo()" style="flex:1;background:#128C7E;color:white;font-weight:600;padding:12px;">▶ Comenzar envío</button>
+                    <button class="btn" onclick="cerrarEnvioMasivo()" style="background:#6b7280;color:white;padding:12px 18px;">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    const cont = document.createElement('div');
+    cont.innerHTML = html;
+    document.body.appendChild(cont);
+    _actualizarConteoEnvio();
+}
+
+// Actualiza el contador de destinatarios en el modal de configuración
+function _actualizarConteoEnvio() {
+    const cursoEl = document.getElementById('envioCurso');
+    const prefEl = document.getElementById('envioPref');
+    const cont = document.getElementById('envioConteo');
+    if (!cursoEl || !prefEl || !cont) return;
+    const lista = _construirListaEnvio(cursoEl.value, prefEl.value);
+    const etiqueta = cursoEl.value === 'Todos' ? 'todos los cursos' : ('curso ' + cursoEl.value);
+    if (lista.length === 0) {
+        cont.style.background = '#fef2f2'; cont.style.borderColor = '#fca5a5'; cont.style.color = '#991b1b';
+        cont.innerHTML = `⚠️ No hay contactos con número para ${etiqueta}.`;
+    } else {
+        cont.style.background = '#f0fdf4'; cont.style.borderColor = '#86efac'; cont.style.color = '#166534';
+        cont.innerHTML = `✅ Se enviará a <strong>${lista.length}</strong> contacto(s) de ${etiqueta}.`;
+    }
+}
+
+// Inicia el envío: valida y pasa a la vista de envío secuencial
+function iniciarEnvioMasivo() {
+    const curso = document.getElementById('envioCurso').value;
+    const pref = document.getElementById('envioPref').value;
+    const mensaje = (document.getElementById('envioMensaje').value || '').trim();
+    if (!mensaje) { alert('⚠️ Escriba el mensaje antes de comenzar.'); return; }
+    const lista = _construirListaEnvio(curso, pref);
+    if (lista.length === 0) { alert('⚠️ No hay contactos con número para el curso seleccionado.'); return; }
+    _envioMasivo = { lista, i: 0, mensaje, pref };
+    _mostrarPasoEnvio();
+}
+
+// Reemplaza marcadores {estudiante} y {curso} en el mensaje para un destinatario
+function _mensajePersonalizado(item) {
+    return _envioMasivo.mensaje
+        .replace(/\{estudiante\}/gi, item.estudiante)
+        .replace(/\{curso\}/gi, item.curso || '');
+}
+
+// Renderiza el paso actual del envío secuencial dentro del mismo modal
+function _mostrarPasoEnvio() {
+    const modal = document.getElementById('modalEnvioMasivo');
+    if (!modal) return;
+    const contenido = modal.querySelector('.modal-content');
+    const total = _envioMasivo.lista.length;
+    const i = _envioMasivo.i;
+
+    if (i >= total) {
+        contenido.innerHTML = `
+            <div class="modal-header"><h2>✅ Envío finalizado</h2>
+                <span class="close" onclick="cerrarEnvioMasivo()" style="cursor:pointer;">&times;</span>
+            </div>
+            <div class="modal-body" style="padding:30px;text-align:center;">
+                <div style="font-size:3em;margin-bottom:10px;">🎉</div>
+                <p style="font-size:1.1em;margin-bottom:20px;">Terminaste de recorrer los <strong>${total}</strong> contacto(s).</p>
+                <button class="btn" onclick="cerrarEnvioMasivo()" style="background:#128C7E;color:white;padding:12px 24px;font-weight:600;">Cerrar</button>
+            </div>`;
+        return;
+    }
+
+    const item = _envioMasivo.lista[i];
+    const msg = _mensajePersonalizado(item);
+    const progreso = Math.round(((i) / total) * 100);
+
+    contenido.innerHTML = `
+        <div class="modal-header"><h2>📣 Enviando ${i + 1} de ${total}</h2>
+            <span class="close" onclick="cerrarEnvioMasivo()" style="cursor:pointer;">&times;</span>
+        </div>
+        <div class="modal-body" style="padding:20px;">
+            <div style="height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-bottom:16px;">
+                <div style="height:100%;width:${progreso}%;background:#128C7E;transition:width 0.3s;"></div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:14px;">
+                <p style="margin:0 0 4px 0;"><strong>Estudiante:</strong> ${item.estudiante}${item.curso ? ' <span style="color:#64748b;">(' + item.curso + ')</span>' : ''}</p>
+                <p style="margin:0;"><strong>Enviar a:</strong> ${item.quien} — 📱 ${item.numero}</p>
+            </div>
+            <label style="font-weight:600;display:block;margin-bottom:5px;">Mensaje que se enviará:</label>
+            <div style="background:#fff;border:1px solid #d1d5db;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:0.9em;max-height:180px;overflow-y:auto;margin-bottom:16px;">${msg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+            <button class="btn" onclick="_envioAbrirActual()" style="width:100%;background:#25D366;color:white;font-weight:600;padding:13px;margin-bottom:10px;">📱 Abrir WhatsApp y enviar</button>
+            <div style="display:flex;gap:10px;">
+                <button class="btn" onclick="_envioAvanzar()" style="flex:1;background:#128C7E;color:white;font-weight:600;padding:11px;">Siguiente ▶</button>
+                <button class="btn" onclick="_envioAvanzar()" style="background:#f59e0b;color:white;padding:11px 16px;">Omitir ⏭</button>
+            </div>
+            <button class="btn" onclick="cerrarEnvioMasivo()" style="width:100%;background:transparent;color:#6b7280;padding:10px;margin-top:8px;border:1px solid #d1d5db;">Finalizar</button>
+        </div>`;
+}
+
+// Abre WhatsApp para el destinatario actual
+function _envioAbrirActual() {
+    const item = _envioMasivo.lista[_envioMasivo.i];
+    if (!item) return;
+    abrirWhatsApp(item.numero, _mensajePersonalizado(item));
+}
+
+// Avanza al siguiente destinatario (sirve para "Siguiente" y "Omitir")
+function _envioAvanzar() {
+    _envioMasivo.i++;
+    _mostrarPasoEnvio();
+}
+
+function cerrarEnvioMasivo() {
+    const modal = document.getElementById('modalEnvioMasivo');
+    if (modal) modal.closest('div').remove();
+    _envioMasivo = { lista: [], i: 0, mensaje: '', pref: 'auto' };
+}
+
 // ==================
 // MODAL CONTACTOS
 // ==================
@@ -2465,10 +2694,13 @@ function crearModalContactos() {
             <hr style="margin:40px 0;">
             <h3>Buscar Contactos</h3>
             <div class="search-bar">
-                <div style="position:relative;flex:1;min-width:200px;">
+                <div style="position:relative;flex:0 1 340px;min-width:180px;">
                     <input type="text" id="buscarContacto" data-sugerencias="sugerenciasBuscarCont" placeholder="🔍 Buscar estudiante..." style="width:100%;" oninput="buscarContactos()">
                     <div id="sugerenciasBuscarCont" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
+                <button class="btn" onclick="abrirEnvioMasivoContactos()" style="background:#128C7E;color:white;font-weight:600;box-shadow:0 2px 8px rgba(18,140,126,0.3);">
+                    📣 Envío WhatsApp
+                </button>
                 <button class="btn" id="btnSinContactos" onclick="toggleFiltroSinContactos()" style="background:#dc2626;color:white;font-weight:600;box-shadow:0 2px 8px rgba(220,38,38,0.3);">
                     🚨 Sin Contactos
                 </button>
