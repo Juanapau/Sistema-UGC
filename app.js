@@ -3950,8 +3950,9 @@ function crearModalMaestros() {
                             <div id="sugerenciasMaestros" style="display:none;position:absolute;z-index:1000;background:white;border:1px solid #ccc;max-height:200px;overflow-y:auto;width:100%;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
                             <input type="hidden" id="telefonoDocenteSeleccionado">
                         </div>
+                        <button type="button" id="btnHorarioDocente" onclick="verHorarioDocente()" style="display:none;margin-top:8px;background:#0891b2;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.9em;">📅 Horario</button>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Seleccionar Estudiante *</label>
                         <div style="position:relative;">
@@ -4102,7 +4103,10 @@ function telefonoDocenteDe(m) {
 function filtrarMaestros() {
     const input = document.getElementById('docenteSeleccionado').value.toLowerCase();
     const suggestions = document.getElementById('sugerenciasMaestros');
-    
+    // Al reescribir el nombre, la selección deja de ser válida: ocultar botón Horario
+    const btnHor = document.getElementById('btnHorarioDocente');
+    if (btnHor) btnHor.style.display = 'none';
+
     if (input.length < 2) {
         suggestions.style.display = 'none';
         return;
@@ -4161,7 +4165,116 @@ function seleccionarMaestro(nombre, telefono) {
     document.getElementById('docenteSeleccionado').value = nombre;
     document.getElementById('telefonoDocenteSeleccionado').value = telefono;
     document.getElementById('sugerenciasMaestros').style.display = 'none';
+    const btnHor = document.getElementById('btnHorarioDocente');
+    if (btnHor) btnHor.style.display = 'inline-block';
     generarMensajeMaestro();
+}
+
+// ============================================================
+// HORARIO DEL DOCENTE (Mensajes para Docentes → botón "Horario")
+// Lee la hoja "Horarios": Maestro | Dia | P1..P8  y lo muestra en
+// una ventana emergente, al estilo del Historial del estudiante.
+// ============================================================
+async function _cargarHorariosCache() {
+    if (horariosCache && Object.keys(horariosCache).length) return horariosCache;
+    if (!CONFIG.urlHorarios) return null;
+    try {
+        const resp = await fetch(CONFIG.urlHorarios);
+        const respuesta = await resp.json();
+        const filas = Array.isArray(respuesta) ? respuesta
+                    : (respuesta && respuesta.data && Array.isArray(respuesta.data)) ? respuesta.data
+                    : [];
+        const cache = {};
+        filas.forEach(function (fila) {
+            const maestro = (fila['Maestro'] || '').toString().trim();
+            const dia = (fila['Dia'] || '').toString().trim();
+            if (!maestro || !dia) return;
+            if (!cache[maestro]) cache[maestro] = {};
+            cache[maestro][dia] = {
+                '1': fila['P1'] || null, '2': fila['P2'] || null, '3': fila['P3'] || null, '4': fila['P4'] || null,
+                '5': fila['P5'] || null, '6': fila['P6'] || null, '7': fila['P7'] || null, '8': fila['P8'] || null
+            };
+        });
+        horariosCache = cache;
+        return cache;
+    } catch (e) {
+        console.error('Error cargando horarios:', e);
+        return null;
+    }
+}
+
+async function verHorarioDocente() {
+    const nombre = (document.getElementById('docenteSeleccionado').value || '').trim();
+    if (!nombre) { alert('⚠️ Seleccione primero un docente.'); return; }
+    _mostrarModalHorario(nombre, null, true); // estado de carga
+    const cache = await _cargarHorariosCache();
+    if (!cache || Object.keys(cache).length === 0) { _mostrarModalHorario(nombre, null, false); return; }
+    // Buscar al docente por nombre (tolerante al orden de las palabras y acentos)
+    const objetivo = normalizarNombreCmp(nombre);
+    let key = Object.keys(cache).find(k => normalizarNombreCmp(k) === objetivo);
+    if (!key) {
+        key = Object.keys(cache).find(k => {
+            const a = normalizarNombreCmp(k).split(' ');
+            const b = objetivo.split(' ');
+            return b.length && (b.every(w => a.includes(w)) || a.every(w => b.includes(w)));
+        });
+    }
+    _mostrarModalHorario(nombre, key ? cache[key] : null, false);
+}
+
+function _mostrarModalHorario(nombreDocente, horario, cargando) {
+    const prev = document.getElementById('modalHorarioDocente');
+    if (prev) prev.closest('div').remove();
+
+    let cuerpo;
+    if (cargando) {
+        cuerpo = '<div style="padding:40px;text-align:center;color:#6b7280;">⏳ Cargando horario...</div>';
+    } else if (!horario) {
+        cuerpo = '<div style="padding:40px;text-align:center;color:#991b1b;">No se encontró el horario de este docente en la hoja "Horarios".</div>';
+    } else {
+        const diasLargos = { Lu: 'Lunes', Mar: 'Martes', Mi: 'Miércoles', Jue: 'Jueves', Vie: 'Viernes' };
+        const encDias = DIAS_HORARIO.map(d => `<th style="border:1px solid #e2e8f0;padding:8px;background:#0891b2;color:#fff;font-size:0.85em;">${diasLargos[d] || d}</th>`).join('');
+        let filas = '';
+        PERIODOS_HORARIO.forEach(p => {
+            let celdas = '';
+            DIAS_HORARIO.forEach(d => {
+                const val = (horario[d] && horario[d][String(p.num)]) ? horario[d][String(p.num)] : '';
+                celdas += `<td style="border:1px solid #e2e8f0;padding:8px 6px;text-align:center;${val ? 'background:#ecfdf5;color:#065f46;font-weight:600;' : 'color:#cbd5e1;'}">${val || '—'}</td>`;
+            });
+            filas += `<tr>
+                <td style="border:1px solid #e2e8f0;padding:8px 6px;white-space:nowrap;background:#f8fafc;font-weight:600;color:#334155;font-size:0.82em;text-align:center;">P${p.num}<br><span style="font-weight:400;color:#64748b;">${p.inicio}-${p.fin}</span></td>
+                ${celdas}
+            </tr>`;
+        });
+        cuerpo = `<div style="padding:20px;background:#fff;">
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+                    <thead><tr><th style="border:1px solid #e2e8f0;padding:8px;background:#0e7490;color:#fff;font-size:0.85em;">Período</th>${encDias}</tr></thead>
+                    <tbody>${filas}</tbody>
+                </table>
+            </div>
+            <p style="margin-top:12px;color:#64748b;font-size:0.8em;">Cada celda muestra el curso asignado en ese período. "—" indica período libre.</p>
+        </div>`;
+    }
+
+    const html = `
+    <div id="modalHorarioDocente" class="modal" style="display:block;">
+        <div class="modal-content" style="max-width:820px;max-height:90vh;display:flex;flex-direction:column;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);color:white;flex-shrink:0;">
+                <h2>📅 Horario — ${nombreDocente}</h2>
+                <span class="close" onclick="cerrarModalHorario()" style="cursor:pointer;">&times;</span>
+            </div>
+            <div class="modal-body" style="overflow-y:auto;flex:1;background:#fff;">${cuerpo}</div>
+        </div>
+    </div>`;
+    const cont = document.createElement('div');
+    cont.innerHTML = html;
+    document.body.appendChild(cont);
+}
+
+function cerrarModalHorario() {
+    const modal = document.getElementById('modalHorarioDocente');
+    if (modal) modal.closest('div').remove();
 }
 
 // Autocompletado de estudiantes en módulo Maestros
