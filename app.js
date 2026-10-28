@@ -4222,6 +4222,32 @@ async function verHorarioDocente() {
     _mostrarModalHorario(nombre, key ? cache[key] : null, false);
 }
 
+// Color suave y claro por curso para las celdas del horario
+const _COLORES_CURSO_HORARIO = {
+    '1roa': { bg: '#e0f2fe', fg: '#075985' }, // celeste
+    '1rob': { bg: '#dbeafe', fg: '#1e40af' }, // azul
+    '1roc': { bg: '#e0e7ff', fg: '#3730a3' }, // índigo
+    '2doa': { bg: '#dcfce7', fg: '#166534' }, // verde
+    '2dob': { bg: '#d1fae5', fg: '#065f46' }, // esmeralda
+    '2doc': { bg: '#ccfbf1', fg: '#115e59' }, // turquesa
+    '3roa': { bg: '#cffafe', fg: '#155e75' }, // cian
+    '3rob': { bg: '#bfdbfe', fg: '#1e40af' }, // azul
+    '3roc': { bg: '#c7d2fe', fg: '#3730a3' }, // índigo claro
+    '4toa': { bg: '#fef9c3', fg: '#854d0e' }, // amarillo
+    '4tob': { bg: '#fed7aa', fg: '#9a3412' }, // naranja
+    '4toc': { bg: '#fee2e2', fg: '#991b1b' }, // rojo claro
+    '5toa': { bg: '#fce7f3', fg: '#9d174d' }, // rosa
+    '5tob': { bg: '#f3e8ff', fg: '#6b21a8' }, // púrpura
+    '5toc': { bg: '#ede9fe', fg: '#5b21b6' }, // violeta
+    '6toa': { bg: '#ffedd5', fg: '#9a3412' }, // ámbar
+    '6tob': { bg: '#ecfccb', fg: '#3f6212' }, // lima
+    '6toc': { bg: '#fecdd3', fg: '#9f1239' }  // fucsia claro
+};
+function _colorCursoHorario(curso) {
+    const key = String(curso || '').toLowerCase().replace(/\s+/g, '');
+    return _COLORES_CURSO_HORARIO[key] || { bg: '#eef2ff', fg: '#3730a3' };
+}
+
 function _mostrarModalHorario(nombreDocente, horario, cargando) {
     const prev = document.getElementById('modalHorarioDocente');
     if (prev) prev.closest('div').remove();
@@ -4241,7 +4267,8 @@ function _mostrarModalHorario(nombreDocente, horario, cargando) {
             let celdas = '';
             PERIODOS_HORARIO.forEach(p => {
                 const val = (horario[d] && horario[d][String(p.num)]) ? horario[d][String(p.num)] : '';
-                celdas += `<td style="border:1px solid #e2e8f0;padding:10px 6px;text-align:center;${val ? 'background:#ecfdf5;color:#065f46;font-weight:600;' : 'color:#cbd5e1;'}">${val || '—'}</td>`;
+                const col = _colorCursoHorario(val);
+                celdas += `<td style="border:1px solid #e2e8f0;padding:10px 6px;text-align:center;${val ? `background:${col.bg};color:${col.fg};font-weight:600;` : 'background:#f1f5f9;color:#cbd5e1;'}">${val || '—'}</td>`;
             });
             filas += `<tr>
                 <td style="border:1px solid #e2e8f0;padding:10px 12px;white-space:nowrap;background:#f8fafc;font-weight:700;color:#334155;">${diasLargos[d] || d}</td>
@@ -11715,4 +11742,4 @@ function aplicarAccionesSeguimiento() {
     document.querySelectorAll('.accion-check').forEach(function(c) { c.checked = false; });
     const otrosTexto = document.getElementById('otrosTexto');
     if (otrosTexto) { otrosTexto.style.display = 'none'; otrosTexto.value = ''; }
-}
+}v
