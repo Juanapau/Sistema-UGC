@@ -4233,33 +4233,35 @@ function _mostrarModalHorario(nombreDocente, horario, cargando) {
         cuerpo = '<div style="padding:40px;text-align:center;color:#991b1b;">No se encontró el horario de este docente en la hoja "Horarios".</div>';
     } else {
         const diasLargos = { Lu: 'Lunes', Mar: 'Martes', Mi: 'Miércoles', Jue: 'Jueves', Vie: 'Viernes' };
-        const encDias = DIAS_HORARIO.map(d => `<th style="border:1px solid #e2e8f0;padding:8px;background:#0891b2;color:#fff;font-size:0.85em;">${diasLargos[d] || d}</th>`).join('');
+        // Encabezado: Día + un período por columna (P1..P8 con su horario)
+        const encPeriodos = PERIODOS_HORARIO.map(p => `<th style="border:1px solid #e2e8f0;padding:8px 6px;background:#0891b2;color:#fff;font-size:0.82em;white-space:nowrap;">P${p.num}<br><span style="font-weight:400;">${p.inicio}-${p.fin}</span></th>`).join('');
+        // Filas: un día por fila, con el curso de cada período
         let filas = '';
-        PERIODOS_HORARIO.forEach(p => {
+        DIAS_HORARIO.forEach(d => {
             let celdas = '';
-            DIAS_HORARIO.forEach(d => {
+            PERIODOS_HORARIO.forEach(p => {
                 const val = (horario[d] && horario[d][String(p.num)]) ? horario[d][String(p.num)] : '';
-                celdas += `<td style="border:1px solid #e2e8f0;padding:8px 6px;text-align:center;${val ? 'background:#ecfdf5;color:#065f46;font-weight:600;' : 'color:#cbd5e1;'}">${val || '—'}</td>`;
+                celdas += `<td style="border:1px solid #e2e8f0;padding:10px 6px;text-align:center;${val ? 'background:#ecfdf5;color:#065f46;font-weight:600;' : 'color:#cbd5e1;'}">${val || '—'}</td>`;
             });
             filas += `<tr>
-                <td style="border:1px solid #e2e8f0;padding:8px 6px;white-space:nowrap;background:#f8fafc;font-weight:600;color:#334155;font-size:0.82em;text-align:center;">P${p.num}<br><span style="font-weight:400;color:#64748b;">${p.inicio}-${p.fin}</span></td>
+                <td style="border:1px solid #e2e8f0;padding:10px 12px;white-space:nowrap;background:#f8fafc;font-weight:700;color:#334155;">${diasLargos[d] || d}</td>
                 ${celdas}
             </tr>`;
         });
-        cuerpo = `<div style="padding:20px;background:#fff;">
+        cuerpo = `<div style="padding:24px;background:#fff;">
             <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
-                    <thead><tr><th style="border:1px solid #e2e8f0;padding:8px;background:#0e7490;color:#fff;font-size:0.85em;">Período</th>${encDias}</tr></thead>
+                <table style="width:100%;border-collapse:collapse;font-size:0.95em;">
+                    <thead><tr><th style="border:1px solid #e2e8f0;padding:8px 12px;background:#0e7490;color:#fff;font-size:0.85em;">Día</th>${encPeriodos}</tr></thead>
                     <tbody>${filas}</tbody>
                 </table>
             </div>
-            <p style="margin-top:12px;color:#64748b;font-size:0.8em;">Cada celda muestra el curso asignado en ese período. "—" indica período libre.</p>
+            <p style="margin-top:14px;color:#64748b;font-size:0.82em;">Cada celda muestra el curso asignado en ese período. "—" indica período libre.</p>
         </div>`;
     }
 
     const html = `
     <div id="modalHorarioDocente" class="modal" style="display:block;">
-        <div class="modal-content" style="max-width:820px;max-height:90vh;display:flex;flex-direction:column;">
+        <div class="modal-content" style="max-width:1150px;width:95%;max-height:92vh;display:flex;flex-direction:column;">
             <div class="modal-header" style="background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);color:white;flex-shrink:0;">
                 <h2>📅 Horario — ${nombreDocente}</h2>
                 <span class="close" onclick="cerrarModalHorario()" style="cursor:pointer;">&times;</span>
