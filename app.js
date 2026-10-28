@@ -4227,8 +4227,8 @@ const _COLORES_CURSO_HORARIO = {
     '1roa': { bg: '#e0f2fe', fg: '#075985' }, // celeste
     '1rob': { bg: '#dbeafe', fg: '#1e40af' }, // azul
     '1roc': { bg: '#e0e7ff', fg: '#3730a3' }, // índigo
-    '2doa': { bg: '#dcfce7', fg: '#166534' }, // verde
-    '2dob': { bg: '#d1fae5', fg: '#065f46' }, // esmeralda
+    '2doa': { bg: '#d6f5df', fg: '#166534' }, // verde (tono propio, no choca con el tema oscuro)
+    '2dob': { bg: '#d1fae5', fg: '#047857' }, // esmeralda (texto que no choca con el tema oscuro)
     '2doc': { bg: '#ccfbf1', fg: '#115e59' }, // turquesa
     '3roa': { bg: '#cffafe', fg: '#155e75' }, // cian
     '3rob': { bg: '#bfdbfe', fg: '#1e40af' }, // azul
@@ -11742,4 +11742,4 @@ function aplicarAccionesSeguimiento() {
     document.querySelectorAll('.accion-check').forEach(function(c) { c.checked = false; });
     const otrosTexto = document.getElementById('otrosTexto');
     if (otrosTexto) { otrosTexto.style.display = 'none'; otrosTexto.value = ''; }
-}v
+}
